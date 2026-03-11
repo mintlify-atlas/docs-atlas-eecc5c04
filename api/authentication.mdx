@@ -1,0 +1,261 @@
+---
+title: 'Authentication'
+description: 'Learn how to authenticate with the SIGEAC API using Bearer tokens'
+icon: 'lock'
+---
+
+## Overview
+
+The SIGEAC API uses Bearer token authentication. All authenticated requests must include an `Authorization` header with a valid Bearer token.
+
+## Authentication Flow
+
+### Login Request
+
+To authenticate, send a POST request to the `/login` endpoint with user credentials.
+
+<CodeGroup>
+```typescript TypeScript
+import axiosInstance from '@/lib/axios';
+
+const login = async (credentials: { login: string; password: string }) => {
+  const response = await axiosInstance.post('/login', credentials, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  
+  const token = response.headers['authorization'];
+  return { user: response.data, token };
+};
+```
+
+```javascript JavaScript
+const response = await fetch(`${API_BASE_URL}/login`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'skip_zrok_interstitial': 'true'
+  },
+  credentials: 'include',
+  body: JSON.stringify({
+    login: 'username',
+    password: 'password'
+  })
+});
+
+const token = response.headers.get('authorization');
+const user = await response.json();
+```
+
+```bash cURL
+curl -X POST https://api.sigeac.com/login \
+  -H "Content-Type: application/json" \
+  -H "skip_zrok_interstitial: true" \
+  -d '{
+    "login": "username",
+    "password": "password"
+  }'
+```
+</CodeGroup>
+
+### Request Body
+
+<ParamField body="login" type="string" required>
+  Username or email for authentication
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User password
+</ParamField>
+
+### Response
+
+The authentication token is returned in the `Authorization` header as a Bearer token.
+
+<ResponseField name="user" type="User">
+  User object with profile information
+  
+  <Expandable title="User properties">
+    <ResponseField name="id" type="string">
+      Unique user identifier
+    </ResponseField>
+    
+    <ResponseField name="username" type="string">
+      Username for login
+    </ResponseField>
+    
+    <ResponseField name="first_name" type="string">
+      User's first name
+    </ResponseField>
+    
+    <ResponseField name="last_name" type="string">
+      User's last name
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+    
+    <ResponseField name="isActive" type="boolean">
+      Whether the user account is active
+    </ResponseField>
+    
+    <ResponseField name="roles" type="Role[]">
+      Array of roles assigned to the user
+    </ResponseField>
+    
+    <ResponseField name="permissions" type="Permission[]">
+      Array of permissions granted to the user
+    </ResponseField>
+    
+    <ResponseField name="companies" type="Company[]">
+      Companies associated with the user
+    </ResponseField>
+    
+    <ResponseField name="employee" type="Employee[]">
+      Employee profile information
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Using the Token
+
+Once you receive the authentication token, include it in all subsequent API requests:
+
+<CodeGroup>
+```typescript TypeScript
+import axios from 'axios';
+import Cookies from 'js-cookie';
+
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "skip_zrok_interstitial": true,
+  },
+});
+
+// Request interceptor to add token
+axiosInstance.interceptors.request.use((config) => {
+  const token = Cookies.get('auth_token');
+  
+  if (token) {
+    const authHeader = token.startsWith('Bearer ') 
+      ? token 
+      : `Bearer ${token}`;
+    config.headers.Authorization = authHeader;
+  }
+  
+  return config;
+});
+```
+
+```bash cURL
+curl -X GET https://api.sigeac.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "skip_zrok_interstitial: true"
+```
+</CodeGroup>
+
+## Token Storage
+
+Tokens are typically stored in cookies for web applications:
+
+```typescript
+import Cookies from 'js-cookie';
+
+// Store token
+Cookies.set('auth_token', token);
+
+// Retrieve token
+const token = Cookies.get('auth_token');
+
+// Remove token (logout)
+Cookies.remove('auth_token');
+```
+
+## Error Handling
+
+### 401 Unauthorized
+
+If your token is invalid or expired, the API will return a 401 status code. The client should automatically redirect to the login page:
+
+```typescript
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("⚠️ Sesión inválida: Redirigiendo al login...");
+      
+      // Remove invalid tokens
+      Cookies.remove('auth_token');
+      Cookies.remove('jwt');
+      
+      // Redirect to login
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?session=expired';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+```
+
+### Common Error Responses
+
+<ResponseField name="message" type="string">
+  Error message describing what went wrong
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Optional error code or type
+</ResponseField>
+
+## Get Current User
+
+Retrieve the authenticated user's profile:
+
+```typescript
+const fetchUser = async (): Promise<User> => {
+  const { data } = await axiosInstance.get<User>('/user');
+  return data;
+};
+```
+
+### Response
+
+Returns a complete User object with all associated roles, permissions, and company information.
+
+## Logout
+
+To logout, clear the authentication token and session:
+
+```typescript
+const logout = async () => {
+  await deleteSession();
+  Cookies.remove('auth_token');
+  Cookies.remove('jwt');
+  window.location.href = '/login';
+};
+```
+
+## Security Best Practices
+
+<Card title="Token Management" icon="shield-check">
+  - Always use HTTPS in production
+  - Store tokens securely (httpOnly cookies recommended)
+  - Never expose tokens in URLs or logs
+  - Implement token refresh mechanism
+  - Clear tokens on logout
+</Card>
+
+<Card title="Request Headers" icon="code">
+  All authenticated requests should include:
+  - `Authorization: Bearer <token>`
+  - `skip_zrok_interstitial: true`
+  - `Content-Type: application/json` (for POST/PUT requests)
+</Card>
+
+## Rate Limiting
+
+The API may implement rate limiting on authentication endpoints to prevent brute force attacks. If you receive a 429 status code, wait before retrying.

@@ -1,0 +1,384 @@
+---
+title: 'Warehouse'
+description: 'Warehouse entity type definition and field reference'
+icon: 'warehouse'
+---
+
+## Overview
+
+The `Warehouse` type represents physical storage facilities in the SIGEAC system. Warehouses store batches of articles and are associated with specific companies and locations.
+
+## Type Definition
+
+```typescript
+export type Warehouse = {
+  id: string;
+  name: string;
+  location: {
+    address: string;
+    type: string;
+  };
+  company: string;
+  type: string;
+};
+```
+
+## Fields
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the warehouse
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Display name of the warehouse
+</ParamField>
+
+<ParamField path="location" type="object" required>
+  Physical location information for the warehouse
+  <Expandable title="Location fields">
+    <ResponseField name="address" type="string" required>
+      Full physical address of the warehouse
+    </ResponseField>
+    <ResponseField name="type" type="string" required>
+      Type of location (e.g., "HANGAR", "WAREHOUSE", "STORAGE_FACILITY")
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="company" type="string" required>
+  Company name or identifier that owns/operates this warehouse
+</ParamField>
+
+<ParamField path="type" type="string" required>
+  Classification of the warehouse (e.g., "MAIN", "SATELLITE", "TEMPORARY")
+</ParamField>
+
+## Extended Warehouse Information
+
+### Full Location Type
+
+The complete `Location` type includes additional fields:
+
+```typescript
+export type Location = {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  isMainBase: boolean;
+  cod_iata: string;
+  companies: Company[];
+};
+```
+
+<ParamField path="id" type="number">
+  Unique identifier for the location
+</ParamField>
+
+<ParamField path="name" type="string">
+  Location name (e.g., "Miami International Airport")
+</ParamField>
+
+<ParamField path="isMainBase" type="boolean">
+  Indicates if this is the primary operational base
+</ParamField>
+
+<ParamField path="cod_iata" type="string">
+  IATA airport/location code (e.g., "MIA", "JFK")
+</ParamField>
+
+<ParamField path="companies" type="Company[]">
+  Array of companies operating at this location
+</ParamField>
+
+## Warehouse Dashboard Metrics
+
+The system provides comprehensive dashboard metrics for warehouse operations:
+
+```typescript
+export interface WarehouseDashboard {
+  storedCount: number;
+  dispatchCount: number;
+  dispatchAircraftCount: number;
+  dispatchWorkOrderCount: number;
+  tool_need_calibration_count: number;
+  returnToolsCount: number;
+  restockCount: number;
+  tools_need_calibration: {
+    tool_id: number;
+    batch_name: string;
+    article_id: number;
+    part_number: string;
+    next_calibration: string;
+    status: string;
+  }[];
+  toolsToReturn: any[];
+  articlesOutOfStock: {
+    id: number;
+    description: string;
+    part_number: string;
+    serial: string | null;
+    category: string;
+    condition: string;
+    zone: string;
+  }[];
+  expired_tools_count: number;
+  expired_tools: {
+    tool_id: number;
+    article_id: number;
+    batch_name: string;
+    part_number: string;
+    next_calibration: string;
+    status: string;
+  }[];
+  userStats: {
+    id: number;
+    username: string;
+    name: string;
+    job_title: string;
+    dispatch_count: number;
+    incoming_count: number;
+    last_used_at: string;
+  }[];
+}
+```
+
+### Dashboard Metrics Fields
+
+<ResponseField name="storedCount" type="number">
+  Total number of articles currently stored in the warehouse
+</ResponseField>
+
+<ResponseField name="dispatchCount" type="number">
+  Total number of dispatch requests processed
+</ResponseField>
+
+<ResponseField name="dispatchAircraftCount" type="number">
+  Number of dispatches specifically for aircraft
+</ResponseField>
+
+<ResponseField name="dispatchWorkOrderCount" type="number">
+  Number of dispatches related to work orders
+</ResponseField>
+
+<ResponseField name="tool_need_calibration_count" type="number">
+  Count of tools requiring calibration
+</ResponseField>
+
+<ResponseField name="returnToolsCount" type="number">
+  Number of tools awaiting return to warehouse
+</ResponseField>
+
+<ResponseField name="restockCount" type="number">
+  Number of items below minimum quantity threshold requiring restock
+</ResponseField>
+
+<ResponseField name="tools_need_calibration" type="array">
+  Detailed list of tools requiring calibration
+  <Expandable title="Tool calibration details">
+    <ResponseField name="tool_id" type="number">
+      Tool identifier
+    </ResponseField>
+    <ResponseField name="batch_name" type="string">
+      Name of the batch containing the tool
+    </ResponseField>
+    <ResponseField name="article_id" type="number">
+      Associated article ID
+    </ResponseField>
+    <ResponseField name="part_number" type="string">
+      Part number of the tool
+    </ResponseField>
+    <ResponseField name="next_calibration" type="string">
+      Next scheduled calibration date
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Current calibration status
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="articlesOutOfStock" type="array">
+  List of articles that have fallen below minimum quantity
+  <Expandable title="Out of stock article details">
+    <ResponseField name="id" type="number">
+      Article identifier
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Article description
+    </ResponseField>
+    <ResponseField name="part_number" type="string">
+      Part number
+    </ResponseField>
+    <ResponseField name="serial" type="string | null">
+      Serial number (if tracked)
+    </ResponseField>
+    <ResponseField name="category" type="string">
+      Article category
+    </ResponseField>
+    <ResponseField name="condition" type="string">
+      Current condition
+    </ResponseField>
+    <ResponseField name="zone" type="string">
+      Storage zone
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="expired_tools" type="array">
+  Tools with expired calibration certificates
+</ResponseField>
+
+<ResponseField name="userStats" type="array">
+  User activity statistics for warehouse operations
+  <Expandable title="User statistics fields">
+    <ResponseField name="id" type="number">
+      User identifier
+    </ResponseField>
+    <ResponseField name="username" type="string">
+      Username
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Full name
+    </ResponseField>
+    <ResponseField name="job_title" type="string">
+      Job title
+    </ResponseField>
+    <ResponseField name="dispatch_count" type="number">
+      Number of dispatches processed by user
+    </ResponseField>
+    <ResponseField name="incoming_count" type="number">
+      Number of incoming shipments processed by user
+    </ResponseField>
+    <ResponseField name="last_used_at" type="string">
+      Last activity timestamp
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Data
+
+### Basic Warehouse
+
+```json
+{
+  "id": "WH-001",
+  "name": "Main Warehouse - Miami",
+  "location": {
+    "address": "2450 NW 21st Street, Miami, FL 33142",
+    "type": "WAREHOUSE"
+  },
+  "company": "SIGEAC Aviation Services",
+  "type": "MAIN"
+}
+```
+
+### Hangar Facility
+
+```json
+{
+  "id": "HG-MIA-05",
+  "name": "Hangar 5 - MIA",
+  "location": {
+    "address": "Miami International Airport, Hangar 5, Miami, FL 33142",
+    "type": "HANGAR"
+  },
+  "company": "SIGEAC Aviation Services",
+  "type": "SATELLITE"
+}
+```
+
+### Warehouse with Full Location Details
+
+```json
+{
+  "id": "WH-002",
+  "name": "Regional Distribution Center",
+  "location": {
+    "id": 5,
+    "name": "Fort Lauderdale Storage Facility",
+    "address": "1500 Airport Road, Fort Lauderdale, FL 33315",
+    "type": "WAREHOUSE",
+    "isMainBase": false,
+    "cod_iata": "FLL",
+    "companies": [
+      {
+        "id": 1,
+        "name": "SIGEAC Aviation Services",
+        "slug": "sigeac-aviation"
+      }
+    ]
+  },
+  "company": "SIGEAC Aviation Services",
+  "type": "SATELLITE"
+}
+```
+
+## Warehouse Relationships
+
+### Batch Association
+
+Batches reference their warehouse:
+
+```typescript
+export type Batch = {
+  // ... other fields
+  warehouse_id: number;
+  warehouse_name: string;
+};
+```
+
+### Company Association
+
+Companies have multiple associated locations:
+
+```typescript
+export type Company = {
+  id: number;
+  name: string;
+  // ... other fields
+};
+
+export type Location = {
+  id: number;
+  name: string;
+  address: string;
+  companies: Company[];
+  // ... other fields
+};
+```
+
+## Use Cases
+
+### Multi-Location Inventory Management
+
+Track inventory across multiple warehouse locations:
+
+- Main distribution centers
+- Satellite facilities at airports
+- Temporary storage locations
+- Hangar-based inventory
+
+### Operational Metrics
+
+Monitor warehouse performance:
+
+- Storage capacity utilization
+- Dispatch processing times
+- Tool calibration compliance
+- Stock level maintenance
+- User productivity tracking
+
+### Maintenance Alerts
+
+Automated notifications for:
+
+- Tools requiring calibration
+- Expired tool certifications
+- Items below minimum stock levels
+- Pending tool returns
+
+## Related Types
+
+- [Batch](/api/batches) - Article groupings stored in warehouses
+- [Article](/api/articles) - Individual items stored in warehouse batches
+- [DispatchRequest](/api/dispatch-requests) - Requests to move articles from warehouses

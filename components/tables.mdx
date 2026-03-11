@@ -1,0 +1,541 @@
+---
+title: Tables
+description: Advanced data tables with sorting, filtering, pagination, and column controls powered by TanStack Table
+---
+
+## Overview
+
+SIGEAC uses TanStack Table (React Table) v8 for powerful, accessible data tables with advanced features like sorting, filtering, pagination, and column visibility controls.
+
+## Table Components
+
+### DataTablePagination
+
+Provides pagination controls with page size selection and navigation buttons.
+
+**Location**: `components/tables/DataTablePagination.tsx:23`
+
+#### Props
+
+<ParamField path="table" type="Table<TData>" required>
+  TanStack Table instance with pagination state
+</ParamField>
+
+#### Type Definition
+
+```tsx
+interface DataTablePaginationProps<TData> {
+  table: Table<TData>
+}
+```
+
+#### Features
+
+- Displays selected row count
+- Page size selector (5, 10, 20, 30, 40 items)
+- First/previous/next/last page navigation
+- Current page indicator
+- Responsive layout (stacks on mobile)
+- Disabled states for boundary conditions
+
+#### Usage Example
+
+```tsx
+import { DataTablePagination } from '@/components/tables/DataTablePagination';
+import { useReactTable } from '@tanstack/react-table';
+
+export function EmployeeTable({ data }) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div>
+      {/* Table content */}
+      <DataTablePagination table={table} />
+    </div>
+  );
+}
+```
+
+#### Implementation Details
+
+<CodeGroup>
+
+```tsx Selected Row Count
+<div className="flex-1 text-sm text-muted-foreground">
+  {table.getFilteredSelectedRowModel().rows.length} de{" "}
+  {table.getFilteredRowModel().rows.length} fila(s) seleccionada.
+</div>
+```
+
+```tsx Page Size Selector
+<Select
+  value={`${table.getState().pagination.pageSize}`}
+  onValueChange={(value) => table.setPageSize(Number(value))}
+>
+  <SelectTrigger className="h-8 w-[70px]">
+    <SelectValue placeholder={table.getState().pagination.pageSize} />
+  </SelectTrigger>
+  <SelectContent side="top">
+    {[5, 10, 20, 30, 40].map((pageSize) => (
+      <SelectItem key={pageSize} value={`${pageSize}`}>
+        {pageSize}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+```
+
+```tsx Navigation Buttons
+<Button
+  variant="outline"
+  className="h-8 w-8 p-0"
+  onClick={() => table.previousPage()}
+  disabled={!table.getCanPreviousPage()}
+>
+  <ChevronLeftIcon className="h-4 w-4" />
+</Button>
+
+<Button
+  variant="outline"
+  className="h-8 w-8 p-0"
+  onClick={() => table.nextPage()}
+  disabled={!table.getCanNextPage()}
+>
+  <ChevronRightIcon className="h-4 w-4" />
+</Button>
+```
+
+</CodeGroup>
+
+### DataTableColumnHeader
+
+Sortable column headers with optional inline filtering.
+
+**Location**: `components/tables/DataTableHeader.tsx:35`
+
+#### Props
+
+<ParamField path="column" type="Column<TData, TValue>" required>
+  TanStack Table column instance
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Display name for the column
+</ParamField>
+
+<ParamField path="filter" type="boolean" default="false">
+  Enable inline filtering in the dropdown
+</ParamField>
+
+<ParamField path="icon" type="LucideIcon" optional>
+  Icon to display next to the title
+</ParamField>
+
+<ParamField path="align" type="'left' | 'center' | 'right'" default="'center'">
+  Text alignment for the header
+</ParamField>
+
+#### Usage Example
+
+<Tabs>
+  <Tab title="Basic Sortable">
+    ```tsx
+    import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
+    import { createColumnHelper } from '@tanstack/react-table';
+    
+    const columnHelper = createColumnHelper<Employee>();
+    
+    const columns = [
+      columnHelper.accessor('first_name', {
+        header: ({ column }) => (
+          <DataTableColumnHeader 
+            column={column} 
+            title="Nombre" 
+            align="left"
+          />
+        ),
+        cell: info => info.getValue(),
+      }),
+    ];
+    ```
+  </Tab>
+  
+  <Tab title="With Filter">
+    ```tsx
+    const columns = [
+      columnHelper.accessor('email', {
+        header: ({ column }) => (
+          <DataTableColumnHeader 
+            column={column} 
+            title="Email" 
+            filter={true}
+            align="left"
+          />
+        ),
+        cell: info => info.getValue(),
+      }),
+    ];
+    ```
+  </Tab>
+  
+  <Tab title="With Icon">
+    ```tsx
+    import { Mail } from 'lucide-react';
+    
+    const columns = [
+      columnHelper.accessor('email', {
+        header: ({ column }) => (
+          <DataTableColumnHeader 
+            column={column} 
+            title="Email" 
+            icon={Mail}
+            filter={true}
+          />
+        ),
+        cell: info => info.getValue(),
+      }),
+    ];
+    ```
+  </Tab>
+</Tabs>
+
+#### Features
+
+<CardGroup cols={2}>
+  <Card title="Sorting" icon="arrow-up-arrow-down">
+    Click to toggle between ascending, descending, and no sort
+  </Card>
+  
+  <Card title="Filtering" icon="filter">
+    Search box for inline column filtering (when `filter={true}`)
+  </Card>
+  
+  <Card title="Column Visibility" icon="eye-slash">
+    Hide/show columns from the dropdown menu
+  </Card>
+  
+  <Card title="Visual Indicators" icon="icons">
+    Arrow icons show current sort direction
+  </Card>
+</CardGroup>
+
+#### Dropdown Menu Structure
+
+```tsx
+<DropdownMenuContent align="start" className="w-72">
+  {filter && (
+    <>
+      <div className="p-2">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 h-4 w-4" />
+          <Input
+            value={filterValue}
+            onChange={(e) => column.setFilterValue(e.target.value)}
+            placeholder={`Filtrar ${title.toLowerCase()}...`}
+            className="h-9 pl-8 pr-8"
+          />
+          {filterValue && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => column.setFilterValue('')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <DropdownMenuSeparator />
+    </>
+  )}
+  
+  <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+    <ArrowUpIcon className="mr-2 h-3.5 w-3.5" />
+    Ascendente
+  </DropdownMenuItem>
+  
+  <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+    <ArrowDownIcon className="mr-2 h-3.5 w-3.5" />
+    Descendente
+  </DropdownMenuItem>
+  
+  <DropdownMenuSeparator />
+  
+  <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+    <EyeOff className="mr-2 h-3.5 w-3.5" />
+    Ocultar columna
+  </DropdownMenuItem>
+</DropdownMenuContent>
+```
+
+### DataTableViewOptions
+
+Column visibility toggle component.
+
+**Location**: `components/tables/DataTableViewOptions.tsx`
+
+```tsx
+import { DataTableViewOptions } from '@/components/tables/DataTableViewOptions';
+
+<DataTableViewOptions table={table} />
+```
+
+### DataTableFacetedFilter
+
+Multi-select faceted filtering for categorical columns.
+
+**Location**: `components/tables/DataTableFacetedFilter.tsx`
+
+```tsx
+import { DataTableFacetedFilter } from '@/components/tables/DataTableFacetedFilter';
+
+<DataTableFacetedFilter
+  column={table.getColumn("status")}
+  title="Estado"
+  options={[
+    { label: "Activo", value: "active" },
+    { label: "Inactivo", value: "inactive" },
+  ]}
+/>
+```
+
+## Complete Table Example
+
+Here's a full implementation of a data table with all features:
+
+```tsx
+import { useState } from 'react';
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+  type ColumnFiltersState,
+} from '@tanstack/react-table';
+import { DataTablePagination } from '@/components/tables/DataTablePagination';
+import { DataTableColumnHeader } from '@/components/tables/DataTableHeader';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
+
+interface Employee {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  department: string;
+  status: 'active' | 'inactive';
+}
+
+export function EmployeeTable({ data }: { data: Employee[] }) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = useState({});
+
+  const columns: ColumnDef<Employee>[] = [
+    {
+      accessorKey: 'first_name',
+      header: ({ column }) => (
+        <DataTableColumnHeader 
+          column={column} 
+          title="Nombre" 
+          filter={true}
+          align="left"
+        />
+      ),
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue('first_name')}</div>
+      ),
+    },
+    {
+      accessorKey: 'last_name',
+      header: ({ column }) => (
+        <DataTableColumnHeader 
+          column={column} 
+          title="Apellido" 
+          align="left"
+        />
+      ),
+    },
+    {
+      accessorKey: 'email',
+      header: ({ column }) => (
+        <DataTableColumnHeader 
+          column={column} 
+          title="Email" 
+          filter={true}
+        />
+      ),
+    },
+    {
+      accessorKey: 'department',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Departamento" />
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: 'Estado',
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string;
+        return (
+          <Badge variant={status === 'active' ? 'success' : 'secondary'}>
+            {status === 'active' ? 'Activo' : 'Inactivo'}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button size="icon" variant="ghost">
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      rowSelection,
+    },
+    enableRowSelection: true,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No se encontraron resultados.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <DataTablePagination table={table} />
+    </div>
+  );
+}
+```
+
+## Styling Tables
+
+### Sticky Columns
+
+For tables with many columns, make action columns sticky:
+
+```css
+.table-sticky-right {
+  position: sticky;
+  right: 0;
+  background: #ffffff;
+  z-index: 40;
+  min-width: 100px;
+}
+```
+
+### Custom Table Styles
+
+```css
+.tasks-table th {
+  @apply font-semibold text-sm bg-muted/30;
+}
+
+.tasks-table td {
+  @apply align-top;
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Keep column definitions memoized">
+    Define columns outside the component or use `useMemo` to prevent unnecessary re-renders.
+  </Accordion>
+  
+  <Accordion title="Enable features selectively">
+    Only enable sorting, filtering, or selection on columns that need it to improve performance.
+  </Accordion>
+  
+  <Accordion title="Provide empty states">
+    Always show a helpful message when no data is available.
+  </Accordion>
+  
+  <Accordion title="Use consistent column widths">
+    Set minimum widths for action columns and ID columns to prevent layout shifts.
+  </Accordion>
+  
+  <Accordion title="Handle loading states">
+    Show skeleton loaders or spinners while data is being fetched.
+  </Accordion>
+</AccordionGroup>
+
+## Related Components
+
+- [Forms](/components/forms) - Create/edit records from tables
+- [Dialogs](/components/dialogs) - Show detailed views or edit forms

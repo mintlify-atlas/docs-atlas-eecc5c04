@@ -1,0 +1,650 @@
+---
+title: 'Role-Based Access Control (RBAC)'
+description: 'Learn how SIGEAC manages user roles, permissions, and access control across modules'
+icon: 'user-shield'
+---
+
+## Overview
+
+SIGEAC implements a comprehensive **Role-Based Access Control (RBAC)** system where users are assigned roles that determine their access to features, modules, and data. The system supports hierarchical roles, permission inheritance, and company-specific role assignments.
+
+## Role Structure
+
+### Role Type Definition
+
+```typescript types/index.ts
+export type Role = {
+  id: number;
+  name: string;           // Role identifier (e.g., "SUPERUSER")
+  label: string;          // Human-readable label (e.g., "Super Usuario")
+  company: {              // Roles can be company-specific
+    name: string;
+    description: string;
+  }[];
+};
+
+export type Permission = {
+  id: number;
+  name: string;           // Permission identifier
+  label: string;          // Human-readable label
+  modules: {              // Permissions are tied to modules
+    id: number;
+    name: string;
+    description: string;
+    registered_by: string;
+    company_id: string;
+    company: {
+      id: number;
+      name: string;
+      description: string;
+    };
+  }[];
+};
+
+export type User = {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  isActive: boolean;
+  roles?: {                          // Users can have multiple roles
+    id: number;
+    name: string;
+    label: string;
+    permissions: Permission[];       // Each role has permissions
+  }[];
+  permissions: Permission[];         // Direct user permissions
+  companies: Company[];
+  employee: Employee[];
+};
+```
+
+## System Roles
+
+SIGEAC has a hierarchical role system organized by department and seniority:
+
+### Administrative Roles
+
+<Tabs>
+  <Tab title="Super Administrator">
+    **`SUPERUSER`**
+    - Full system access across all companies
+    - Bypass most access restrictions
+    - Access to system configuration
+    - Special handling in session management (no auto-logout)
+    
+    ```tsx Role Check Example
+    const isSuperUser = user?.roles?.some(
+      (role) => role.name === 'SUPERUSER'
+    );
+    ```
+  </Tab>
+  
+  <Tab title="Company Admin">
+    **`ADMIN`**
+    - Company-wide administrative access
+    - User management
+    - Configuration settings
+    - Report access
+  </Tab>
+  
+  <Tab title="Regular User">
+    **`REGULAR`**
+    - Basic access to assigned modules
+    - Limited to specific workflows
+    - Cannot modify system settings
+  </Tab>
+</Tabs>
+
+### Department Roles
+
+SIGEAC organizes roles by aviation departments:
+
+#### Warehouse (Almacén)
+
+```typescript Warehouse Roles
+[
+  "JEFE_ALMACEN",          // Warehouse Manager
+  "ANALISTA_ALMACEN",      // Warehouse Analyst
+]
+```
+
+**Permissions**:
+- Inventory management
+- Article dispatch
+- Stock control
+- Tool calibration tracking
+- Restock requests
+
+#### SMS (Safety Management System)
+
+```typescript SMS Roles
+[
+  "JEFE_SMS",              // SMS Manager
+  "ANALISTA_SMS",          // SMS Analyst
+]
+```
+
+**Permissions**:
+- Voluntary reports
+- Obligatory reports
+- Hazard identification
+- Mitigation plans
+- Safety bulletins
+- Survey management
+
+#### Planning (Planificación)
+
+```typescript Planning Roles
+[
+  "JEFE_PLANIFICACION",         // Planning Manager
+  "ANALISTA_PLANIFICACION",     // Planning Analyst
+]
+```
+
+**Permissions**:
+- Work order creation
+- Maintenance scheduling
+- Aircraft part tracking
+- Flight control logs
+- Service task management
+
+#### Procurement (Compras)
+
+```typescript Procurement Roles
+[
+  "JEFE_COMPRAS",          // Procurement Manager
+  "ANALISTA_COMPRAS",      // Procurement Analyst
+]
+```
+
+**Permissions**:
+- Purchase orders
+- Quote requests
+- Vendor management
+- Requisition approvals
+
+#### Administration (Administración)
+
+```typescript Administration Roles
+[
+  "JEFE_ADMINISTRACION",         // Administration Manager
+  "ANALISTA_ADMINISTRACION",     // Administration Analyst
+  "CONTADOR_ADMINISTRACION",     // Accountant
+  "RRHH_ADMINISTRACION",         // HR Administrator
+]
+```
+
+**Permissions**:
+- Financial operations
+- Cash flow management
+- Flight operations
+- Employee management
+- Client/vendor relations
+
+#### Development (Desarrollo)
+
+```typescript Development Roles
+[
+  "JEFE_DESARROLLO",       // Development Manager
+  "ANALISTA_DESARROLLO",   // Development Analyst
+]
+```
+
+**Permissions**:
+- Activity reports
+- Project tracking
+- Development tasks
+
+#### Accounting (Contaduría)
+
+```typescript Accounting Roles
+[
+  "JEFE_CONTADURIA",       // Accounting Manager
+]
+```
+
+## Role-Based Routing
+
+### Dashboard Selection
+
+SIGEAC routes users to different dashboards based on their roles:
+
+```typescript app/[company]/dashboard/page.tsx
+export default function DashboardPage() {
+  const { selectedCompany, selectedStation } = useCompanyStore();
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingPage />;
+  if (!user) return <DefaultDashboard />;
+
+  const roleNames = user.roles?.map((r) => r.name) || [];
+
+  const hasRole = (names: string[]) =>
+    names.some((r) => roleNames.includes(r));
+
+  const getDashboardType = () => {
+    // Priority order matters!
+    if (hasRole(["SUPERUSER"])) {
+      return "SUPERUSER";
+    }
+
+    if (hasRole(["JEFE_ALMACEN", "ANALISTA_ALMACEN"])) {
+      return "WAREHOUSE";
+    }
+
+    if (hasRole(["JEFE_SMS", "ANALISTA_SMS"])) {
+      return "SMS";
+    }
+
+    if (
+      hasRole([
+        "ANALISTA_ADMINISTRACION",
+        "RRHH_ADMINISTRACION",
+        "JEFE_ADMINISTRACION",
+        "CONTADOR_ADMINISTRACION",
+      ])
+    ) {
+      return "ADMINISTRATION";
+    }
+
+    return "DEFAULT";
+  };
+
+  switch (getDashboardType()) {
+    case "SUPERUSER":
+      return <SuperUserDashboard companySlug={selectedCompany?.slug} />;
+    
+    case "WAREHOUSE":
+      return <WarehouseDashboard companySlug={selectedCompany?.slug} />;
+    
+    case "SMS":
+      return <SMSDashboard companySlug={selectedCompany?.slug} />;
+    
+    case "ADMINISTRATION":
+      return <AdministrationDashboard companySlug={selectedCompany?.slug} />;
+    
+    default:
+      return <DefaultDashboard companySlug={selectedCompany?.slug} />;
+  }
+}
+```
+
+<Note>
+**Priority-Based Routing**: If a user has multiple roles (e.g., both `SUPERUSER` and `JEFE_ALMACEN`), the dashboard with higher priority is shown. `SUPERUSER` always takes precedence.
+</Note>
+
+## Protected Routes
+
+### Layout-Level Protection
+
+Each module has a protected layout that enforces role requirements:
+
+```tsx app/[company]/almacen/layout.tsx
+import ProtectedLayout from '@/components/layout/ProtectedLayout';
+
+const WarehouseLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ProtectedLayout roles={["ANALISTA_ALMACEN", "JEFE_ALMACEN", "SUPERUSER", "REGULAR"]}>
+      {children}
+    </ProtectedLayout>
+  );
+}
+
+export default WarehouseLayout;
+```
+
+### ProtectedLayout Component
+
+```tsx components/layout/ProtectedLayout.tsx
+interface ProtectedLayoutProps {
+  children: ReactNode;
+  roles?: string[];           // Required roles
+  permissions?: string[];     // Required permissions
+}
+
+const ProtectedLayout = ({ children, roles, permissions }: ProtectedLayoutProps) => {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      const userRoles = user.roles?.map(role => role.name) || [];
+      const userPermissions = user.roles?.flatMap(role =>
+        role.permissions.map(permission => permission.name)
+      ) || [];
+
+      // Check role access
+      if (roles && !roles.some(role => userRoles.includes(role))) {
+        router.push('/not-authorized');
+        return;
+      }
+
+      // Check permission access
+      if (permissions && !permissions.some(permission => userPermissions.includes(permission))) {
+        router.push('/not-authorized');
+      }
+    }
+  }, [loading, user, roles, permissions, router]);
+
+  if (loading) return <LoadingPage />;
+  if (!user) return null;
+
+  // Final verification before render
+  const finalUserRoles = user.roles?.map(role => role.name) || [];
+  const finalUserPermissions = user.roles?.flatMap(role =>
+    role.permissions.map(permission => permission.name)
+  ) || [];
+
+  if (roles && !roles.some(role => finalUserRoles.includes(role))) {
+    return null;
+  }
+
+  if (permissions && !permissions.some(permission => finalUserPermissions.includes(permission))) {
+    return null;
+  }
+
+  return <>{children}</>;
+};
+```
+
+<Warning>
+**Double Verification**: The ProtectedLayout performs role checks both in `useEffect` (for navigation) and before render (for security). This prevents unauthorized content from flashing on screen.
+</Warning>
+
+## Menu Filtering
+
+Navigation menus are filtered based on user roles:
+
+```typescript lib/menu-list.tsx
+type Menu = {
+  href: string;
+  label: string;
+  active: boolean;
+  icon: LucideIcon;
+  roles: string[];        // Required roles to see this menu
+  submenus: Submenu[];
+};
+
+type Submenu = {
+  href: string;
+  label: string;
+  active: boolean;
+  roles?: string[];       // Optional: inherit from parent if not specified
+};
+
+export function getMenuList(
+  pathname: string,
+  company: string,
+  userRoles: string[]
+): Group[] {
+  function hasAccess(menuItem: Menu | Submenu): boolean {
+    if (!menuItem.roles || menuItem.roles.length === 0) {
+      return true;  // No role restriction
+    }
+    return menuItem.roles.some((role) => userRoles.includes(role));
+  }
+  
+  // Example: SMS Menu
+  return [
+    {
+      groupLabel: "SMS",
+      menus: [
+        {
+          href: "/transmandu/sms",
+          label: "Reportes",
+          icon: ClipboardPen,
+          roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+          submenus: [
+            {
+              href: "/transmandu/sms/reportes/reportes_voluntarios",
+              label: "Reportes Voluntarios",
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+            },
+            {
+              href: "/transmandu/sms/reportes/reportes_obligatorios",
+              label: "Reportes Obligatorios",
+              roles: ["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"],
+            },
+          ],
+        },
+      ],
+    },
+  ].map(group => ({
+    ...group,
+    menus: group.menus.filter(hasAccess).map(menu => ({
+      ...menu,
+      submenus: menu.submenus.filter(hasAccess)
+    }))
+  }));
+}
+```
+
+### Usage in Components
+
+```tsx components/sidebar/Menu.tsx
+const { user } = useAuth();
+const { selectedCompany } = useCompanyStore();
+
+const userRoles = user?.roles?.map(r => r.name) || [];
+const menuList = useMemo(() => {
+  return getMenuList(pathname, selectedCompany?.name, userRoles);
+}, [pathname, selectedCompany, userRoles]);
+```
+
+## Permission Checks
+
+For granular access control, use permission-level checks:
+
+```tsx Example Permission Check
+const { user } = useAuth();
+
+const userPermissions = user?.roles?.flatMap(role =>
+  role.permissions.map(p => p.name)
+) || [];
+
+const canCreateWorkOrder = userPermissions.includes('create_work_order');
+const canApproveRequisition = userPermissions.includes('approve_requisition');
+
+if (!canCreateWorkOrder) {
+  return <UnauthorizedMessage />;
+}
+```
+
+## Role Checking Utilities
+
+Create reusable hooks for role checking:
+
+```typescript hooks/useRoleCheck.ts
+import { useAuth } from '@/contexts/AuthContext';
+
+export function useRoleCheck() {
+  const { user } = useAuth();
+  
+  const roleNames = user?.roles?.map(r => r.name) || [];
+  
+  const hasRole = (roles: string | string[]) => {
+    const roleArray = Array.isArray(roles) ? roles : [roles];
+    return roleArray.some(role => roleNames.includes(role));
+  };
+  
+  const hasAllRoles = (roles: string[]) => {
+    return roles.every(role => roleNames.includes(role));
+  };
+  
+  const hasPermission = (permissionName: string) => {
+    const permissions = user?.roles?.flatMap(role =>
+      role.permissions.map(p => p.name)
+    ) || [];
+    return permissions.includes(permissionName);
+  };
+  
+  return {
+    user,
+    roleNames,
+    hasRole,
+    hasAllRoles,
+    hasPermission,
+    isSuperUser: hasRole('SUPERUSER'),
+    isWarehouseUser: hasRole(['JEFE_ALMACEN', 'ANALISTA_ALMACEN']),
+    isSMSUser: hasRole(['JEFE_SMS', 'ANALISTA_SMS']),
+  };
+}
+```
+
+### Usage Example
+
+```tsx Component Using Role Check
+import { useRoleCheck } from '@/hooks/useRoleCheck';
+
+export default function ArticleDispatchPage() {
+  const { hasRole, isSuperUser, isWarehouseUser } = useRoleCheck();
+  
+  if (!isWarehouseUser && !isSuperUser) {
+    return <UnauthorizedPage />;
+  }
+  
+  return (
+    <div>
+      <h1>Article Dispatch</h1>
+      {hasRole('JEFE_ALMACEN') && (
+        <button>Approve All</button>
+      )}
+    </div>
+  );
+}
+```
+
+## Module-Based Access
+
+Access is also controlled by company modules:
+
+```typescript Module Filtering
+const isModuleActive = (moduleValue: string) => {
+  return selectedCompany?.modules?.some(
+    (module) => module.value === moduleValue
+  );
+};
+
+const hasRoleAccess = (menuItem: { roles?: string[] }): boolean => {
+  if (!menuItem.roles || menuItem.roles.length === 0) return true;
+  return menuItem.roles.some(role => userRoles.includes(role));
+};
+
+// Filter menus by both module AND role
+const filteredMenus = menus.filter(
+  (menu) => isModuleActive(menu.moduleValue) && hasRoleAccess(menu)
+);
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always use ProtectedLayout for sensitive routes">
+    Wrap all protected pages with `ProtectedLayout` to enforce server-side and client-side checks:
+    
+    ```tsx
+    <ProtectedLayout roles={["JEFE_ALMACEN", "ANALISTA_ALMACEN", "SUPERUSER"]}>
+      <YourProtectedPage />
+    </ProtectedLayout>
+    ```
+  </Accordion>
+  
+  <Accordion title="Include SUPERUSER in all role checks">
+    Unless explicitly restricted, always include `SUPERUSER` in role arrays to ensure admins have access:
+    
+    ```tsx
+    roles={["ANALISTA_SMS", "JEFE_SMS", "SUPERUSER"]}
+    ```
+  </Accordion>
+  
+  <Accordion title="Check roles on both client and server">
+    For maximum security, verify roles in:
+    - Middleware (server)
+    - Layout components (client)
+    - API endpoints (server)
+    
+    ```typescript Server Action
+    export async function createWorkOrder(data: FormData) {
+      const session = await verifySession();
+      const user = await getUserById(session.userId);
+      
+      const hasAccess = user.roles.some(r => 
+        ['JEFE_PLANIFICACION', 'ANALISTA_PLANIFICACION', 'SUPERUSER'].includes(r.name)
+      );
+      
+      if (!hasAccess) {
+        throw new Error('Unauthorized');
+      }
+      
+      // Proceed with work order creation...
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Use permission-level checks for fine-grained control">
+    For specific operations, check permissions instead of roles:
+    
+    ```tsx
+    <ProtectedLayout permissions={["approve_purchase_orders"]}>
+      <PurchaseOrderApprovalPage />
+    </ProtectedLayout>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Common Access Patterns
+
+<Tabs>
+  <Tab title="Read-Only Access">
+    Allow users to view but not modify:
+    
+    ```tsx
+    const { hasRole } = useRoleCheck();
+    const canEdit = hasRole(['JEFE_ALMACEN', 'SUPERUSER']);
+    
+    <Button disabled={!canEdit}>Edit Article</Button>
+    ```
+  </Tab>
+  
+  <Tab title="Hierarchical Access">
+    Managers have all analyst permissions plus additional ones:
+    
+    ```tsx
+    const isManager = hasRole(['JEFE_ALMACEN', 'JEFE_SMS']);
+    const isAnalyst = hasRole(['ANALISTA_ALMACEN', 'ANALISTA_SMS']);
+    
+    {(isManager || isAnalyst) && <ViewReports />}
+    {isManager && <ApproveReports />}
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Role Access">
+    Users with any of several roles:
+    
+    ```tsx
+    <ProtectedLayout 
+      roles={[
+        "JEFE_COMPRAS",
+        "ANALISTA_COMPRAS",
+        "JEFE_ALMACEN",
+        "SUPERUSER"
+      ]}
+    >
+      <RequisitionPage />
+    </ProtectedLayout>
+    ```
+  </Tab>
+</Tabs>
+
+## Related Concepts
+
+- [Authentication](/concepts/authentication) - How users log in and obtain roles
+- [Multi-Tenant Architecture](/concepts/multi-tenant-architecture) - How roles interact with companies and locations

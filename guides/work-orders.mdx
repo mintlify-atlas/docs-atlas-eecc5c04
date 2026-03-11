@@ -1,0 +1,597 @@
+---
+title: Work Orders
+description: Complete guide to creating and managing maintenance work orders in SIGEAC
+---
+
+## Introduction
+
+Work Orders are the core of maintenance operations in SIGEAC. They document all maintenance activities performed on aircraft, from routine inspections to major repairs.
+
+<Note>
+  Work Orders are managed in the **Planificación** module under `/{company-slug}/planificacion/ordenes_trabajo`
+</Note>
+
+## Work Order Structure
+
+Each work order in SIGEAC contains:
+
+- **Order Number** - Unique identifier (auto-generated)
+- **Aircraft Information** - Which aircraft the work is being performed on
+- **Client Details** - Owner or operator requesting the service
+- **Status** - Current state of the work order
+- **Dates** - Creation and target completion dates
+- **Tasks** - Individual maintenance tasks to be performed
+- **Personnel** - Technicians, inspectors, and approvers
+- **Reports** - Findings and actions taken
+
+## Accessing Work Orders
+
+<Steps>
+  <Step title="Navigate to Planning Module">
+    From the main navigation, select **Planificación** from your company's module list.
+  </Step>
+
+  <Step title="Open Work Orders Section">
+    Click on **Ordenes de Trabajo** to access the work order management interface.
+  </Step>
+
+  <Step title="View Work Order List">
+    The main page displays a data table of all work orders with:
+    - Order number and status
+    - Aircraft registration
+    - Client name
+    - Creation date
+    - Responsible personnel
+    - Progress indicators
+  </Step>
+</Steps>
+
+## Creating a New Work Order
+
+<Steps>
+  <Step title="Initiate Work Order Creation">
+    Click the **"Nueva Orden de Trabajo"** button on the work orders page.
+  </Step>
+
+  <Step title="Select Aircraft and Client">
+    Choose the aircraft that will receive maintenance:
+    
+    - **Aircraft** - Select from registered aircraft in your system
+    - **Client** - The owner or operator (auto-populated from aircraft record)
+    - **Location** - Current location where work will be performed
+
+    <Tip>
+      The client field automatically fills based on the selected aircraft's registered owner/operator.
+    </Tip>
+  </Step>
+
+  <Step title="Enter Work Order Details">
+    Provide the basic work order information:
+
+    **Auto-Generated:**
+    - **Order Number** - Automatically assigned sequential number
+    - **Date** - Creation date (defaults to today)
+
+    **Required Information:**
+    - **Description** - Brief overview of the work to be performed
+    - **Justification** - Reason for the maintenance (regulatory, preventive, corrective)
+    - **Status** - Initial status (typically "EN PROCESO" or "PENDIENTE")
+  </Step>
+
+  <Step title="Assign Responsible Personnel">
+    Designate key personnel for the work order:
+
+    - **Elaborated By** - Person creating the work order
+    - **Reviewed By** - Quality inspector or supervisor
+    - **Approved By** - Final authorization authority
+
+    <Note>
+      These fields may be populated automatically based on your user role and can be changed as the work order progresses.
+    </Note>
+  </Step>
+
+  <Step title="Add Maintenance Tasks">
+    Define the specific tasks to be performed. This is covered in detail in the "Managing Work Order Tasks" section below.
+  </Step>
+
+  <Step title="Optional: Preliminary Inspection">
+    If required, add preliminary inspection items:
+    - ATA code for system/component
+    - Description of item to inspect
+    - Location on aircraft
+    - Observations
+
+    <Tip>
+      Preliminary inspections help identify additional work before starting scheduled maintenance.
+    </Tip>
+  </Step>
+
+  <Step title="Save Work Order">
+    Click **"Crear Orden"** to save the work order. The system will:
+    - Validate all required fields
+    - Assign the order number
+    - Create task records
+    - Notify relevant personnel
+  </Step>
+</Steps>
+
+## Work Order Status Flow
+
+Work orders progress through several statuses:
+
+<Steps>
+  <Step title="PENDIENTE (Pending)">
+    Work order created but not yet started.
+    
+    **Actions available:**
+    - Assign technicians
+    - Add or modify tasks
+    - Schedule work
+    - Request parts via requisition
+  </Step>
+
+  <Step title="EN PROCESO (In Progress)">
+    Maintenance work is actively being performed.
+    
+    **Actions available:**
+    - Update task status
+    - Record man-hours
+    - Create non-routine findings
+    - Add work order reports
+    - Request additional parts
+  </Step>
+
+  <Step title="EN REVISION (Under Review)">
+    Work completed and awaiting inspection/review.
+    
+    **Actions available:**
+    - Inspector reviews all tasks
+    - Verify all required documentation
+    - Approve or reject work
+    - Request corrections if needed
+  </Step>
+
+  <Step title="COMPLETADO (Completed)">
+    All work finished, inspected, and approved.
+    
+    **Final steps:**
+    - Generate final reports
+    - Update aircraft logbooks
+    - Close related requisitions
+    - Archive documentation
+  </Step>
+</Steps>
+
+<Warning>
+  Work order status changes should follow your company's approved maintenance procedures and may require specific authorization levels.
+</Warning>
+
+## Managing Work Order Tasks
+
+Tasks are the individual maintenance actions within a work order.
+
+### Task Structure
+
+Each task contains:
+
+- **Task Number** - Reference number from maintenance manual
+- **ATA Code** - Air Transport Association system code
+- **Description** - What needs to be done
+- **Origin Manual** - Source document (AMM, SRM, etc.)
+- **Status** - Current completion status
+- **Assigned Technicians** - Who is performing the work
+- **Man-Hours** - Time spent on task
+- **Task Items** - Parts/components involved
+
+### Adding Tasks to Work Order
+
+<Steps>
+  <Step title="Open Work Order">
+    Navigate to the work order details page by clicking on an order number in the table.
+  </Step>
+
+  <Step title="Add New Task">
+    Click **"Agregar Tarea"** in the tasks section.
+  </Step>
+
+  <Step title="Enter Task Information">
+    Fill in the task details:
+
+    **Identification:**
+    - **Task Number** - Manual reference (e.g., "32-10-01")
+    - **ATA Code** - System code (e.g., "32" for landing gear)
+    - **Origin Manual** - Source (AMM, CMM, SB, AD, etc.)
+
+    **Description:**
+    - **Task Description** - Clear description of work to be performed
+    - Include any special procedures or precautions
+
+    <Note>
+      ATA codes help organize tasks by aircraft system, making it easier to track maintenance by area.
+    </Note>
+  </Step>
+
+  <Step title="Assign Personnel">
+    Designate who will perform and inspect the task:
+
+    - **Assigned Technicians** - Multiple technicians can be assigned
+    - **Hours per Technician** - Track individual contributions
+    - **Inspector Responsible** - Who will verify the work
+
+    <Tip>
+      Track man-hours per technician for accurate labor costing and workload management.
+    </Tip>
+  </Step>
+
+  <Step title="Add Task Items (Parts)">
+    If the task requires parts or components:
+    
+    - **Part Number** - Manufacturer part number
+    - **Alternative Part Number** - Acceptable substitutes
+    - **Serial Number** - For serialized components
+
+    These items can be linked to requisitions for parts ordering.
+  </Step>
+
+  <Step title="Set Task Status">
+    Initial status options:
+    - **PENDIENTE** - Not yet started
+    - **EN PROCESO** - Currently being worked on
+    - **COMPLETADO** - Work finished
+    - **INSPECCIONADO** - Inspected and approved
+  </Step>
+</Steps>
+
+### Task Status Updates
+
+As work progresses, update task status:
+
+<Tabs>
+  <Tab title="Starting a Task">
+    When beginning work:
+    1. Change status to **EN PROCESO**
+    2. Record start time
+    3. Verify all required parts are available
+    4. Note any initial findings
+  </Tab>
+
+  <Tab title="Completing a Task">
+    When work is finished:
+    1. Change status to **COMPLETADO**
+    2. Record total man-hours
+    3. Document any deviations or issues
+    4. Notify inspector for verification
+  </Tab>
+
+  <Tab title="Inspection">
+    When inspector reviews:
+    1. Verify work meets standards
+    2. Check documentation is complete
+    3. Change status to **INSPECCIONADO** if approved
+    4. Create non-routine if issues found
+  </Tab>
+</Tabs>
+
+## Non-Routine Findings
+
+Non-routine items are unexpected issues discovered during maintenance.
+
+### Creating Non-Routine Findings
+
+<Steps>
+  <Step title="Identify Issue">
+    During a task, if you discover a problem not covered by existing tasks:
+    - Damage
+    - Wear beyond limits
+    - Corrosion
+    - Missing/incorrect parts
+  </Step>
+
+  <Step title="Create Non-Routine Entry">
+    Click **"Crear No Rutinario"** from the task or work order page.
+  </Step>
+
+  <Step title="Document Finding">
+    Provide detailed information:
+    
+    - **ATA Code** - System where issue was found
+    - **Description** - Detailed description of the problem
+    - **Status** - Current state (ABIERTO, EN PROCESO, CERRADO)
+    - **Action** - Corrective action required
+  </Step>
+
+  <Step title="Create Corrective Task">
+    If the finding requires additional work:
+    - Set **Needs Task** to true
+    - System creates a linked corrective task
+    - Assign technicians to resolve the issue
+    - Track as separate task within the work order
+
+    <Warning>
+      Non-routine findings may impact work order timeline and cost. Notify the client promptly of significant issues.
+    </Warning>
+  </Step>
+</Steps>
+
+## Work Order Reports
+
+Work order reports document all findings and actions taken during maintenance.
+
+### Adding Report Entries
+
+<Steps>
+  <Step title="Access Report Section">
+    In the work order details, navigate to **"Work Order Report Pages"**.
+  </Step>
+
+  <Step title="Create Report Entry">
+    Click **"Agregar Reporte"** to add a new report item.
+  </Step>
+
+  <Step title="Enter Report Details">
+    Document findings and actions:
+
+    - **ATA Code** - System/component code
+    - **Report** - Description of finding or condition
+    - **Action Taken** - What was done to address the issue
+
+    <Tip>
+      Be thorough in reports. These become permanent maintenance records and may be reviewed by regulatory authorities.
+    </Tip>
+  </Step>
+
+  <Step title="Save Report">
+    Report entries are added to the work order and can be included in final documentation.
+  </Step>
+</Steps>
+
+## Preliminary Inspections
+
+Preliminary inspections document aircraft condition before maintenance begins.
+
+### Conducting Preliminary Inspection
+
+<Steps>
+  <Step title="Create Inspection Record">
+    When a work order is opened, create the preliminary inspection:
+    - **Status** - Inspection status
+    - **Authorizing** - Who authorized the inspection
+    - **Observation** - General observations about aircraft condition
+  </Step>
+
+  <Step title="Add Inspection Items">
+    For each area inspected:
+    
+    - **ATA Code** - System code
+    - **Description** - What was inspected
+    - **Location** - Specific location on aircraft
+
+    Common inspection areas:
+    - General condition and cleanliness
+    - Structural damage or corrosion
+    - Fluid leaks
+    - Tire and brake condition
+    - Control surface condition
+  </Step>
+
+  <Step title="Review Findings">
+    Based on preliminary inspection:
+    - Add tasks to work order if issues found
+    - Create non-routines for unexpected problems
+    - Update work scope and timeline if needed
+  </Step>
+</Steps>
+
+## Linking Requisitions to Work Orders
+
+Work orders often require parts that must be ordered.
+
+### Creating Requisition from Work Order
+
+<Steps>
+  <Step title="Identify Required Parts">
+    Review tasks to determine which parts are needed.
+  </Step>
+
+  <Step title="Create Requisition">
+    From the work order or requisitions module:
+    - Link requisition to specific work order
+    - Reference work order number in justification
+    - Include task numbers that require the parts
+  </Step>
+
+  <Step title="Track Part Status">
+    Monitor requisition progress:
+    - Parts ordered
+    - Parts received
+    - Parts installed
+
+    <Note>
+      Work order tasks may be blocked until required parts arrive. Update task status accordingly.
+    </Note>
+  </Step>
+</Steps>
+
+## Scheduling and Calendar Integration
+
+Work orders can be scheduled and tracked on the planning calendar.
+
+### Creating Task Events
+
+Tasks can have associated calendar events:
+
+- **Start Date** - When task is scheduled to begin
+- **End Date** - Estimated completion date
+- **Priority** - LOW, MEDIUM, or HIGH
+- **Description** - Task summary for calendar view
+
+<Tip>
+  Use the calendar view in **Planificación > Calendario** to visualize work order scheduling and identify resource conflicts.
+</Tip>
+
+## Filtering and Searching Work Orders
+
+The work orders table provides extensive filtering options:
+
+### Available Filters
+
+- **Status** - Filter by work order status
+- **Aircraft** - Show orders for specific aircraft
+- **Client** - Filter by client/operator
+- **Date Range** - Orders created or completed in a period
+- **Personnel** - Orders assigned to specific technicians or inspectors
+
+### Search Functionality
+
+<Steps>
+  <Step title="Use Search Bar">
+    Enter search terms to find:
+    - Order numbers
+    - Aircraft registration
+    - Client names
+    - Task descriptions
+  </Step>
+
+  <Step title="Combine Filters">
+    Use multiple filters simultaneously for precise results:
+    - Example: "EN PROCESO" orders for "YV-123" aircraft
+  </Step>
+
+  <Step title="Sort Results">
+    Click column headers to sort by:
+    - Order number
+    - Date
+    - Status
+    - Aircraft
+  </Step>
+</Steps>
+
+## Completing Work Orders
+
+<Steps>
+  <Step title="Verify All Tasks Complete">
+    Ensure every task is marked as **INSPECCIONADO** (inspected and approved).
+  </Step>
+
+  <Step title="Review Documentation">
+    Confirm all required documentation is present:
+    - Work order reports
+    - Non-routine documentation
+    - Parts installation records
+    - Test results (if applicable)
+  </Step>
+
+  <Step title="Final Inspection">
+    The approved inspector performs final review:
+    - Verify all work meets standards
+    - Confirm aircraft is airworthy
+    - Sign off on work order
+  </Step>
+
+  <Step title="Change Status to Completed">
+    Update work order status to **COMPLETADO**.
+  </Step>
+
+  <Step title="Generate Final Reports">
+    Create and archive:
+    - Work order summary
+    - Logbook entries
+    - Return-to-service documents
+    - Client invoice documentation
+  </Step>
+
+  <Step title="Update Aircraft Records">
+    Ensure aircraft record reflects:
+    - Updated flight hours/cycles (if changed)
+    - Component changes
+    - Next due maintenance items
+  </Step>
+</Steps>
+
+<Warning>
+  Do not mark a work order as complete until all regulatory requirements are met and proper authorization is obtained.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Work Order Organization">
+    - Use clear, descriptive work order descriptions
+    - Break complex jobs into logical task groups
+    - Reference manual sections accurately
+    - Maintain consistent ATA code usage
+  </Accordion>
+
+  <Accordion title="Task Management">
+    - Update task status in real-time
+    - Record accurate man-hours for costing
+    - Document deviations immediately
+    - Use non-routines for unexpected work
+  </Accordion>
+
+  <Accordion title="Personnel Assignment">
+    - Assign qualified technicians to appropriate tasks
+    - Balance workload across team members
+    - Track individual contributions
+    - Ensure proper inspector oversight
+  </Accordion>
+
+  <Accordion title="Documentation">
+    - Complete reports as work progresses
+    - Use clear, technical language
+    - Include all relevant details
+    - Take photos of significant findings
+    - Maintain traceability to source documents
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Can't create work order for aircraft">
+    **Possible causes:**
+    - Aircraft not properly registered
+    - Missing client information
+    - Location not set for aircraft
+    
+    **Solution:** Verify aircraft record is complete in the Aeronaves module.
+  </Accordion>
+
+  <Accordion title="Tasks not showing in work order">
+    **Possible causes:**
+    - Tasks not saved properly
+    - Filtering hiding tasks
+    - Page needs refresh
+    
+    **Solution:** Refresh page and verify tasks were created successfully.
+  </Accordion>
+
+  <Accordion title="Can't change work order status">
+    **Possible causes:**
+    - Insufficient permissions
+    - Incomplete tasks blocking progression
+    - Required documentation missing
+    
+    **Solution:** Verify all prerequisites for status change are met and you have appropriate role permissions.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Requisitions" icon="file-text" href="/guides/requisitions-and-orders">
+    Order parts for work order tasks
+  </Card>
+
+  <Card title="Inventory Management" icon="warehouse" href="/guides/inventory-management">
+    Manage parts and tools for maintenance
+  </Card>
+
+  <Card title="Aircraft Tracking" icon="plane" href="/guides/aircraft-tracking">
+    Update aircraft records after maintenance
+  </Card>
+
+  <Card title="Calendar Planning" icon="calendar" href="/guides/calendar-planning">
+    Schedule maintenance activities
+  </Card>
+</CardGroup>

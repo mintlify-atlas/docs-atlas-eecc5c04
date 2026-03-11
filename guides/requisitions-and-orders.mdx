@@ -1,0 +1,780 @@
+---
+title: Requisitions and Purchase Orders
+description: Complete guide to requisitioning parts and managing purchase orders in SIGEAC
+---
+
+## Introduction
+
+The Requisitions and Purchase Orders system in SIGEAC manages the complete procurement cycle, from initial part requests through quotes, purchase orders, and receiving.
+
+<Note>
+  Requisitions and purchasing are managed in the **Compras** module under `/{company-slug}/compras/`
+</Note>
+
+## Procurement Workflow
+
+The SIGEAC procurement process follows these stages:
+
+<Steps>
+  <Step title="Requisition">
+    Initial request for parts or materials, created by maintenance or warehouse staff.
+  </Step>
+
+  <Step title="Quote">
+    Pricing obtained from vendors for requested items.
+  </Step>
+
+  <Step title="Purchase Order">
+    Formal order placed with selected vendor.
+  </Step>
+
+  <Step title="Receiving">
+    Parts arrive and are inspected and added to inventory.
+  </Step>
+</Steps>
+
+## Understanding Requisitions
+
+Requisitions are formal requests for parts or materials.
+
+### Requisition Types
+
+<Tabs>
+  <Tab title="AERONAUTICO">
+    Aviation-specific parts and components:
+    - Aircraft parts
+    - Engine components
+    - Avionics
+    - Instruments
+    - Certified materials
+
+    **Linked to:**
+    - Work orders
+    - Specific aircraft
+    - Maintenance tasks
+  </Tab>
+
+  <Tab title="GENERAL">
+    General purpose items:
+    - Hardware
+    - Tools
+    - Shop supplies
+    - Consumables
+    - Office supplies
+
+    **Not required to link:**
+    - Work orders
+    - Specific aircraft
+  </Tab>
+</Tabs>
+
+### Requisition Structure
+
+Each requisition contains:
+
+- **Order Number** - Auto-generated unique identifier
+- **Type** - AERONAUTICO or GENERAL
+- **Status** - Current state in workflow
+- **Created By** - User who created the requisition
+- **Requested By** - Person requesting the parts
+- **Justification** - Reason for the request
+- **Submission Date** - When requisition was created
+- **Arrival Date** - Expected or actual delivery date
+- **Batches** - Groups of requested items
+- **Work Order** - Linked maintenance order (if applicable)
+- **Aircraft** - Associated aircraft (if applicable)
+
+## Creating a Requisition
+
+<Steps>
+  <Step title="Navigate to Requisitions">
+    Go to **Compras > Requisiciones** to access the requisitions page.
+  </Step>
+
+  <Step title="Click Create Requisition">
+    Click the **"Nueva Requisición"** button.
+  </Step>
+
+  <Step title="Select Requisition Type">
+    Choose:
+    - **AERONAUTICO** - For aircraft parts and certified materials
+    - **GENERAL** - For general supplies and hardware
+
+    <Tip>
+      Aeronautic requisitions require linking to a work order or aircraft for traceability.
+    </Tip>
+  </Step>
+
+  <Step title="Enter Basic Information">
+    Fill in the requisition details:
+
+    **Auto-Generated:**
+    - Order Number - System assigns sequential number
+    - Submission Date - Defaults to today
+
+    **Required:**
+    - **Requested By** - Name of person requesting items
+    - **Justification** - Detailed reason for request
+    
+    **Optional:**
+    - **Received By** - Who will accept delivery (can be set later)
+    - **Arrival Date** - Expected delivery date
+  </Step>
+
+  <Step title="Link to Work Order or Aircraft">
+    For aeronautic requisitions:
+    
+    - **Work Order** - Select if parts are for specific maintenance
+    - **Aircraft** - Select if parts are for general aircraft use
+
+    <Note>
+      Linking to work orders helps track parts usage and costs per maintenance job.
+    </Note>
+  </Step>
+
+  <Step title="Add Items to Requisition">
+    Create batches and add articles:
+
+    **For each batch:**
+    1. Select or create a batch name
+    2. Add articles with:
+       - Part number
+       - Quantity needed
+       - Unit of measure
+       - Optional: Image or reference
+       - Optional: Specific aircraft (if part is aircraft-specific)
+
+    **Multiple Batches:**
+    - Organize items logically (by system, vendor, urgency)
+    - Each batch can have multiple articles
+
+    <Tip>
+      Group items by vendor or ATA system for easier quote comparison and ordering.
+    </Tip>
+  </Step>
+
+  <Step title="Review and Submit">
+    Review all information:
+    - Verify part numbers are correct
+    - Check quantities and units
+    - Ensure justification is clear
+    - Confirm work order or aircraft links
+
+    Click **"Crear Requisición"** to submit.
+  </Step>
+</Steps>
+
+## Requisition Status Flow
+
+Requisitions progress through several statuses:
+
+<Steps>
+  <Step title="PENDIENTE (Pending)">
+    Requisition created, awaiting review by purchasing.
+    
+    **Actions:**
+    - Edit items if needed
+    - Add additional justification
+    - Cancel if no longer needed
+  </Step>
+
+  <Step title="EN COTIZACION (Quoting)">
+    Purchasing is obtaining quotes from vendors.
+    
+    **Actions:**
+    - Review quote requests
+    - Answer vendor questions
+    - Provide additional specifications
+  </Step>
+
+  <Step title="COTIZADO (Quoted)">
+    Quotes received, awaiting approval to purchase.
+    
+    **Actions:**
+    - Review vendor quotes
+    - Select preferred vendor
+    - Approve purchase order creation
+  </Step>
+
+  <Step title="ORDENADO (Ordered)">
+    Purchase order issued to vendor.
+    
+    **Actions:**
+    - Track order status
+    - Update expected arrival date
+    - Communicate with vendor
+  </Step>
+
+  <Step title="RECIBIDO (Received)">
+    Items delivered and inspected.
+    
+    **Final steps:**
+    - Verify quantities received
+    - Inspect for damage
+    - Add to inventory
+    - Close requisition
+  </Step>
+</Steps>
+
+## Viewing and Managing Requisitions
+
+### Requisition List View
+
+The requisitions page displays a table with:
+
+- Order number and type
+- Status with visual indicators
+- Creation and submission dates
+- Requester information
+- Linked work order or aircraft
+- Action buttons
+
+### Filtering Requisitions
+
+<Steps>
+  <Step title="Use Search">
+    Enter search terms to find:
+    - Order numbers
+    - Part numbers
+    - Requester names
+    - Justification keywords
+  </Step>
+
+  <Step title="Filter by Status">
+    Click status filters to show only:
+    - Pending requisitions
+    - Ordered items
+    - Received items
+  </Step>
+
+  <Step title="Filter by Type">
+    Toggle between:
+    - Aeronautic requisitions only
+    - General requisitions only
+    - All types
+  </Step>
+
+  <Step title="Sort Columns">
+    Click column headers to sort by:
+    - Order number
+    - Date
+    - Status
+    - Requester
+  </Step>
+</Steps>
+
+### Viewing Requisition Details
+
+<Steps>
+  <Step title="Click Order Number">
+    Click any order number in the table to view full details.
+  </Step>
+
+  <Step title="Review Information">
+    The detail page shows:
+    - All requisition information
+    - Complete item list with quantities
+    - Linked work order or aircraft details
+    - Status history
+    - Related quotes
+    - Related purchase orders
+  </Step>
+
+  <Step title="Access Related Documents">
+    From the detail page:
+    - View linked quotes
+    - View purchase orders
+    - Download requisition PDF
+    - Access work order (if linked)
+  </Step>
+</Steps>
+
+## Quotes (Cotizaciones)
+
+Quotes are vendor price proposals for requisitioned items.
+
+### Creating a Quote
+
+<Steps>
+  <Step title="Access Quote Creation">
+    From a requisition or go to **Compras > Cotizaciones**.
+  </Step>
+
+  <Step title="Link to Requisition">
+    Select the requisition this quote is for.
+  </Step>
+
+  <Step title="Select Vendor">
+    Choose the vendor providing this quote:
+    - Existing vendor from database
+    - Create new vendor if needed
+
+    <Note>
+      Vendors are managed in the system with contact information, payment terms, and rating history.
+    </Note>
+  </Step>
+
+  <Step title="Enter Quote Details">
+    Fill in quote information:
+
+    **Auto-Generated:**
+    - Quote Number
+    - Quote Date
+
+    **Required:**
+    - **Justification** - Why this vendor was selected
+    - **Status** - Initial status (usually PENDIENTE)
+
+    **For Each Item:**
+    - Part number from requisition
+    - Quantity
+    - Unit price
+    - Unit of measure
+    - Optional: Product image or datasheet
+  </Step>
+
+  <Step title="Calculate Totals">
+    System automatically calculates:
+    - Sub-total (sum of item costs)
+    - Total (including any fees or taxes)
+  </Step>
+
+  <Step title="Save Quote">
+    Click **"Crear Cotización"** to save the quote and link it to the requisition.
+  </Step>
+</Steps>
+
+### Comparing Quotes
+
+For each requisition, multiple vendors can provide quotes:
+
+<Steps>
+  <Step title="View All Quotes">
+    From the requisition detail page, access the quotes section to see all vendor quotes.
+  </Step>
+
+  <Step title="Compare Pricing">
+    Review side-by-side:
+    - Unit prices per item
+    - Total costs
+    - Delivery terms
+    - Vendor ratings
+  </Step>
+
+  <Step title="Select Winner">
+    Choose the quote to accept based on:
+    - Best price
+    - Vendor reliability
+    - Delivery time
+    - Part authenticity/quality
+
+    <Tip>
+      For aviation parts, don't automatically choose cheapest. Verify vendor has proper certifications and provides genuine parts.
+    </Tip>
+  </Step>
+</Steps>
+
+## Purchase Orders
+
+Purchase Orders (POs) are formal orders issued to vendors.
+
+### Creating a Purchase Order
+
+<Steps>
+  <Step title="Navigate to Purchase Orders">
+    Go to **Compras > Ordenes de Compra**.
+  </Step>
+
+  <Step title="Click Create Purchase Order">
+    Click **"Nueva Orden de Compra"** button.
+  </Step>
+
+  <Step title="Link to Requisition and Quote">
+    Select:
+    - **Requisition Order** - Original part request
+    - **Quote Order** - Accepted vendor quote
+    
+    This automatically populates:
+    - Vendor information
+    - Items and quantities
+    - Unit prices
+  </Step>
+
+  <Step title="Enter PO Details">
+    Fill in purchase order information:
+
+    **Auto-Generated:**
+    - Order Number
+    - Purchase Date
+
+    **Required:**
+    - **Justification** - Authorization reason
+    - **Status** - Initial status (typically PENDIENTE)
+    - **Location** - Delivery location
+
+    **Items Review:**
+    Review each article:
+    - Part number
+    - Quantity
+    - Unit price
+    - Unit of measure
+    - Tax rate
+    - Tracking fields (USA, OCK)
+    - Article location (warehouse zone)
+  </Step>
+
+  <Step title="Add Fees and Charges">
+    Enter additional costs:
+
+    - **Tax** - Sales tax percentage
+    - **Wire Fee** - Bank transfer charges
+    - **Handling Fee** - Processing charges
+    - **Shipping Fee** - Domestic shipping
+    - **USA Shipping** - International shipping from USA
+    - **OCK Shipping** - Other international shipping
+
+    <Note>
+      All fees are added to calculate the final total. Breaking down fees helps with accounting and cost analysis.
+    </Note>
+  </Step>
+
+  <Step title="Select Payment Method">
+    Choose how payment will be made:
+    - **Bank Account** - ACH or wire transfer
+    - **Card** - Credit/debit card
+
+    Select the specific account or card from your company's registered payment methods.
+  </Step>
+
+  <Step title="Review Totals">
+    System calculates:
+    - **Sub Total** - Sum of item costs
+    - **Total** - Sub total plus all fees and taxes
+
+    Verify amounts before proceeding.
+  </Step>
+
+  <Step title="Save Purchase Order">
+    Click **"Crear Orden"** to:
+    - Save the purchase order
+    - Update requisition status to ORDENADO
+    - Generate PO document for vendor
+  </Step>
+</Steps>
+
+### Purchase Order Status Management
+
+<Steps>
+  <Step title="PENDIENTE (Pending)">
+    PO created but not yet sent to vendor.
+    
+    **Actions:**
+    - Review and edit if needed
+    - Approve for sending
+  </Step>
+
+  <Step title="ENVIADO (Sent)">
+    PO sent to vendor, awaiting confirmation.
+    
+    **Actions:**
+    - Track vendor acknowledgment
+    - Update tracking numbers
+    - Adjust expected delivery date
+  </Step>
+
+  <Step title="EN TRANSITO (In Transit)">
+    Items shipped, on the way.
+    
+    **Actions:**
+    - Update USA tracking number
+    - Update OCK tracking number
+    - Monitor delivery progress
+  </Step>
+
+  <Step title="RECIBIDO (Received)">
+    Items delivered to facility.
+    
+    **Final steps:**
+    - Inspect items
+    - Verify quantities
+    - Check for damage
+    - Process receiving documents
+  </Step>
+</Steps>
+
+### Tracking Purchase Orders
+
+The PO system includes tracking fields:
+
+- **USA Tracking** - USPS/FedEx/UPS tracking for USA shipments
+- **OCK Tracking** - International courier tracking
+- **Article Location** - Where items will be stored upon arrival
+
+<Tip>
+  Update tracking numbers as soon as they're available. This helps warehouse staff prepare for receiving and allows requesters to monitor delivery progress.
+</Tip>
+
+## Receiving Items
+
+### Processing Incoming Shipments
+
+<Steps>
+  <Step title="Verify Delivery">
+    When items arrive:
+    - Check PO number on packing slip
+    - Verify vendor matches order
+    - Note delivery date and condition
+  </Step>
+
+  <Step title="Inspect Items">
+    For each item:
+    - Verify part number matches PO
+    - Check quantity received vs. ordered
+    - Inspect for shipping damage
+    - Verify certifications (for aviation parts)
+
+    <Warning>
+      Aviation parts must include proper airworthiness certificates. Do not accept parts without documentation.
+    </Warning>
+  </Step>
+
+  <Step title="Update Purchase Order">
+    Mark items as received in the system:
+    - Update PO status to RECIBIDO
+    - Enter actual quantities received
+    - Note any discrepancies
+    - Upload packing slip and certificates
+  </Step>
+
+  <Step title="Add to Inventory">
+    Process items into warehouse:
+    - Create article records
+    - Assign zones/locations
+    - Link certificates
+    - Update batch quantities
+
+    <Note>
+      This step connects purchasing to inventory, making parts available for requisition and use.
+    </Note>
+  </Step>
+
+  <Step title="Update Requisition">
+    The system automatically:
+    - Updates requisition status to RECIBIDO
+    - Notifies requester that items have arrived
+    - Links new inventory to work order (if applicable)
+  </Step>
+
+  <Step title="Close Work Order Link">
+    If requisition was linked to a work order:
+    - Notify maintenance team parts are available
+    - Update work order status if parts were blocking progress
+  </Step>
+</Steps>
+
+## Access Control
+
+Requisition and purchasing access varies by role:
+
+### Requester Access
+
+Users with basic permissions can:
+- Create requisitions
+- View their own requisitions
+- Edit requisitions in PENDIENTE status
+- Track status of their requests
+
+### Purchasing Team Access
+
+Users with `ANALISTA_COMPRAS` or `JEFE_COMPRAS` roles can:
+- View all requisitions
+- Create and manage quotes
+- Create and manage purchase orders
+- Update statuses
+- Process receiving
+
+### Administrator Access
+
+SUPERUSER and admin roles can:
+- Full access to all procurement functions
+- Configure vendors and payment methods
+- Override status changes
+- Access financial reporting
+
+<Note>
+  Regular users only see their own requisitions unless they have purchasing or admin roles. This is controlled automatically based on user role assignments.
+</Note>
+
+## Vendor Management
+
+Vendors are maintained separately and linked to quotes and POs.
+
+### Adding a Vendor
+
+<Steps>
+  <Step title="Navigate to Vendors">
+    Go to **Compras > Proveedores** or the vendor section.
+  </Step>
+
+  <Step title="Create Vendor">
+    Enter vendor information:
+    - Name
+    - Email
+    - Phone
+    - Address
+    - Type (PROVEEDOR - supplier or BENEFICIARIO - beneficiary)
+  </Step>
+
+  <Step title="Add Payment Details">
+    Optional but recommended:
+    - Payment terms
+    - Account information
+    - Preferred payment method
+  </Step>
+</Steps>
+
+<Tip>
+  Maintain accurate vendor contact information. This is critical for communicating about orders, tracking shipments, and resolving issues.
+</Tip>
+
+## Reporting
+
+### Available Reports
+
+<CardGroup cols={2}>
+  <Card title="Requisition Status" icon="list">
+    Current status of all requisitions, open orders, and pending deliveries
+  </Card>
+
+  <Card title="General Sales Report" icon="chart-line">
+    Complete procurement cycle view: requisition → quote → PO for analysis
+  </Card>
+
+  <Card title="Vendor Performance" icon="star">
+    Vendor delivery times, pricing, and quality metrics
+  </Card>
+
+  <Card title="Cost Analysis" icon="dollar-sign">
+    Spending by category, aircraft, work order, or time period
+  </Card>
+</CardGroup>
+
+### Generating Reports
+
+<Steps>
+  <Step title="Navigate to Reports">
+    Go to **Compras > Reportes**.
+  </Step>
+
+  <Step title="Select Report Type">
+    Choose the report you need.
+  </Step>
+
+  <Step title="Set Parameters">
+    Configure:
+    - Date ranges
+    - Status filters
+    - Vendor filters
+    - Aircraft or work order filters
+  </Step>
+
+  <Step title="Generate and Export">
+    Click **"Generar Reporte"** and choose:
+    - View online
+    - Export to PDF
+    - Export to Excel
+  </Step>
+</Steps>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Requisition Creation">
+    - Use clear, detailed justifications
+    - Group items logically in batches
+    - Link to work orders when applicable
+    - Verify part numbers before submitting
+    - Include any special requirements or specifications
+  </Accordion>
+
+  <Accordion title="Quote Management">
+    - Obtain multiple quotes when possible
+    - Document why vendors were selected
+    - Verify vendor certifications for aviation parts
+    - Consider total cost, not just unit price
+    - Check vendor reputation and reliability
+  </Accordion>
+
+  <Accordion title="Purchase Orders">
+    - Double-check all information before creating PO
+    - Include all fees and charges upfront
+    - Update tracking information promptly
+    - Maintain communication with vendors
+    - Document any changes or issues
+  </Accordion>
+
+  <Accordion title="Receiving">
+    - Inspect all items immediately upon arrival
+    - Verify certificates for aviation parts
+    - Report discrepancies within required timeframe
+    - Process into inventory promptly
+    - Notify requesters when items are available
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Can't create requisition">
+    **Possible causes:**
+    - Missing required fields
+    - No items added
+    - Work order link required but not selected
+    
+    **Solution:** Verify all required information is entered and try again.
+  </Accordion>
+
+  <Accordion title="Quote not linking to requisition">
+    **Possible causes:**
+    - Requisition not in correct status
+    - Wrong requisition selected
+    - Permission issues
+    
+    **Solution:** Verify requisition is in EN COTIZACION status and you have purchasing permissions.
+  </Accordion>
+
+  <Accordion title="Can't see other users' requisitions">
+    **This is normal behavior:** Regular users only see their own requisitions.
+    
+    **Solution:** If you need to see all requisitions, contact your administrator about purchasing role assignment.
+  </Accordion>
+
+  <Accordion title="PO totals incorrect">
+    **Possible causes:**
+    - Fees not entered
+    - Tax calculation error
+    - Item prices changed after quote
+    
+    **Solution:** Review all fees, taxes, and item prices. Recalculate if needed.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Inventory Management" icon="warehouse" href="/guides/inventory-management">
+    Add received items to inventory
+  </Card>
+
+  <Card title="Work Orders" icon="clipboard-list" href="/guides/work-orders">
+    Use requisitioned parts in maintenance
+  </Card>
+
+  <Card title="Vendor Management" icon="building" href="/guides/vendor-management">
+    Manage vendor relationships
+  </Card>
+
+  <Card title="Financial Reports" icon="chart-bar" href="/guides/financial-reports">
+    Analyze procurement spending
+  </Card>
+</CardGroup>

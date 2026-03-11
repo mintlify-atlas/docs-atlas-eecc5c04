@@ -1,0 +1,354 @@
+---
+title: 'Purchasing'
+description: 'Procurement workflows including requisitions, quotes, and purchase orders'
+icon: 'shopping-cart'
+---
+
+The Purchasing module manages the complete procurement lifecycle from requisition to purchase order, including vendor management, quote comparison, and procurement tracking.
+
+## Overview
+
+Purchasing handles all procurement activities for both aeronautical and general supplies, with full traceability and approval workflows.
+
+## Procurement Workflow
+
+<Steps>
+  <Step title="Requisition">
+    Users create requisitions for needed parts and materials with justification
+  </Step>
+  
+  <Step title="Quote Requests">
+    Purchasing team requests quotes from multiple vendors
+  </Step>
+  
+  <Step title="Quote Comparison">
+    Compare vendor quotes on price, delivery, and terms
+  </Step>
+  
+  <Step title="Purchase Order">
+    Create PO with selected vendor and finalize pricing
+  </Step>
+  
+  <Step title="Order Tracking">
+    Track shipment with USA and OCK tracking numbers
+  </Step>
+  
+  <Step title="Receipt & Incoming">
+    Articles flow to Warehouse for receiving and inspection
+  </Step>
+</Steps>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Requisition Management" icon="file-lines">
+    Track purchase requests from all departments with approval workflows
+  </Card>
+  
+  <Card title="Quote Management" icon="file-invoice">
+    Manage vendor quotes with pricing and delivery comparison
+  </Card>
+  
+  <Card title="Purchase Orders" icon="file-contract">
+    Generate POs with complete pricing, taxes, and shipping costs
+  </Card>
+  
+  <Card title="Vendor Management" icon="users">
+    Maintain vendor database with contact info and performance tracking
+  </Card>
+</CardGroup>
+
+## Requisition System
+
+### Creating Requisitions
+
+Requisitions can be created for:
+
+- **Aeronautical requisitions**: Parts for specific aircraft or work orders
+- **General requisitions**: Consumables, tools, office supplies
+
+**Required Information**:
+```typescript
+Requisition:
+- Order number (auto-generated)
+- Requested by (employee)
+- Justification (reason for purchase)
+- Submission date
+- Type: AERONAUTICO or GENERAL
+- Batches with articles:
+  - Part number
+  - Quantity needed
+  - Unit of measure
+  - Reference image
+  - Aircraft (if aeronautical)
+```
+
+### Requisition Status
+
+| Status | Description |
+|--------|-------------|
+| **Pending** | Awaiting purchasing team review |
+| **In Quote** | Quotes being requested from vendors |
+| **Quoted** | Quotes received, awaiting PO creation |
+| **Ordered** | Purchase order created and sent |
+| **Received** | Articles received in warehouse |
+| **Cancelled** | Requisition cancelled |
+
+### Access Control
+
+<Accordion title="Role-Based Requisition Access">
+  - **SUPERUSER, ANALISTA_COMPRAS, JEFE_COMPRAS**: See all requisitions
+  - **Other users**: See only their own requisitions
+  
+  This ensures users can track their requests while purchasing staff manage all procurement.
+</Accordion>
+
+## Quote Management
+
+### Quote Process
+
+1. **Create Quote**: Link to existing requisition
+2. **Add Articles**: Specify part numbers, quantities, and unit prices
+3. **Vendor Selection**: Choose vendor and capture quote details
+4. **Quote Date**: Record when quote was received
+5. **Totals**: System calculates subtotal and total
+
+### Quote Information
+
+```typescript
+Quote:
+- Quote number (auto-generated)
+- Linked requisition
+- Vendor
+- Quote date
+- Justification
+- Articles:
+  - Batch name
+  - Part number
+  - Quantity
+  - Unit price
+  - Unit of measure
+  - Image reference
+- Sub-total
+- Total amount
+- Status
+```
+
+### Comparing Quotes
+
+For each requisition, create multiple quotes from different vendors:
+
+- Side-by-side price comparison
+- Delivery time evaluation
+- Vendor reliability assessment
+- Best value selection
+
+## Purchase Orders
+
+### Creating Purchase Orders
+
+Purchase orders formalize the procurement:
+
+**PO Components**:
+```typescript
+Purchase Order:
+- Order number
+- Linked requisition and selected quote
+- Vendor information
+- Purchase date
+- Articles with pricing:
+  - Part number
+  - Quantity
+  - Unit price
+  - Tax percentage
+  - Location/destination
+- Financial details:
+  - Sub-total
+  - Tax
+  - Wire transfer fee
+  - Handling fee
+  - Shipping fee (USA and OCK)
+  - Total amount
+- Payment method:
+  - Bank account
+  - Card (if applicable)
+- Tracking:
+  - USA tracking number
+  - OCK tracking number
+```
+
+### PO Status Tracking
+
+| Status | Description |
+|--------|-------------|
+| **Created** | PO generated, awaiting approval |
+| **Approved** | Approved and sent to vendor |
+| **In Transit** | Shipment in progress |
+| **Partially Received** | Some items received |
+| **Received** | All items received |
+| **Cancelled** | Order cancelled |
+
+### Shipping and Logistics
+
+<Accordion title="Multi-Leg Shipping Tracking">
+  Many aviation parts ship internationally through multiple carriers:
+  
+  - **USA Tracking**: Domestic US shipment tracking number
+  - **OCK Tracking**: International/final leg tracking number
+  - **Location**: Destination warehouse or base
+  
+  The system tracks both legs for complete visibility.
+</Accordion>
+
+## Vendor Management
+
+### Vendor Information
+
+Maintain comprehensive vendor records:
+
+```typescript
+Vendor:
+- Name
+- Type: PROVEEDOR (Supplier) or BENEFICIARIO (Beneficiary)
+- Contact information:
+  - Email
+  - Phone
+  - Address
+- Creation and update tracking
+```
+
+### Vendor Types
+
+- **PROVEEDOR (Supplier)**: Parts vendors, distributors, manufacturers
+- **BENEFICIARIO (Beneficiary)**: Service providers, consultants
+
+### Vendor Performance
+
+Track vendor metrics:
+- Number of quotes provided
+- Number of orders placed
+- On-time delivery performance
+- Quality of parts supplied
+
+## Manufacturer Management
+
+Separate from vendors, manage OEM manufacturers:
+
+**Manufacturer Types**:
+- AIRCRAFT: Airframe manufacturers
+- ENGINE: Engine manufacturers  
+- APU: Auxiliary Power Unit manufacturers
+- PROPELLER: Propeller manufacturers
+- PART: Component manufacturers
+- GENERAL: General equipment manufacturers
+
+## Cost Management
+
+### PO Cost Breakdown
+
+Full transparency on procurement costs:
+
+1. **Article Costs**: Unit price × quantity per item
+2. **Subtotal**: Sum of all article costs
+3. **Tax**: Applicable sales/import tax
+4. **Wire Fee**: Bank transfer charges
+5. **Handling Fee**: Vendor handling charges
+6. **Shipping Fees**: 
+   - USA shipping cost
+   - OCK (international) shipping cost
+7. **Total**: Complete landed cost
+
+<Note>
+Accurate cost tracking ensures proper budgeting and helps identify cost-saving opportunities across vendors.
+</Note>
+
+## Reporting and Analytics
+
+### Purchase Reports
+
+- Requisition aging (open requisitions)
+- Quote comparison reports
+- PO status dashboard
+- Vendor spend analysis
+- Cost trending by category
+
+### General Sales Report
+
+Links requisitions with their quotes and purchase orders for complete procurement visibility:
+
+```typescript
+General Sales Report:
+- Requisition order
+- Associated purchase orders
+- All quote orders received
+```
+
+## User Workflows
+
+### For Requisitioners
+
+1. **Create Requisition**:
+   - Specify needed parts with quantities
+   - Provide justification
+   - Attach images or documentation
+   - Submit for purchasing review
+
+2. **Track Progress**:
+   - Monitor requisition status
+   - View associated quotes
+   - Check PO creation
+   - Track shipment
+
+### For Purchasing Staff
+
+1. **Review Requisitions**:
+   - Evaluate request justification
+   - Verify part numbers and specifications
+   - Confirm budget availability
+
+2. **Solicit Quotes**:
+   - Contact multiple vendors
+   - Create quote records
+   - Compare pricing and terms
+
+3. **Create Purchase Orders**:
+   - Select best quote
+   - Generate PO with complete pricing
+   - Submit to vendor
+   - Update tracking information
+
+4. **Monitor Delivery**:
+   - Track shipments
+   - Coordinate with warehouse for receiving
+   - Follow up on delays
+
+## Integration with Other Modules
+
+<CardGroup cols={2}>
+  <Card title="Planning Integration">
+    Work orders automatically generate requisitions for required parts
+  </Card>
+  
+  <Card title="Warehouse Integration">
+    Purchase orders flow to warehouse incoming when shipments arrive
+  </Card>
+  
+  <Card title="Administration">
+    PO costs integrate with financial tracking and accounts payable
+  </Card>
+  
+  <Card title="Quality Control">
+    Incoming articles require QC approval before inventory availability
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Note>
+**Procurement Tips**:
+- Obtain at least 3 quotes for major purchases
+- Verify part numbers match manufacturer specifications
+- Confirm lead times before creating POs
+- Track vendor performance for future sourcing decisions
+- Maintain accurate shipping tracking to prevent receiving delays
+</Note>

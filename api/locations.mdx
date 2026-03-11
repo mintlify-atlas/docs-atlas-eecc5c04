@@ -1,0 +1,498 @@
+---
+title: 'Locations'
+description: 'Manage locations and facilities in SIGEAC'
+icon: 'location-dot'
+---
+
+## Overview
+
+The Locations API allows you to manage physical locations, facilities, and bases. Locations are associated with companies and can be designated as main bases.
+
+## Location Object
+
+The Location type represents a physical location or facility.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the location
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Location name
+</ResponseField>
+
+<ResponseField name="address" type="string" required>
+  Physical address of the location
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Type of location (e.g., "BASE", "HANGAR", "OFFICE", "WAREHOUSE")
+</ResponseField>
+
+<ResponseField name="isMainBase" type="boolean" required>
+  Whether this location is designated as a main base
+</ResponseField>
+
+<ResponseField name="cod_iata" type="string" required>
+  IATA code (International Air Transport Association) for the location
+</ResponseField>
+
+<ResponseField name="companies" type="Company[]" required>
+  Array of companies that operate at this location
+  
+  <Expandable title="Company properties">
+    <ResponseField name="id" type="number">
+      Company identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Company name
+    </ResponseField>
+    
+    <ResponseField name="description" type="string">
+      Company description
+    </ResponseField>
+    
+    <ResponseField name="slug" type="string">
+      URL-friendly company name
+    </ResponseField>
+    
+    <ResponseField name="cod_iata" type="string">
+      Company IATA code
+    </ResponseField>
+    
+    <ResponseField name="cod_oaci" type="string">
+      Company ICAO code
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## List Locations
+
+Retrieve a list of all locations in the system.
+
+<CodeGroup>
+```typescript TypeScript
+import axiosInstance from '@/lib/axios';
+import { Location } from '@/types';
+
+const fetchLocations = async (): Promise<Location[]> => {
+  const { data } = await axiosInstance.get('/locations');
+  return data;
+};
+```
+
+```javascript React Hook
+import { useQuery } from '@tanstack/react-query';
+
+export const useGetLocations = () => {
+  return useQuery<Location[]>({
+    queryKey: ['locations'],
+    queryFn: fetchLocations,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+// Usage in component
+const { data: locations, isLoading, error } = useGetLocations();
+```
+
+```bash cURL
+curl -X GET https://api.sigeac.com/locations \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "skip_zrok_interstitial: true"
+```
+</CodeGroup>
+
+### Response
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Caracas Main Base",
+    "address": "Aeropuerto Internacional Simón Bolívar, Maiquetía",
+    "type": "BASE",
+    "isMainBase": true,
+    "cod_iata": "CCS",
+    "companies": [
+      {
+        "id": 1,
+        "name": "SIGEAC Airlines",
+        "description": "Main aviation company",
+        "slug": "sigeac-airlines",
+        "cod_iata": "SGC",
+        "cod_oaci": "SGAC"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Maracaibo Hangar",
+    "address": "Aeropuerto La Chinita, Maracaibo",
+    "type": "HANGAR",
+    "isMainBase": false,
+    "cod_iata": "MAR",
+    "companies": [
+      {
+        "id": 1,
+        "name": "SIGEAC Airlines",
+        "slug": "sigeac-airlines"
+      }
+    ]
+  }
+]
+```
+
+## Get Location by ID
+
+Retrieve a specific location by its ID.
+
+```typescript
+const fetchLocationById = async (locationId: number): Promise<Location> => {
+  const { data } = await axiosInstance.get(`/locations/${locationId}`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="locationId" type="number" required>
+  The unique identifier of the location
+</ParamField>
+
+## Locations by Company
+
+Retrieve locations belonging to a specific company.
+
+### By Company ID
+
+```typescript
+const fetchLocationsByCompany = async (companyId: number): Promise<Location[]> => {
+  const { data } = await axiosInstance.get(
+    `/companies/${companyId}/locations`
+  );
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch locations for
+</ParamField>
+
+### Multiple Companies
+
+Retrieve locations for multiple companies at once.
+
+```typescript
+const fetchLocationsByCompanies = async (
+  companyIds: number[]
+): Promise<Location[]> => {
+  const { data } = await axiosInstance.post('/companies/locations', {
+    company_ids: companyIds,
+  });
+  return data;
+};
+```
+
+### Request Body
+
+<ParamField body="company_ids" type="number[]" required>
+  Array of company IDs to fetch locations for
+</ParamField>
+
+## User Locations
+
+Get locations accessible to the current user within a specific company.
+
+```typescript
+const fetchUserLocations = async (companyId: number): Promise<Location[]> => {
+  const { data } = await axiosInstance.get(
+    `/companies/${companyId}/user-locations`
+  );
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch accessible locations for
+</ParamField>
+
+## Location Types
+
+Common location types used in SIGEAC:
+
+<Card title="BASE" icon="building">
+  Main operational base with full facilities
+</Card>
+
+<Card title="HANGAR" icon="warehouse">
+  Aircraft maintenance hangar
+</Card>
+
+<Card title="OFFICE" icon="briefcase">
+  Administrative office location
+</Card>
+
+<Card title="WAREHOUSE" icon="boxes-stacked">
+  Storage and inventory facility
+</Card>
+
+## Examples
+
+### Get Main Base
+
+Find the main base location for a company.
+
+```typescript
+const getMainBase = (locations: Location[]): Location | undefined => {
+  return locations.find((location) => location.isMainBase);
+};
+```
+
+### Filter by Location Type
+
+Get locations of a specific type.
+
+```typescript
+const getLocationsByType = (
+  locations: Location[],
+  type: string
+): Location[] => {
+  return locations.filter((location) => location.type === type);
+};
+
+// Get all hangars
+const hangars = getLocationsByType(locations, 'HANGAR');
+```
+
+### Check Company at Location
+
+Check if a company operates at a specific location.
+
+```typescript
+const companyOperatesAtLocation = (
+  location: Location,
+  companyId: number
+): boolean => {
+  return location.companies.some((company) => company.id === companyId);
+};
+```
+
+### Get Location Display Name
+
+Format location information for display.
+
+```typescript
+const getLocationDisplay = (location: Location): string => {
+  const baseIndicator = location.isMainBase ? ' (Main Base)' : '';
+  return `${location.name}${baseIndicator} - ${location.cod_iata}`;
+};
+
+// Example output: "Caracas Main Base (Main Base) - CCS"
+```
+
+### Group Locations by Type
+
+Organize locations by their type.
+
+```typescript
+const groupLocationsByType = (
+  locations: Location[]
+): Record<string, Location[]> => {
+  return locations.reduce((acc, location) => {
+    const type = location.type;
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push(location);
+    return acc;
+  }, {} as Record<string, Location[]>);
+};
+
+// Result: { BASE: [...], HANGAR: [...], WAREHOUSE: [...] }
+```
+
+## Use Cases
+
+### Multi-location Operations
+
+```typescript
+const getCompanyLocationInfo = async (companyId: number) => {
+  const locations = await fetchLocationsByCompany(companyId);
+  
+  return {
+    total: locations.length,
+    mainBase: getMainBase(locations),
+    byType: groupLocationsByType(locations),
+    iataList: locations.map((l) => l.cod_iata),
+  };
+};
+```
+
+### Location Selection Component
+
+```typescript
+const LocationSelector = ({ companyId }: { companyId: number }) => {
+  const { data: locations } = useGetLocations();
+  
+  const companyLocations = locations?.filter((loc) =>
+    companyOperatesAtLocation(loc, companyId)
+  );
+  
+  return (
+    <select>
+      {companyLocations?.map((location) => (
+        <option key={location.id} value={location.id}>
+          {getLocationDisplay(location)}
+        </option>
+      ))}
+    </select>
+  );
+};
+```
+
+### Employee Location Assignment
+
+Locations are used in employee profiles to assign work locations:
+
+```typescript
+interface Employee {
+  id: number;
+  name: string;
+  location: Location;
+  department: Department;
+}
+
+const getEmployeesByLocation = (
+  employees: Employee[],
+  locationId: number
+): Employee[] => {
+  return employees.filter((emp) => emp.location.id === locationId);
+};
+```
+
+### Aircraft Location Tracking
+
+Locations are used to track aircraft positions:
+
+```typescript
+interface Aircraft {
+  id: number;
+  acronym: string;
+  location: Location;
+}
+
+const getAircraftAtLocation = (
+  aircraft: Aircraft[],
+  locationId: number
+): Aircraft[] => {
+  return aircraft.filter((ac) => ac.location.id === locationId);
+};
+```
+
+## Warehouse Integration
+
+Locations can have associated warehouses:
+
+```typescript
+interface Warehouse {
+  id: string;
+  name: string;
+  location: {
+    address: string;
+    type: string;
+  };
+  company: string;
+  type: string;
+}
+
+const getWarehousesByLocation = async (
+  locationId: number
+): Promise<Warehouse[]> => {
+  const { data } = await axiosInstance.get(
+    `/locations/${locationId}/warehouses`
+  );
+  return data;
+};
+```
+
+## Related Resources
+
+### Department
+
+Departments can be associated with locations:
+
+```typescript
+interface Department {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  cod_iata: string;
+  acronym: string;
+  email: string;
+}
+```
+
+### Employee Location
+
+Employees are assigned to specific locations:
+
+```typescript
+const fetchEmployeesByLocation = async (
+  locationId: number
+): Promise<Employee[]> => {
+  const { data } = await axiosInstance.get(
+    `/locations/${locationId}/employees`
+  );
+  return data;
+};
+```
+
+## Error Handling
+
+### Common Errors
+
+- **401 Unauthorized**: Authentication token is missing or invalid
+- **403 Forbidden**: User doesn't have access to this location
+- **404 Not Found**: Location with the specified ID doesn't exist
+- **422 Unprocessable Entity**: Invalid data provided
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message describing the issue
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type or code
+</ResponseField>
+
+```json
+{
+  "message": "Location not found",
+  "error": "NOT_FOUND"
+}
+```
+
+## Best Practices
+
+<Card title="Caching" icon="database">
+  Location data changes infrequently. Use a stale time of 5+ minutes in your queries.
+</Card>
+
+<Card title="Main Base" icon="star">
+  Always ensure at least one location per company is marked as the main base.
+</Card>
+
+<Card title="IATA Codes" icon="code">
+  Use IATA codes for display in forms and reports - they're more recognizable to users.
+</Card>
+
+<Card title="Multi-company" icon="building">
+  Remember that locations can be shared between companies - always check the companies array.
+</Card>

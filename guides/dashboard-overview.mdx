@@ -1,0 +1,246 @@
+---
+title: Dashboard Overview
+description: Understanding the SIGEAC dashboard interface and navigation
+---
+
+## Introduction
+
+The SIGEAC dashboard is your central hub for aviation management operations. The platform provides role-based dashboards that display relevant information and quick actions based on your user permissions.
+
+## Dashboard Types
+
+SIGEAC features multiple specialized dashboards tailored to different user roles:
+
+<AccordionGroup>
+  <Accordion title="Warehouse Dashboard">
+    Available for: `JEFE_ALMACEN`, `ANALISTA_ALMACEN`
+    
+    Features:
+    - Inventory statistics and alerts
+    - Tools calibration tracking
+    - Articles out of stock notifications
+    - User activity monitoring
+    - Dispatch and incoming counts
+  </Accordion>
+
+  <Accordion title="SMS Dashboard">
+    Available for: `JEFE_SMS`, `ANALISTA_SMS`
+    
+    Features:
+    - Safety report statistics
+    - Danger identification tracking
+    - Risk management overview
+    - Training and compliance status
+  </Accordion>
+
+  <Accordion title="Administration Dashboard">
+    Available for: `ANALISTA_ADMINISTRACION`, `RRHH_ADMINISTRACION`, `JEFE_ADMINISTRACION`, `CONTADOR_ADMINISTRACION`
+    
+    Features:
+    - Financial overview
+    - Cash movement tracking
+    - Credit and payment status
+    - Vendor management
+  </Accordion>
+
+  <Accordion title="SuperUser Dashboard">
+    Available for: `SUPERUSER`
+    
+    Features:
+    - Access to all dashboard types
+    - System-wide oversight
+    - Company management
+    - Global configuration
+  </Accordion>
+</AccordionGroup>
+
+## Accessing the Dashboard
+
+<Steps>
+  <Step title="Login to SIGEAC">
+    Navigate to the login page and enter your credentials. The system will authenticate your user account and load your assigned roles.
+  </Step>
+
+  <Step title="Select Company Context">
+    If you have access to multiple companies, select the appropriate company from the company selector in the navigation bar.
+  </Step>
+
+  <Step title="View Your Dashboard">
+    The system automatically displays the appropriate dashboard based on your highest-priority role:
+    - SuperUser takes precedence over all other roles
+    - Warehouse roles activate the warehouse dashboard
+    - SMS roles activate the safety management dashboard
+    - Administration roles activate the financial dashboard
+  </Step>
+</Steps>
+
+## Dashboard Components
+
+### Header Section
+
+The dashboard header displays:
+
+- **Company Logo** - Visual identifier for the current company context
+- **System Title** - "Sistema de Gestión Aeronáutica Civil"
+- **Security Badge** - Indicates secure connection status
+- **User Menu** - Access to account settings and logout
+
+### Navigation Tabs
+
+Role-specific dashboards include multiple tabs for organizing information:
+
+<Tabs>
+  <Tab title="Warehouse Dashboard Tabs">
+    - **Dashboard** - Overview metrics and quick stats
+    - **Artículos** - Articles requiring attention (out of stock, expiring)
+    - **Herramientas** - Tools calibration status and returns
+    - **Usuarios** - User activity statistics (admin only)
+  </Tab>
+
+  <Tab title="SuperUser Options">
+    SuperUsers can switch between different dashboard views using the dashboard selector in the header:
+    - Almacén (Warehouse)
+    - Administración (Administration)
+    - SMS (Safety Management)
+  </Tab>
+</Tabs>
+
+## Understanding Dashboard Metrics
+
+### Warehouse Dashboard Metrics
+
+<CardGroup cols={2}>
+  <Card title="Stored Count" icon="box">
+    Total number of articles currently in inventory
+  </Card>
+
+  <Card title="Dispatch Count" icon="truck">
+    Number of pending dispatch requests
+  </Card>
+
+  <Card title="Tools Calibration" icon="wrench">
+    Tools requiring calibration or already expired
+  </Card>
+
+  <Card title="Restock Alerts" icon="alert-triangle">
+    Articles below minimum quantity threshold
+  </Card>
+</CardGroup>
+
+<Note>
+  Dashboard metrics update in real-time as inventory operations are performed throughout the system.
+</Note>
+
+## Quick Actions
+
+Each dashboard provides contextual quick actions based on your role:
+
+### Common Quick Actions
+
+- **Create Requisition** - Initiate a new purchase request
+- **Register Aircraft** - Add a new aircraft to the fleet
+- **Create Work Order** - Start a new maintenance order
+- **View Reports** - Access reporting modules
+
+<Tip>
+  Use the search functionality in the navigation bar to quickly jump to any module without navigating through menus.
+</Tip>
+
+## Switching Companies
+
+If your user account has access to multiple companies:
+
+<Steps>
+  <Step title="Open Company Selector">
+    Click on the company name in the top navigation bar to open the company selector dropdown.
+  </Step>
+
+  <Step title="Select Target Company">
+    Choose the company you want to work with from the list. Each company displays:
+    - Company name
+    - Company slug/identifier
+    - Available modules
+  </Step>
+
+  <Step title="Confirm Selection">
+    The dashboard will reload with data specific to the selected company. All subsequent operations will be performed in the context of this company.
+  </Step>
+</Steps>
+
+<Warning>
+  Changing companies will reset any unsaved work in the current session. Always save your changes before switching contexts.
+</Warning>
+
+## Location/Station Selection
+
+Some modules require selecting a specific location or station:
+
+- **Main Base** - Primary operational location
+- **Remote Stations** - Satellite locations or hangar facilities
+- **All Locations** - System-wide view (admin only)
+
+<Note>
+  The location selector appears in the navigation bar when working with location-specific modules like warehouse inventory or maintenance operations.
+</Note>
+
+## Default Dashboard
+
+Users without specific role assignments see a default welcome dashboard that displays:
+
+- Welcome message and system branding
+- Information about pending access configuration
+- Contact information for system administrators
+
+<Tip>
+  If you believe you should have access to specific modules but only see the default dashboard, contact your system administrator to verify your role assignments.
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Dashboard not loading">
+    **Possible causes:**
+    - No company selected
+    - Network connectivity issues
+    - Session expired
+    
+    **Solution:** Refresh the page and ensure you're logged in with a valid company selection.
+  </Accordion>
+
+  <Accordion title="Missing expected metrics">
+    **Possible causes:**
+    - Insufficient permissions for certain data
+    - No data available for the selected time period
+    - Module not enabled for your company
+    
+    **Solution:** Verify your role permissions and company module configuration.
+  </Accordion>
+
+  <Accordion title="Can't switch dashboards (SuperUser)">
+    **Possible causes:**
+    - Dashboard selector not responding
+    - Module not configured for company
+    
+    **Solution:** Ensure the target module is enabled in the company settings under Sistema > Empresas.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Managing Companies" icon="building" href="/guides/managing-companies">
+    Learn how to configure companies and modules
+  </Card>
+
+  <Card title="Aircraft Tracking" icon="plane" href="/guides/aircraft-tracking">
+    Track and manage your aircraft fleet
+  </Card>
+
+  <Card title="Inventory Management" icon="warehouse" href="/guides/inventory-management">
+    Manage warehouse inventory and articles
+  </Card>
+
+  <Card title="Work Orders" icon="clipboard-list" href="/guides/work-orders">
+    Create and track maintenance work orders
+  </Card>
+</CardGroup>

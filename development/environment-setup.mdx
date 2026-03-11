@@ -1,0 +1,247 @@
+---
+title: Environment Setup
+description: Set up your development environment for SIGEAC
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Version 20.x or higher
+  </Card>
+  <Card title="npm" icon="npm">
+    Version 10.x or higher (comes with Node.js)
+  </Card>
+  <Card title="Git" icon="git">
+    For version control
+  </Card>
+  <Card title="VS Code" icon="code">
+    Recommended IDE (optional)
+  </Card>
+</CardGroup>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone <repository-url>
+    cd source
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required packages using npm:
+    ```bash
+    npm install
+    ```
+    
+    This will install all dependencies listed in `package.json`, including:
+    - Next.js 14.2.14
+    - React 18
+    - TypeScript 5
+    - Tailwind CSS 3.4.1
+    - And many more...
+  </Step>
+
+  <Step title="Configure environment variables">
+    Create a `.env.local` file in the root directory:
+    
+    ```bash
+    # API Configuration
+    NEXT_PUBLIC_API_BASE_URL=http://your-api-url
+    
+    # Add other environment variables as needed
+    ```
+    
+    <Note>
+      The API base URL should point to your backend Laravel API endpoint.
+    </Note>
+  </Step>
+
+  <Step title="Run the development server">
+    Start the Next.js development server:
+    
+    ```bash
+    npm run dev
+    ```
+    
+    The application will be available at `http://localhost:3000`
+  </Step>
+</Steps>
+
+## Available Scripts
+
+SIGEAC includes the following npm scripts:
+
+<CodeGroup>
+```bash Development
+npm run dev
+# Starts the Next.js development server with hot reload
+```
+
+```bash Production Build
+npm run build
+# Creates an optimized production build
+```
+
+```bash Production Start
+npm start
+# Starts the production server (requires build first)
+```
+
+```bash Linting
+npm run lint
+# Runs ESLint to check for code quality issues
+```
+</CodeGroup>
+
+## TypeScript Configuration
+
+SIGEAC uses TypeScript with the following configuration (`tsconfig.json`):
+
+```json
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+<Note>
+The `@/*` path alias allows you to import modules from the root directory:
+```typescript
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
+```
+</Note>
+
+## IDE Setup
+
+### VS Code Extensions
+
+Recommended extensions for optimal development experience:
+
+- **ES7+ React/Redux/React-Native snippets** - Code snippets
+- **Tailwind CSS IntelliSense** - Autocomplete for Tailwind classes
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **TypeScript and JavaScript Language Features** - Built-in
+
+### VS Code Settings
+
+Add to your `.vscode/settings.json`:
+
+```json
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
+}
+```
+
+## Next.js Configuration
+
+The Next.js configuration (`next.config.mjs`) includes:
+
+```javascript
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "172.190.0.162",
+      },
+      {
+        protocol: "https",
+        hostname: "apisigeactmd74.share.zrok.io",
+      },
+    ],
+  },
+};
+```
+
+<Warning>
+Remote image patterns are configured for specific API domains. Update these to match your backend server.
+</Warning>
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is already in use:
+
+```bash
+# Use a different port
+npm run dev -- -p 3001
+```
+
+### Module Not Found
+
+If you encounter module not found errors:
+
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Type Errors
+
+If TypeScript shows errors:
+
+```bash
+# Restart TypeScript server in VS Code
+# Command Palette (Cmd/Ctrl + Shift + P)
+# TypeScript: Restart TS Server
+```
+
+## Verify Installation
+
+After setup, verify everything is working:
+
+<Steps>
+  <Step title="Check development server">
+    Navigate to `http://localhost:3000` - you should see the login page
+  </Step>
+  
+  <Step title="Check hot reload">
+    Make a small change to any file and verify the page updates automatically
+  </Step>
+  
+  <Step title="Check TypeScript">
+    Open any `.ts` or `.tsx` file - you should see proper IntelliSense and no errors
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Learn about the codebase organization
+  </Card>
+  <Card title="Tech Stack" icon="layer-group" href="/development/tech-stack">
+    Explore the technologies used
+  </Card>
+</CardGroup>

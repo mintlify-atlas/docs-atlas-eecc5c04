@@ -1,0 +1,730 @@
+---
+title: Inventory Management
+description: Complete guide to managing warehouse inventory and articles in SIGEAC
+---
+
+## Introduction
+
+The Inventory Management module in SIGEAC provides comprehensive control over aviation parts, components, consumables, and tools. The system tracks quantities, conditions, locations, and expiration dates for all inventory items.
+
+<Note>
+  Inventory is managed in the **Almacén** (Warehouse) module under `/{company-slug}/almacen/inventario_articulos`
+</Note>
+
+## Inventory Structure
+
+SIGEAC organizes inventory using a hierarchical structure:
+
+- **Warehouses** - Physical storage locations
+- **Batches** - Logical groupings of similar items
+- **Articles** - Individual inventory items
+
+## Article Types
+
+SIGEAC supports four main article types:
+
+<CardGroup cols={2}>
+  <Card title="Components" icon="gear">
+    Repairable aircraft parts tracked by serial number and time (TSN, TSO, CSN, CSO)
+  </Card>
+
+  <Card title="Consumables" icon="droplet">
+    Non-repairable items tracked by quantity (oils, fluids, chemicals, sealants)
+  </Card>
+
+  <Card title="Tools" icon="wrench">
+    Equipment requiring calibration tracking and controlled checkout
+  </Card>
+
+  <Card title="Parts" icon="puzzle">
+    Hardware and small parts tracked by quantity (screws, rivets, fasteners)
+  </Card>
+</CardGroup>
+
+## Accessing Inventory
+
+<Steps>
+  <Step title="Navigate to Warehouse Module">
+    From the main navigation, select **Almacén** from your company's module list.
+  </Step>
+
+  <Step title="Open Inventory Management">
+    Click on **Inventario de Artículos** to access the main inventory interface.
+  </Step>
+
+  <Step title="Select Inventory Type">
+    Choose the inventory category:
+    - **Aeronáutico** - Aviation-specific parts and components
+    - **General/Ferretería** - General purpose items and hardware
+  </Step>
+
+  <Step title="Filter by Category">
+    Use the category tabs to view specific article types:
+    - **Todos** - All articles across categories
+    - **Componente** - Serialized components
+    - **Consumibles** - Consumable materials
+    - **Herramientas** - Tools and equipment
+    - **Partes** - Hardware and small parts
+  </Step>
+</Steps>
+
+## Searching and Filtering Inventory
+
+### Global Search
+
+The inventory page features a powerful search system:
+
+<Steps>
+  <Step title="Use Search Bar">
+    Enter search terms in the search field to find articles by:
+    - Part number (e.g., "65-50587-4")
+    - Description (e.g., "TORNILLO")
+    - Alternate part numbers
+    - Serial numbers (for components)
+
+    <Tip>
+      Search is performed on the backend and works across all article fields, making it easy to find items with partial information.
+    </Tip>
+  </Step>
+
+  <Step title="View Search Results">
+    Results appear in real-time as you type. The system displays:
+    - Total number of matching articles
+    - Search status (searching/results count)
+    - Matching articles in the table
+  </Step>
+
+  <Step title="Clear Search">
+    Click the **X** button in the search field to reset and view all inventory.
+  </Step>
+</Steps>
+
+### Category Filters
+
+<Tabs>
+  <Tab title="Component Filters">
+    When viewing components, filter by condition:
+    - **Todos** - All conditions
+    - **Serviciables** - Serviceable components ready for installation
+    - **Reparados** - Repaired and returned to service
+    - **Removidos - No Serviciables** - Removed, unserviceable
+    - **Removidos - Custodia** - Removed, held in custody
+  </Tab>
+
+  <Tab title="Consumable Filters">
+    When viewing consumables:
+    - **Todos** - All consumables
+    - **Mercancía Peligrosa** - Hazardous materials requiring special handling
+  </Tab>
+
+  <Tab title="Tool Filters">
+    Tools are automatically organized by:
+    - Calibration status
+    - Next calibration due date
+    - Checkout status
+  </Tab>
+
+  <Tab title="Parts Filters">
+    Parts can be filtered by:
+    - Condition
+    - Stock level (in stock, low stock)
+    - Zone/location
+  </Tab>
+</Tabs>
+
+## Understanding Inventory Table
+
+### Part Number Grouping
+
+For components and parts, articles with the same part number are automatically grouped:
+
+- **Group Row** - Shows part number with total article count
+- **Expandable** - Click group row to see individual serial numbers
+- **Quick View** - See quantity without expanding
+
+<Note>
+  Part number grouping helps you quickly see total available quantity for each part number while maintaining individual article tracking.
+</Note>
+
+### Table Columns
+
+<Tabs>
+  <Tab title="All Categories View">
+    - Article Type (icon indicator)
+    - Part Number
+    - Description
+    - Serial Number
+    - Quantity
+    - Condition
+    - Location/Zone
+  </Tab>
+
+  <Tab title="Component View">
+    - Part Number
+    - Alternate Part Numbers
+    - Serial Number
+    - Condition
+    - TSN (Time Since New)
+    - TSO (Time Since Overhaul)
+    - CSN (Cycles Since New)
+    - CSO (Cycles Since Overhaul)
+    - Expiration Date
+    - Zone
+  </Tab>
+
+  <Tab title="Consumable View">
+    - Part Number
+    - Description
+    - Quantity
+    - Unit (EA, GAL, LB, etc.)
+    - Min Quantity
+    - Expiration Date
+    - Fabrication Date
+    - Is Hazardous
+    - Zone
+  </Tab>
+
+  <Tab title="Tool View">
+    - Part Number
+    - Description
+    - Serial Number
+    - Condition
+    - Next Calibration Date
+    - Calibration Status
+    - Is Special (requires special checkout)
+  </Tab>
+</Tabs>
+
+## Batches (Logical Grouping)
+
+Batches organize related articles for easier management.
+
+### Understanding Batches
+
+- **Name** - Descriptive batch name
+- **Slug** - URL-friendly identifier
+- **Category** - What type of articles (COMPONENT, CONSUMABLE, TOOL, PART)
+- **ATA Code** - Aircraft system code
+- **Brand** - Manufacturer or brand
+- **Hazardous** - Whether batch contains dangerous goods
+- **Zone** - Storage location
+- **Min Quantity** - Reorder threshold
+
+### Creating a New Batch
+
+<Steps>
+  <Step title="Click Create Batch">
+    On the inventory page, click the **"Crear Batch"** button.
+  </Step>
+
+  <Step title="Enter Batch Information">
+    Fill in the batch details:
+
+    **Required:**
+    - **Name** - Clear, descriptive name
+    - **Category** - Article type this batch will contain
+    - **Unit** - Default unit of measure (EA, GAL, LB, etc.)
+
+    **Optional:**
+    - **Description** - Additional details
+    - **ATA Code** - Aircraft system code
+    - **Brand** - Specific manufacturer
+    - **Is Hazardous** - Flag for dangerous goods
+    - **Zone** - Storage location
+    - **Min Quantity** - Restock alert threshold
+  </Step>
+
+  <Step title="Save Batch">
+    Click **"Crear"** to save the batch. Articles can now be added to this batch.
+  </Step>
+</Steps>
+
+<Tip>
+  Organize batches by ATA code (aircraft system) or function to make finding and managing related items easier.
+</Tip>
+
+## Adding Articles to Inventory
+
+### Importing Articles
+
+For bulk imports:
+
+<Steps>
+  <Step title="Navigate to Import">
+    Go to **Almacén > Cargar Inventario**
+  </Step>
+
+  <Step title="Prepare Import File">
+    Create a file with article data including:
+    - Part numbers
+    - Serial numbers (for components)
+    - Quantities
+    - Conditions
+    - Other required fields
+  </Step>
+
+  <Step title="Upload and Validate">
+    Upload the file and review validation results before confirming the import.
+  </Step>
+</Steps>
+
+### Manual Article Entry
+
+For individual articles:
+
+<Steps>
+  <Step title="Navigate to Article Entry">
+    Go to **Almacén > Ingresar Inventario**
+  </Step>
+
+  <Step title="Select Article Type">
+    Choose the type of article you're adding:
+    - Component
+    - Consumable
+    - Tool
+    - Part
+  </Step>
+
+  <Step title="Enter Article Details">
+    Fill in the required information based on article type:
+
+    <Tabs>
+      <Tab title="Component">
+        - Part Number
+        - Alternate Part Numbers (optional)
+        - Serial Number (required)
+        - Condition
+        - Manufacturer
+        - Time data (TSN, TSO, CSN, CSO)
+        - Calendar dates (fabrication, expiration)
+        - Zone
+        - Certificates (8130, vendor, manufacturer)
+      </Tab>
+
+      <Tab title="Consumable">
+        - Part Number
+        - Description
+        - Quantity
+        - Unit
+        - Batch assignment
+        - Min quantity (restock level)
+        - Expiration date
+        - Fabrication date
+        - Is hazardous
+        - Is managed (quantity tracking)
+      </Tab>
+
+      <Tab title="Tool">
+        - Part Number
+        - Serial Number (required)
+        - Description
+        - Condition
+        - Next calibration date
+        - Calibration interval
+        - Is special tool
+      </Tab>
+
+      <Tab title="Part">
+        - Part Number
+        - Alternate Part Numbers
+        - Serial Number (optional)
+        - Condition
+        - Quantity
+        - Unit
+        - Zone
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Upload Certificates and Images">
+    Attach supporting documentation:
+    - FAA Form 8130 (airworthiness certificate)
+    - Vendor certificate
+    - Manufacturer certificate
+    - Article photos
+
+    <Note>
+      Certificates are required for aviation parts and ensure traceability and airworthiness compliance.
+    </Note>
+  </Step>
+
+  <Step title="Save Article">
+    Click **"Guardar"** to add the article to inventory.
+  </Step>
+</Steps>
+
+## Managing Article Conditions
+
+Article condition tracking is critical for aviation safety:
+
+### Available Conditions
+
+<AccordionGroup>
+  <Accordion title="SERVICIABLE (Serviceable)">
+    Component is airworthy and ready for installation.
+    
+    **Use when:**
+    - New component from manufacturer
+    - Component repaired and certified
+    - Component inspected and approved
+  </Accordion>
+
+  <Accordion title="NUEVO (New)">
+    Brand new component, never installed.
+    
+    **Use when:**
+    - Direct from manufacturer
+    - Sealed original packaging
+    - No prior service time
+  </Accordion>
+
+  <Accordion title="USADO (Used)">
+    Component has been in service but is still serviceable.
+    
+    **Use when:**
+    - Removed for upgrade, not maintenance
+    - Within life limits
+    - Inspected and found serviceable
+  </Accordion>
+
+  <Accordion title="REPARADO (Repaired)">
+    Component has been repaired and certified airworthy.
+    
+    **Use when:**
+    - Returned from repair facility
+    - Repair certificate issued
+    - Meets all airworthiness standards
+  </Accordion>
+
+  <Accordion title="REMOVIDO - NO SERVICIABLE">
+    Component removed and found unserviceable.
+    
+    **Use when:**
+    - Failed inspection
+    - Beyond economic repair
+    - Awaiting scrap/disposal authorization
+  </Accordion>
+
+  <Accordion title="REMOVIDO - CUSTODIA">
+    Component removed and held pending investigation.
+    
+    **Use when:**
+    - Part of incident investigation
+    - Pending warranty claim
+    - Awaiting manufacturer analysis
+  </Accordion>
+
+  <Accordion title="REMOVIDO - DESCARGADA">
+    Component removed and officially taken off books.
+    
+    **Use when:**
+    - Component scrapped
+    - Disposed per regulations
+    - Removed from inventory records
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Only authorized personnel should change article conditions, especially when marking items as serviceable. Proper documentation must support all condition changes.
+</Warning>
+
+## Quantity Management
+
+For consumables and parts tracked by quantity:
+
+### Adjusting Quantities
+
+<Steps>
+  <Step title="Navigate to Quantity Management">
+    Go to **Almacén > Gestión de Cantidades**
+  </Step>
+
+  <Step title="Select Article">
+    Find the article you need to adjust.
+  </Step>
+
+  <Step title="Make Adjustment">
+    Enter:
+    - Adjustment type (increase or decrease)
+    - Quantity change
+    - Reason for adjustment
+    - Reference documentation
+  </Step>
+
+  <Step title="Save Adjustment">
+    The system updates the quantity and logs the change with user, timestamp, and reason.
+  </Step>
+</Steps>
+
+### Restock Alerts
+
+The system automatically tracks items below minimum quantity:
+
+- **Dashboard Alerts** - Show in warehouse dashboard
+- **Low Stock List** - Available in restock report
+- **Automatic Notifications** - Can be configured for key personnel
+
+<Tip>
+  Set min_quantity values based on usage patterns and lead times to avoid stockouts of critical items.
+</Tip>
+
+## Expiration Date Tracking
+
+Components and consumables can have expiration or calendar limits:
+
+### Calendar Life Tracking
+
+- **Expiration Date** - When item expires
+- **Fabrication Date** - When item was manufactured
+- **Calendar Interval** - Shelf life duration
+
+### Expiration Alerts
+
+The inventory system automatically:
+- Sorts expired items to top of list
+- Highlights items near expiration
+- Includes in dashboard warnings
+- Prevents installation of expired items
+
+<Warning>
+  Expired components and consumables must not be installed on aircraft. Follow your company's procedures for handling expired items.
+</Warning>
+
+## Tool Management
+
+Tools require special tracking for calibration and checkout:
+
+### Calibration Tracking
+
+<Steps>
+  <Step title="Set Calibration Schedule">
+    When adding a tool:
+    - Enter next calibration date
+    - Set calibration interval
+  </Step>
+
+  <Step title="Monitor Calibration Status">
+    System tracks:
+    - Tools due for calibration
+    - Expired calibrations
+    - Calibration history
+  </Step>
+
+  <Step title="Update After Calibration">
+    When tool is calibrated:
+    - Update next calibration date
+    - Attach calibration certificate
+    - Reset calibration status
+  </Step>
+</Steps>
+
+### Tool Checkout System
+
+Tools can be checked out to technicians:
+
+<Steps>
+  <Step title="Navigate to Tool Boxes">
+    Go to **Almacén > Caja de Herramientas**
+  </Step>
+
+  <Step title="Create Tool Box">
+    Assign a set of tools to an employee:
+    - Tool box name
+    - Assigned employee
+    - List of tools
+    - Delivery date and person
+  </Step>
+
+  <Step title="Track Tool Status">
+    System monitors:
+    - Which tools are checked out
+    - Who has each tool
+    - Overdue tool returns
+    - Tool calibration status while checked out
+  </Step>
+</Steps>
+
+<Note>
+  Tools requiring calibration cannot be checked out if their calibration has expired.
+</Note>
+
+## Dispatch and Requisitions
+
+Inventory integrates with dispatch and requisition systems:
+
+### Processing Dispatch Requests
+
+<Steps>
+  <Step title="View Pending Dispatches">
+    Go to **Almacén > Solicitudes > Despachos**
+  </Step>
+
+  <Step title="Review Request">
+    Check:
+    - Requested articles and quantities
+    - Destination (work order or aircraft)
+    - Requester and authorization
+  </Step>
+
+  <Step title="Pick Articles">
+    Select specific articles from inventory to fulfill the request.
+  </Step>
+
+  <Step title="Complete Dispatch">
+    - Update article locations
+    - Reduce inventory quantities
+    - Mark dispatch as complete
+    - Generate dispatch documentation
+  </Step>
+</Steps>
+
+## Inventory Reports and Exports
+
+### Available Reports
+
+<CardGroup cols={2}>
+  <Card title="PDF Export" icon="file-pdf">
+    Detailed inventory report with all article information formatted for printing
+  </Card>
+
+  <Card title="Excel Export" icon="file-excel">
+    Spreadsheet format for analysis, includes all columns and filterable data
+  </Card>
+
+  <Card title="Stock Status" icon="chart-bar">
+    Current stock levels, low stock alerts, and expiration warnings
+  </Card>
+
+  <Card title="Movement History" icon="clock">
+    Incoming, outgoing, and adjustment history for audit trail
+  </Card>
+</CardGroup>
+
+### Generating Reports
+
+<Steps>
+  <Step title="Select Category">
+    Choose which inventory category to report on (cannot export "All" category).
+  </Step>
+
+  <Step title="Apply Filters">
+    Set any desired filters:
+    - Condition (for components)
+    - Search terms
+    - Date ranges
+  </Step>
+
+  <Step title="Choose Format">
+    Click the PDF or Excel icon to generate the report.
+  </Step>
+
+  <Step title="Download Report">
+    Report generates and downloads automatically with current date in filename.
+  </Step>
+</Steps>
+
+<Tip>
+  Use Excel exports for detailed analysis and filtering. Use PDF exports for official documentation and archival.
+</Tip>
+
+## Warehouse Dashboard Integration
+
+The warehouse dashboard provides real-time inventory insights:
+
+- **Stored Count** - Total articles in inventory
+- **Dispatch Count** - Pending dispatch requests
+- **Restock Count** - Items below minimum quantity
+- **Tool Calibration** - Tools due or overdue for calibration
+- **Expired Tools** - Tools with expired calibrations
+- **Articles Out of Stock** - Zero quantity items
+
+<Note>
+  Access the warehouse dashboard from `/{company-slug}/dashboard` when logged in with a warehouse role.
+</Note>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Data Entry">
+    - Double-check part numbers before saving
+    - Always enter serial numbers for serialized items
+    - Attach certificates for aviation parts
+    - Use consistent condition classifications
+    - Verify quantities before dispatching
+  </Accordion>
+
+  <Accordion title="Organization">
+    - Use logical batch groupings
+    - Assign clear zone designations
+    - Maintain consistent ATA code usage
+    - Keep similar items together
+    - Regular physical inventory audits
+  </Accordion>
+
+  <Accordion title="Maintenance">
+    - Review expiration dates monthly
+    - Update calibration schedules promptly
+    - Investigate quantity discrepancies immediately
+    - Archive old certificates and documentation
+    - Clean up obsolete batches
+  </Accordion>
+
+  <Accordion title="Compliance">
+    - Maintain traceability for all parts
+    - Keep certificates current and accessible
+    - Follow hazmat handling procedures
+    - Document all condition changes
+    - Regular audits of serialized components
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Can't find article in search">
+    **Solution:**
+    - Clear all filters
+    - Try alternate part number
+    - Search by serial number
+    - Check if article is in different category
+    - Verify article was actually saved
+  </Accordion>
+
+  <Accordion title="Quantity shows incorrect">
+    **Possible causes:**
+    - Pending dispatch not completed
+    - Recent adjustment not saved
+    - Multiple users editing simultaneously
+    
+    **Solution:** Review recent transactions and adjust if needed with proper documentation.
+  </Accordion>
+
+  <Accordion title="Can't export report">
+    **Possible causes:**
+    - "All" category selected (not supported)
+    - Too many records (timeout)
+    - Network issues
+    
+    **Solution:** Select specific category and apply filters to reduce data size.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Requisitions" icon="file-text" href="/guides/requisitions-and-orders">
+    Create requisitions to restock inventory
+  </Card>
+
+  <Card title="Work Orders" icon="clipboard-list" href="/guides/work-orders">
+    Use inventory for maintenance work
+  </Card>
+
+  <Card title="Dashboard Overview" icon="dashboard" href="/guides/dashboard-overview">
+    Monitor inventory metrics
+  </Card>
+
+  <Card title="Warehouse Reports" icon="chart-line" href="/guides/warehouse-reports">
+    Advanced reporting and analytics
+  </Card>
+</CardGroup>

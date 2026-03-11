@@ -1,0 +1,430 @@
+---
+title: Configuration
+description: Configure SIGEAC for your environment
+---
+
+## Environment Variables
+
+SIGEAC uses environment variables for configuration. Create a `.env.local` file in the root directory.
+
+### Required Variables
+
+```bash .env.local
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=http://your-api-url
+
+# Add other environment variables as needed
+```
+
+<Note>
+Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Keep sensitive values without this prefix.
+</Note>
+
+### Environment Files
+
+<Tabs>
+  <Tab title="Development">
+    `.env.local` - Local development (not committed to git)
+    
+    ```bash
+    NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    ```
+  </Tab>
+  
+  <Tab title="Production">
+    `.env.production` - Production environment
+    
+    ```bash
+    NEXT_PUBLIC_API_BASE_URL=https://api.sigeac.com
+    ```
+  </Tab>
+  
+  <Tab title="Staging">
+    `.env.staging` - Staging environment
+    
+    ```bash
+    NEXT_PUBLIC_API_BASE_URL=https://staging-api.sigeac.com
+    ```
+  </Tab>
+</Tabs>
+
+## TypeScript Configuration
+
+The `tsconfig.json` file configures TypeScript compiler options:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+### Key Options
+
+<AccordionGroup>
+  <Accordion title="strict: true">
+    Enables all strict type checking options:
+    - `strictNullChecks`
+    - `strictFunctionTypes`
+    - `strictPropertyInitialization`
+    - And more...
+  </Accordion>
+  
+  <Accordion title="paths">
+    Configure path aliases for cleaner imports:
+    
+    ```typescript
+    // Instead of:
+    import { Button } from '../../../components/ui/button'
+    
+    // Use:
+    import { Button } from '@/components/ui/button'
+    ```
+  </Accordion>
+  
+  <Accordion title="moduleResolution: bundler">
+    Uses the bundler resolution algorithm, optimized for Next.js and modern bundlers.
+  </Accordion>
+</AccordionGroup>
+
+## Next.js Configuration
+
+The `next.config.mjs` file configures Next.js behavior:
+
+```javascript next.config.mjs
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "172.190.0.162",
+      },
+      {
+        protocol: "https",
+        hostname: "apisigeactmd74.share.zrok.io",
+      },
+    ],
+  },
+};
+
+export default nextConfig;
+```
+
+### Image Optimization
+
+Configure allowed image sources for `next/image`:
+
+<CodeGroup>
+```javascript Add Remote Pattern
+images: {
+  remotePatterns: [
+    {
+      protocol: "https",
+      hostname: "your-cdn.com",
+      port: "",
+      pathname: "/uploads/**",
+    },
+  ],
+}
+```
+
+```javascript Local Images Only
+images: {
+  remotePatterns: [],
+  unoptimized: false,
+}
+```
+</CodeGroup>
+
+### Additional Options
+
+<Tabs>
+  <Tab title="Redirects">
+    Configure URL redirects:
+    
+    ```javascript
+    async redirects() {
+      return [
+        {
+          source: '/old-path',
+          destination: '/new-path',
+          permanent: true,
+        },
+      ]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Headers">
+    Configure custom headers:
+    
+    ```javascript
+    async headers() {
+      return [
+        {
+          source: '/api/:path*',
+          headers: [
+            { key: 'Access-Control-Allow-Origin', value: '*' },
+          ],
+        },
+      ]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Experimental">
+    Enable experimental features:
+    
+    ```javascript
+    experimental: {
+      serverActions: true,
+      typedRoutes: true,
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Tailwind CSS Configuration
+
+The `tailwind.config.ts` file customizes Tailwind CSS:
+
+```typescript tailwind.config.ts
+import type { Config } from "tailwindcss"
+
+const config = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        // ... more colors
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config
+
+export default config
+```
+
+### Theme Customization
+
+<Steps>
+  <Step title="CSS Variables">
+    SIGEAC uses CSS variables for theming. Define them in `app/globals.css`:
+    
+    ```css
+    @layer base {
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --primary: 222.2 47.4% 11.2%;
+        --primary-foreground: 210 40% 98%;
+        /* ... more variables */
+      }
+    
+      .dark {
+        --background: 222.2 84% 4.9%;
+        --foreground: 210 40% 98%;
+        /* ... dark mode variables */
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Use in Components">
+    Reference theme colors using Tailwind classes:
+    
+    ```tsx
+    <div className="bg-background text-foreground">
+      <Button className="bg-primary text-primary-foreground">
+        Primary Button
+      </Button>
+    </div>
+    ```
+  </Step>
+</Steps>
+
+### Custom Utilities
+
+Add custom background images and animations:
+
+```typescript tailwind.config.ts
+theme: {
+  extend: {
+    backgroundImage: {
+      planeBg1: "url('/plane1.jpg')",
+      planeBg2: "url('/plane2.jpg')",
+      clouds: "url('/clouds.jpg')",
+      plane: "url('/plane3.png')",
+      notFound: "url('/404.avif')",
+    },
+    animation: {
+      moveBackground: 'moveBackground 30s linear infinite',
+    },
+  },
+}
+```
+
+See: `tailwind.config.ts:80`
+
+## ESLint Configuration
+
+The `.eslintrc.json` file configures code linting:
+
+```json .eslintrc.json
+{
+  "extends": "next/core-web-vitals"
+}
+```
+
+<Note>
+SIGEAC uses Next.js's recommended ESLint configuration, which includes rules for React, hooks, and accessibility.
+</Note>
+
+## PostCSS Configuration
+
+The `postcss.config.mjs` file configures PostCSS:
+
+```javascript postcss.config.mjs
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+## Components Configuration
+
+The `components.json` file configures shadcn/ui:
+
+```json components.json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "app/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+```
+
+This allows you to use the `shadcn` CLI to add new components:
+
+```bash
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add dialog
+```
+
+## Middleware Configuration
+
+Configure route protection in `middleware.ts`:
+
+```typescript middleware.ts
+const PROTECTED_ROUTES = [
+  '/inicio',
+  '/transmandu',
+  '/hangar74',
+  '/ajustes',
+  '/planificacion',
+  '/administracion'
+]
+
+export const config = {
+  matcher: [
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|images|icons|fonts).*)',
+  ],
+}
+```
+
+See: `middleware.ts:1`
+
+## Configuration Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="lock">
+    Never commit `.env.local` to version control. Use `.env.example` as a template.
+  </Card>
+  
+  <Card title="Type Safety" icon="shield-check">
+    Enable strict TypeScript mode for better type safety and fewer runtime errors.
+  </Card>
+  
+  <Card title="Image Optimization" icon="image">
+    Always configure allowed image domains to prevent unauthorized external images.
+  </Card>
+  
+  <Card title="Code Quality" icon="sparkles">
+    Use ESLint and Prettier to maintain consistent code style across the team.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tech Stack" icon="layer-group" href="/development/tech-stack">
+    Explore the technologies and libraries used
+  </Card>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Learn how to integrate with the backend API
+  </Card>
+</CardGroup>

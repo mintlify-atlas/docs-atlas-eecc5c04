@@ -1,0 +1,205 @@
+---
+title: "Danger Identification"
+description: "Safety Management System danger identification and risk analysis"
+---
+
+## DangerIdentification Object
+
+Represents a comprehensive hazard identification and risk assessment.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the danger identification
+</ResponseField>
+
+<ResponseField name="danger" type="string" required>
+  Name or brief description of the identified danger
+</ResponseField>
+
+<ResponseField name="current_defenses" type="string" required>
+  Existing safety measures and controls in place
+</ResponseField>
+
+<ResponseField name="danger_area" type="string" required>
+  Operational area affected by the danger
+</ResponseField>
+
+<ResponseField name="danger_type" type="string" required>
+  Classification of the danger type
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the danger
+</ResponseField>
+
+<ResponseField name="possible_consequences" type="string" required>
+  Potential outcomes if the danger materializes
+</ResponseField>
+
+<ResponseField name="consequence_to_evaluate" type="string" required>
+  Specific consequence selected for risk evaluation
+</ResponseField>
+
+<ResponseField name="root_cause_analysis" type="string" required>
+  Analysis of underlying causes
+</ResponseField>
+
+<ResponseField name="information_source" type="InformationSource" required>
+  Source of the hazard information
+</ResponseField>
+
+<ResponseField name="risk_management_start_date" type="Date" required>
+  Date when risk management process began
+</ResponseField>
+
+<ResponseField name="analysis" type="Analysis" required>
+  Risk analysis results
+</ResponseField>
+
+<ResponseField name="voluntary_report" type="VoluntaryReport">
+  Associated voluntary report (if applicable)
+</ResponseField>
+
+<ResponseField name="obligatory_report" type="ObligatoryReport">
+  Associated obligatory report (if applicable)
+</ResponseField>
+
+## InformationSource Object
+
+Classification of how the hazard was identified.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the information source
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the information source
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Source type classification
+  <Expandable title="values">
+    - `PROACTIVO` - Proactive identification (audits, inspections)
+    - `REACTIVO` - Reactive identification (incidents, accidents)
+    - `PREDICTIVO` - Predictive identification (trend analysis, modeling)
+  </Expandable>
+</ResponseField>
+
+## Analysis Object
+
+Risk analysis evaluation results.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the analysis
+</ResponseField>
+
+<ResponseField name="probability" type="string" required>
+  Likelihood of occurrence (e.g., "FREQUENT", "OCCASIONAL", "RARE")
+</ResponseField>
+
+<ResponseField name="severity" type="string" required>
+  Severity of consequences (e.g., "CATASTROPHIC", "HAZARDOUS", "MAJOR", "MINOR")
+</ResponseField>
+
+<ResponseField name="result" type="string" required>
+  Overall risk level result (e.g., "HIGH", "MEDIUM", "LOW")
+</ResponseField>
+
+## MitigationTable Object
+
+Comprehensive view used for mitigation tracking dashboard.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier
+</ResponseField>
+
+<ResponseField name="danger" type="string" required>
+  Danger description
+</ResponseField>
+
+<ResponseField name="current_defenses" type="string" required>
+  Current safety measures
+</ResponseField>
+
+<ResponseField name="risk_management_start_date" type="Date" required>
+  Start date of risk management
+</ResponseField>
+
+<ResponseField name="danger_location" type="string" required>
+  Location of the danger
+</ResponseField>
+
+<ResponseField name="danger_area" type="string" required>
+  Affected operational area
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description
+</ResponseField>
+
+<ResponseField name="possible_consequences" type="string" required>
+  Potential consequences
+</ResponseField>
+
+<ResponseField name="consequence_to_evaluate" type="string" required>
+  Selected consequence for evaluation
+</ResponseField>
+
+<ResponseField name="danger_type" type="string" required>
+  Type classification
+</ResponseField>
+
+<ResponseField name="root_cause_analysis" type="string" required>
+  Root cause analysis
+</ResponseField>
+
+<ResponseField name="information_source_id" type="number" required>
+  Information source ID
+</ResponseField>
+
+<ResponseField name="information_source" type="InformationSource" required>
+  Information source object
+</ResponseField>
+
+<ResponseField name="analysis" type="Analysis" required>
+  Risk analysis
+</ResponseField>
+
+<ResponseField name="mitigation_plan" type="MitigationPlan | null" required>
+  Associated mitigation plan (null if none exists)
+</ResponseField>
+
+<ResponseField name="obligatory_report" type="ObligatoryReport">
+  Associated obligatory report
+</ResponseField>
+
+<ResponseField name="voluntary_report" type="VoluntaryReport">
+  Associated voluntary report
+</ResponseField>
+
+## Example
+
+```json
+{
+  "id": 12,
+  "danger": "Foreign Object Debris (FOD) on runway",
+  "current_defenses": "Daily runway inspections, FOD removal procedures",
+  "danger_area": "FLIGHT_OPERATIONS",
+  "danger_type": "OPERATIONAL",
+  "description": "Presence of foreign objects on active runway surfaces that could damage aircraft or cause accidents",
+  "possible_consequences": "Engine damage, tire damage, loss of aircraft control",
+  "consequence_to_evaluate": "Engine damage during takeoff",
+  "root_cause_analysis": "Inadequate inspection frequency during high-traffic periods",
+  "information_source": {
+    "id": "1",
+    "name": "Safety Audit",
+    "type": "PROACTIVO"
+  },
+  "risk_management_start_date": "2026-03-11T00:00:00Z",
+  "analysis": {
+    "id": 12,
+    "probability": "OCCASIONAL",
+    "severity": "HAZARDOUS",
+    "result": "MEDIUM"
+  }
+}
+```

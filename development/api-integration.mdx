@@ -1,0 +1,758 @@
+---
+title: API Integration
+description: Integrating with backend APIs in SIGEAC
+---
+
+## Overview
+
+SIGEAC communicates with a Laravel backend API using Axios. All API interactions are configured with authentication, error handling, and proper TypeScript types.
+
+## Axios Configuration
+
+The Axios instance is configured in `lib/axios.ts`:
+
+```typescript lib/axios.ts
+import axios from 'axios'
+import Cookies from 'js-cookie'
+
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "skip_zrok_interstitial": true,
+  },
+})
+
+// Request interceptor - Add auth token
+axiosInstance.interceptors.request.use((config) => {
+  const token = Cookies.get('auth_token')
+  
+  if (token) {
+    const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`
+    config.headers.Authorization = authHeader
+  }
+  
+  return config
+})
+
+// Response interceptor - Handle 401 errors
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("⚠️ Sesión inválida: Redirigiendo al login...")
+      
+      Cookies.remove('auth_token')
+      Cookies.remove('jwt')
+      
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?session=expired'
+      }
+    }
+    
+    return Promise.reject(error)
+  }
+)
+
+export default axiosInstance
+```
+
+See: `lib/axios.ts:1`
+
+## Environment Configuration
+
+Set the API base URL in `.env.local`:
+
+```bash .env.local
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+# Or production URL:
+# NEXT_PUBLIC_API_BASE_URL=https://api.sigeac.com/api
+```
+
+<Warning>
+The `NEXT_PUBLIC_` prefix exposes the variable to the browser. Only use it for public URLs.
+</Warning>
+
+## API Patterns
+
+### GET Requests
+
+<Tabs>
+  <Tab title="List Resources">
+    Fetch a collection:
+    
+    ```typescript
+    const fetchClients = async (company: string): Promise<Client[]> => {
+      const { data } = await axiosInstance.get(`/${company}/clients`)
+      return data
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Single Resource">
+    Fetch one item:
+    
+    ```typescript
+    const fetchClient = async (company: string, id: string): Promise<Client> => {
+      const { data } = await axiosInstance.get(`/${company}/clients/${id}`)
+      return data
+    }
+    ```
+  </Tab>
+  
+  <Tab title="With Query Parameters">
+    Add filters and pagination:
+    
+    ```typescript
+    const fetchClients = async (
+      company: string,
+      params: { page?: number; search?: string; status?: string }
+    ): Promise<PaginatedResponse<Client>> => {
+      const { data } = await axiosInstance.get(`/${company}/clients`, {
+        params
+      })
+      return data
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### POST Requests
+
+<Tabs>
+  <Tab title="Create Resource">
+    Create a new item:
+    
+    ```typescript
+    const createClient = async (
+      company: string,
+      clientData: CreateClientData
+    ): Promise<Client> => {
+      const { data } = await axiosInstance.post(
+        `/${company}/clients`,
+        clientData
+      )
+      return data
+    }
+    ```
+  </Tab>
+  
+  <Tab title="With FormData">
+    Upload files:
+    
+    ```typescript
+    const uploadDocument = async (
+      company: string,
+      file: File,
+      metadata: object
+    ) => {
+      const formData = new FormData()
+      formData.append('document', file)
+      formData.append('metadata', JSON.stringify(metadata))
+      
+      const { data } = await axiosInstance.post(
+        `/${company}/documents`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+      return data
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Custom Action">
+    Non-RESTful endpoints:
+    
+    ```typescript
+    const enrollInTraining = async (
+      company: string,
+      trainingId: string,
+      employeeId: string
+    ) => {
+      const { data } = await axiosInstance.post(
+        `/${company}/trainings/${trainingId}/enroll`,
+        { employee_id: employeeId }
+      )
+      return data
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### PATCH/PUT Requests
+
+<Tabs>
+  <Tab title="Partial Update (PATCH)">
+    Update specific fields:
+    
+    ```typescript
+    const updateClient = async (
+      company: string,
+      id: string,
+      updates: Partial<Client>
+    ): Promise<Client> => {
+      const { data } = await axiosInstance.patch(
+        `/${company}/clients/${id}`,
+        updates
+      )
+      return data
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Full Update (PUT)">
+    Replace entire resource:
+    
+    ```typescript
+    const replaceClient = async (
+      company: string,
+      id: string,
+      clientData: CreateClientData
+    ): Promise<Client> => {
+      const { data } = await axiosInstance.put(
+        `/${company}/clients/${id}`,
+        clientData
+      )
+      return data
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### DELETE Requests
+
+```typescript
+const deleteClient = async (company: string, id: string): Promise<void> => {
+  await axiosInstance.delete(`/${company}/clients/${id}`)
+}
+```
+
+## Multi-Tenant URL Structure
+
+SIGEAC uses company slugs in URLs for multi-tenancy:
+
+```
+/{company}/clients          # List clients for company
+/{company}/clients/{id}     # Get specific client
+/hangar74/flights           # Hangar74's flights
+/transmandu/flights         # Transmandu's flights
+```
+
+Example:
+
+```typescript
+const { selectedCompany } = useCompanyStore()
+const company = selectedCompany?.slug // "hangar74" or "transmandu"
+
+const { data } = await axiosInstance.get(`/${company}/clients`)
+```
+
+## Response Types
+
+### Single Resource Response
+
+```typescript
+interface Client {
+  id: number
+  name: string
+  email: string
+  phone: string
+  created_at: string
+  updated_at: string
+}
+
+// API Response
+const response = await axiosInstance.get<Client>('/clients/1')
+const client: Client = response.data
+```
+
+### Collection Response
+
+```typescript
+// Simple array
+const response = await axiosInstance.get<Client[]>('/clients')
+const clients: Client[] = response.data
+```
+
+### Paginated Response
+
+```typescript
+interface PaginatedResponse<T> {
+  data: T[]
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number
+  to: number
+}
+
+const response = await axiosInstance.get<PaginatedResponse<Client>>(
+  '/clients?page=1'
+)
+
+const {
+  data: clients,
+  current_page,
+  last_page,
+  total
+} = response.data
+```
+
+### Error Response
+
+```typescript
+interface ApiErrorResponse {
+  message: string
+  errors?: Record<string, string[]> // Validation errors
+}
+
+try {
+  await axiosInstance.post('/clients', data)
+} catch (error) {
+  if (axios.isAxiosError(error)) {
+    const errorData = error.response?.data as ApiErrorResponse
+    console.error(errorData.message)
+    console.error(errorData.errors)
+  }
+}
+```
+
+## Error Handling
+
+### Global Error Handling
+
+The response interceptor handles 401 errors globally:
+
+```typescript
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Redirect to login
+      window.location.href = '/login?session=expired'
+    }
+    return Promise.reject(error)
+  }
+)
+```
+
+### Component-Level Error Handling
+
+<CodeGroup>
+```typescript Query Error
+import { useGetClients } from '@/hooks/general/clientes/useGetClients'
+
+export function ClientList() {
+  const { data, error, isError } = useGetClients(company)
+  
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          {error.message || 'Failed to load clients'}
+        </AlertDescription>
+      </Alert>
+    )
+  }
+  
+  return <div>{/* Render clients */}</div>
+}
+```
+
+```typescript Mutation Error
+import { useCreateClient } from '@/actions/general/clientes/actions'
+import { toast } from 'sonner'
+
+export function ClientForm() {
+  const { createClient } = useCreateClient()
+  
+  const handleSubmit = async (data) => {
+    try {
+      await createClient.mutateAsync({ company, data })
+      toast.success('Client created!')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+        
+        if (status === 422) {
+          // Validation errors
+          const errors = error.response?.data.errors
+          Object.entries(errors).forEach(([field, messages]) => {
+            toast.error(`${field}: ${messages[0]}`)
+          })
+        } else if (status === 500) {
+          toast.error('Server error. Please try again later.')
+        } else {
+          toast.error('An unexpected error occurred')
+        }
+      }
+    }
+  }
+  
+  return <form onSubmit={handleSubmit}>{/* ... */}</form>
+}
+```
+</CodeGroup>
+
+### Validation Errors
+
+Laravel returns validation errors in a specific format:
+
+```typescript
+interface ValidationError {
+  message: string
+  errors: {
+    [field: string]: string[]
+  }
+}
+
+// Example response:
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "email": ["The email field is required."],
+    "name": ["The name must be at least 3 characters."]
+  }
+}
+```
+
+Handle in your component:
+
+```typescript
+import { AxiosError } from 'axios'
+
+type ValidationErrorResponse = {
+  message: string
+  errors: Record<string, string[]>
+}
+
+try {
+  await createClient.mutateAsync({ company, data })
+} catch (error) {
+  if (axios.isAxiosError(error)) {
+    const errorResponse = error.response?.data as ValidationErrorResponse
+    
+    if (errorResponse.errors) {
+      // Set form errors
+      Object.entries(errorResponse.errors).forEach(([field, messages]) => {
+        form.setError(field as any, {
+          message: messages[0]
+        })
+      })
+    }
+  }
+}
+```
+
+## Authentication Flow
+
+### Login
+
+```typescript contexts/AuthContext.tsx
+import { useMutation } from '@tanstack/react-query'
+import axiosInstance from '@/lib/axios'
+import { createCookie } from '@/lib/cookie'
+import { createSession } from '@/lib/session'
+
+const loginMutation = useMutation({
+  mutationFn: async (credentials: { login: string; password: string }) => {
+    const response = await axiosInstance.post<User>('/login', credentials, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const token = response.headers['authorization']
+    if (!token) throw new Error('No se recibió token de autenticación')
+
+    createCookie("auth_token", token)
+    await createSession(response.data.id)
+
+    return response.data
+  },
+  onSuccess: async (userData) => {
+    await fetchUser()
+    queryClient.invalidateQueries({ queryKey: ['user'] })
+    router.push('/inicio')
+    toast.success('¡Bienvenido!')
+  },
+  onError: (err: Error) => {
+    const axiosError = err as AxiosError<ApiErrorResponse>
+    const errorMessage = axiosError.response?.data?.message || 'Error al iniciar sesión'
+    
+    setError(errorMessage)
+    toast.error('Error', { description: errorMessage })
+  },
+})
+```
+
+See: `contexts/AuthContext.tsx:137`
+
+### Logout
+
+```typescript
+const logout = async () => {
+  try {
+    await axiosInstance.post('/logout')
+  } catch (error) {
+    console.error('Logout error:', error)
+  } finally {
+    Cookies.remove('auth_token')
+    queryClient.clear()
+    router.push('/login')
+  }
+}
+```
+
+### Get Current User
+
+```typescript
+const fetchUser = async (): Promise<User> => {
+  const { data } = await axiosInstance.get<User>('/user')
+  return data
+}
+```
+
+## File Uploads
+
+### Single File Upload
+
+```typescript
+const uploadCertificate = async (
+  company: string,
+  articleId: string,
+  file: File
+) => {
+  const formData = new FormData()
+  formData.append('certificate', file)
+  formData.append('article_id', articleId)
+  
+  const { data } = await axiosInstance.post(
+    `/${company}/articles/${articleId}/certificates`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+  
+  return data
+}
+```
+
+### Multiple Files Upload
+
+```typescript
+const uploadMultipleDocuments = async (
+  company: string,
+  files: File[]
+) => {
+  const formData = new FormData()
+  
+  files.forEach((file, index) => {
+    formData.append(`documents[${index}]`, file)
+  })
+  
+  const { data } = await axiosInstance.post(
+    `/${company}/documents/batch`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+  
+  return data
+}
+```
+
+### With Progress Tracking
+
+```typescript
+import { useState } from 'react'
+
+const [uploadProgress, setUploadProgress] = useState(0)
+
+const uploadWithProgress = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const { data } = await axiosInstance.post('/upload', formData, {
+    onUploadProgress: (progressEvent) => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / (progressEvent.total || 1)
+      )
+      setUploadProgress(percentCompleted)
+    },
+  })
+  
+  return data
+}
+```
+
+## Download Files
+
+### Download as Blob
+
+```typescript
+const downloadCertificate = async (
+  company: string,
+  certificateId: string
+) => {
+  const response = await axiosInstance.get(
+    `/${company}/certificates/${certificateId}/download`,
+    {
+      responseType: 'blob',
+    }
+  )
+  
+  // Create download link
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'certificate.pdf')
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+```
+
+### Get File URL
+
+```typescript
+const getDocumentUrl = (path: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '')
+  return `${baseUrl}/storage/${path}`
+}
+
+// Usage
+<img src={getDocumentUrl(article.image)} alt={article.part_number} />
+```
+
+## Request Cancellation
+
+### Cancel on Component Unmount
+
+```typescript
+import { useEffect } from 'react'
+import axios from 'axios'
+
+useEffect(() => {
+  const source = axios.CancelToken.source()
+  
+  const fetchData = async () => {
+    try {
+      const { data } = await axiosInstance.get('/data', {
+        cancelToken: source.token,
+      })
+      setData(data)
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        console.log('Request cancelled')
+      }
+    }
+  }
+  
+  fetchData()
+  
+  return () => {
+    source.cancel('Component unmounted')
+  }
+}, [])
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always use the configured Axios instance">
+    Don't create new axios instances:
+    
+    ```typescript
+    // ✗ Bad
+    import axios from 'axios'
+    axios.get('http://api.example.com/data')
+    
+    // ✓ Good
+    import axiosInstance from '@/lib/axios'
+    axiosInstance.get('/data')
+    ```
+  </Accordion>
+  
+  <Accordion title="Type your API responses">
+    Always define response types:
+    
+    ```typescript
+    // ✗ Bad
+    const { data } = await axiosInstance.get('/clients')
+    
+    // ✓ Good
+    const { data } = await axiosInstance.get<Client[]>('/clients')
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle errors appropriately">
+    Different errors need different handling:
+    
+    - 401: Redirect to login (handled globally)
+    - 403: Show access denied message
+    - 404: Show not found message
+    - 422: Show validation errors
+    - 500: Show server error message
+  </Accordion>
+  
+  <Accordion title="Use environment variables">
+    Never hardcode API URLs:
+    
+    ```typescript
+    // ✗ Bad
+    const baseURL = 'http://localhost:8000/api'
+    
+    // ✓ Good
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Testing API Integration
+
+### Mock Axios in Tests
+
+```typescript
+import axios from 'axios'
+import MockAdapter from 'axios-mock-adapter'
+
+const mock = new MockAdapter(axiosInstance)
+
+// Mock GET request
+mock.onGet('/clients').reply(200, [
+  { id: 1, name: 'Client 1' },
+  { id: 2, name: 'Client 2' },
+])
+
+// Mock POST request
+mock.onPost('/clients').reply(201, {
+  id: 3,
+  name: 'New Client',
+})
+
+// Test
+const { data } = await axiosInstance.get('/clients')
+expect(data).toHaveLength(2)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Fetching" icon="cloud-arrow-down" href="/development/data-fetching">
+    Learn data fetching patterns with React Query
+  </Card>
+  <Card title="Custom Hooks" icon="link" href="/development/custom-hooks">
+    Create reusable API hooks
+  </Card>
+</CardGroup>

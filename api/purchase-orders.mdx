@@ -1,0 +1,324 @@
+---
+title: 'Purchase Orders'
+description: 'API documentation for managing purchase orders in SIGEAC'
+icon: 'cart-shopping'
+---
+
+## Overview
+
+Purchase Orders represent confirmed orders to vendors for articles and materials. They include detailed pricing, shipping, tax information, and are typically generated from approved quotes and requisitions.
+
+## Purchase Order Object
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the purchase order
+</ResponseField>
+
+<ResponseField name="order_number" type="string" required>
+  The purchase order number
+</ResponseField>
+
+<ResponseField name="justification" type="string" required>
+  Justification for the purchase
+</ResponseField>
+
+<ResponseField name="article_purchase_order" type="array" required>
+  Array of articles included in the purchase order
+  <Expandable title="Article properties">
+    <ResponseField name="id" type="number">
+      Article purchase order line item ID
+    </ResponseField>
+    <ResponseField name="batch" type="object">
+      Batch information
+      <Expandable title="Batch properties">
+        <ResponseField name="name" type="string">
+          Batch name
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="article_part_number" type="string">
+      Part number of the article
+    </ResponseField>
+    <ResponseField name="quantity" type="number">
+      Quantity ordered
+    </ResponseField>
+    <ResponseField name="unit" type="Unit">
+      Unit of measurement
+      <Expandable title="Unit properties">
+        <ResponseField name="id" type="number">
+          Unit identifier
+        </ResponseField>
+        <ResponseField name="value" type="string">
+          Unit value (e.g., "EA", "KG")
+        </ResponseField>
+        <ResponseField name="label" type="string">
+          Unit label (e.g., "Each", "Kilogram")
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="unit_price" type="string">
+      Price per unit
+    </ResponseField>
+    <ResponseField name="article_tax" type="number">
+      Tax amount for this article
+    </ResponseField>
+    <ResponseField name="usa_tracking" type="string">
+      USA shipping tracking number
+    </ResponseField>
+    <ResponseField name="ock_tracking" type="string">
+      OCK shipping tracking number
+    </ResponseField>
+    <ResponseField name="article_location" type="string">
+      Current location of the article
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status of the purchase order
+</ResponseField>
+
+<ResponseField name="purchase_date" type="Date" required>
+  Date when the purchase order was created
+</ResponseField>
+
+<ResponseField name="tax" type="number" required>
+  Total tax amount for the purchase order
+</ResponseField>
+
+<ResponseField name="wire_fee" type="number" required>
+  Wire transfer fee
+</ResponseField>
+
+<ResponseField name="card" type="Card">
+  Payment card used (if applicable)
+  <Expandable title="Card properties">
+    <ResponseField name="id" type="number">
+      Card identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Card name
+    </ResponseField>
+    <ResponseField name="card_number" type="string">
+      Masked card number
+    </ResponseField>
+    <ResponseField name="type" type="string">
+      Card type (e.g., credit, debit)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="bank_account" type="BankAccount">
+  Bank account used for payment (if applicable)
+  <Expandable title="BankAccount properties">
+    <ResponseField name="id" type="number">
+      Bank account identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Account name
+    </ResponseField>
+    <ResponseField name="account_number" type="string">
+      Account number
+    </ResponseField>
+    <ResponseField name="account_type" type="string">
+      Type of account (checking, savings, etc.)
+    </ResponseField>
+    <ResponseField name="account_owner" type="string">
+      Account owner name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="handling_fee" type="number" required>
+  Handling fee amount
+</ResponseField>
+
+<ResponseField name="shipping_fee" type="number" required>
+  Total shipping fee
+</ResponseField>
+
+<ResponseField name="ock_shipping" type="number" required>
+  OCK shipping cost
+</ResponseField>
+
+<ResponseField name="usa_shipping" type="number" required>
+  USA shipping cost
+</ResponseField>
+
+<ResponseField name="sub_total" type="number" required>
+  Subtotal before taxes and fees
+</ResponseField>
+
+<ResponseField name="total" type="number" required>
+  Grand total including all taxes and fees
+</ResponseField>
+
+<ResponseField name="vendor" type="Vendor" required>
+  Vendor from whom the purchase is made
+  <Expandable title="Vendor properties">
+    <ResponseField name="id" type="string | number">
+      Vendor unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Vendor name
+    </ResponseField>
+    <ResponseField name="phone" type="string">
+      Vendor phone number
+    </ResponseField>
+    <ResponseField name="type" type="string">
+      Vendor type: PROVEEDOR (Supplier) or BENEFICIARIO (Beneficiary)
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Vendor physical address
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Vendor email address
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="requisition_order" type="Requisition" required>
+  Related requisition order
+</ResponseField>
+
+<ResponseField name="quote_order" type="Quote" required>
+  Related quote order
+</ResponseField>
+
+<ResponseField name="location" type="Location" required>
+  Location associated with the purchase order
+  <Expandable title="Location properties">
+    <ResponseField name="id" type="number">
+      Location identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Location name
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Physical address
+    </ResponseField>
+    <ResponseField name="type" type="string">
+      Location type
+    </ResponseField>
+    <ResponseField name="cod_iata" type="string">
+      IATA code
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="created_by" type="string" required>
+  User who created the purchase order
+</ResponseField>
+
+<ResponseField name="company" type="string" required>
+  Company identifier
+</ResponseField>
+
+## Example Response
+
+```json
+{
+  "id": 5678,
+  "order_number": "PO-2026-0234",
+  "justification": "Purchase for scheduled maintenance of Bell 412 fleet",
+  "article_purchase_order": [
+    {
+      "id": 101,
+      "batch": {
+        "name": "Hydraulic Components Q1-2026"
+      },
+      "article_part_number": "HYD-4521-B",
+      "quantity": 5,
+      "unit": {
+        "id": 1,
+        "value": "EA",
+        "label": "Each"
+      },
+      "unit_price": "1250.00",
+      "article_tax": 125.00,
+      "usa_tracking": "1Z999AA10123456784",
+      "ock_tracking": "OCK-2026-789",
+      "article_location": "Miami Warehouse"
+    },
+    {
+      "id": 102,
+      "batch": {
+        "name": "Hydraulic Components Q1-2026"
+      },
+      "article_part_number": "HYD-9876-C",
+      "quantity": 3,
+      "unit": {
+        "id": 1,
+        "value": "EA",
+        "label": "Each"
+      },
+      "unit_price": "850.00",
+      "article_tax": 76.50,
+      "usa_tracking": "1Z999AA10123456785",
+      "ock_tracking": "OCK-2026-790",
+      "article_location": "Miami Warehouse"
+    }
+  ],
+  "status": "CONFIRMED",
+  "purchase_date": "2026-03-11T14:22:00Z",
+  "tax": 201.50,
+  "wire_fee": 35.00,
+  "card": null,
+  "bank_account": {
+    "id": 7,
+    "name": "Corporate Account USD",
+    "account_number": "****5678",
+    "account_type": "CHECKING",
+    "account_owner": "SIGEAC Operations LLC"
+  },
+  "handling_fee": 125.00,
+  "shipping_fee": 450.00,
+  "ock_shipping": 200.00,
+  "usa_shipping": 250.00,
+  "sub_total": 8800.00,
+  "total": 9611.50,
+  "vendor": {
+    "id": 42,
+    "name": "Aviation Parts International",
+    "phone": "+1-305-555-0199",
+    "type": "PROVEEDOR",
+    "address": "1234 Aviation Blvd, Miami, FL 33142",
+    "email": "sales@aviationparts.com"
+  },
+  "requisition_order": {
+    "id": 1234,
+    "order_number": "REQ-2026-001"
+  },
+  "quote_order": {
+    "id": 3456,
+    "quote_number": "QTE-2026-067"
+  },
+  "location": {
+    "id": 1,
+    "name": "Main Base Caracas",
+    "address": "Aeropuerto Internacional Simón Bolívar",
+    "type": "BASE",
+    "cod_iata": "CCS"
+  },
+  "created_by": "procurement@sigeac.com",
+  "company": "SIGEAC C.A."
+}
+```
+
+## Cost Breakdown
+
+Purchase orders include multiple cost components:
+
+- **Sub Total**: Sum of all article prices
+- **Tax**: Total tax on articles
+- **Shipping Fee**: Combined USA and OCK shipping costs
+- **Handling Fee**: Additional handling charges
+- **Wire Fee**: Bank transfer fees
+- **Total**: Final amount including all costs
+
+## Tracking Information
+
+Each article in a purchase order can have separate tracking numbers:
+
+- **usa_tracking**: Tracking number for USA-based shipping
+- **ock_tracking**: Tracking number for OCK logistics

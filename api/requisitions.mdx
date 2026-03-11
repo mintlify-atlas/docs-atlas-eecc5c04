@@ -1,0 +1,253 @@
+---
+title: 'Requisitions'
+description: 'API documentation for managing requisitions in SIGEAC'
+icon: 'file-invoice'
+---
+
+## Overview
+
+Requisitions are formal requests for materials or parts within SIGEAC. They can be classified as either general requisitions or aeronautical requisitions and are typically linked to work orders or aircraft maintenance activities.
+
+## Requisition Object
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the requisition
+</ResponseField>
+
+<ResponseField name="order_number" type="string" required>
+  The requisition order number
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status of the requisition
+</ResponseField>
+
+<ResponseField name="created_by" type="User" required>
+  User who created the requisition
+  <Expandable title="User properties">
+    <ResponseField name="id" type="string">
+      User unique identifier
+    </ResponseField>
+    <ResponseField name="username" type="string">
+      Username
+    </ResponseField>
+    <ResponseField name="first_name" type="string">
+      User's first name
+    </ResponseField>
+    <ResponseField name="last_name" type="string">
+      User's last name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      User's email address
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="requested_by" type="string" required>
+  Name or identifier of the person requesting the items
+</ResponseField>
+
+<ResponseField name="batch" type="array" required>
+  Array of batch items included in the requisition
+  <Expandable title="Batch properties">
+    <ResponseField name="name" type="string">
+      Batch name
+    </ResponseField>
+    <ResponseField name="batch_articles" type="array">
+      Array of articles in the batch
+      <Expandable title="Article properties">
+        <ResponseField name="article_part_number" type="string">
+          Part number of the article
+        </ResponseField>
+        <ResponseField name="quantity" type="number">
+          Quantity requested
+        </ResponseField>
+        <ResponseField name="unit" type="Convertion">
+          Unit of measurement conversion information
+        </ResponseField>
+        <ResponseField name="image" type="string">
+          URL or path to article image
+        </ResponseField>
+        <ResponseField name="aircraft" type="string">
+          Associated aircraft identifier (optional)
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="received_by" type="string" required>
+  Name or identifier of the person who received the items
+</ResponseField>
+
+<ResponseField name="justification" type="string" required>
+  Justification for the requisition request
+</ResponseField>
+
+<ResponseField name="arrival_date" type="Date" required>
+  Expected or actual arrival date of the requested items
+</ResponseField>
+
+<ResponseField name="submission_date" type="Date" required>
+  Date when the requisition was submitted
+</ResponseField>
+
+<ResponseField name="work_order" type="WorkOrder">
+  Associated work order for the requisition
+  <Expandable title="WorkOrder properties">
+    <ResponseField name="id" type="number">
+      Work order unique identifier
+    </ResponseField>
+    <ResponseField name="order_number" type="string">
+      Work order number
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Work order status
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Work order description
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="aircraft" type="Aircraft">
+  Aircraft associated with the requisition
+  <Expandable title="Aircraft properties">
+    <ResponseField name="id" type="number">
+      Aircraft unique identifier
+    </ResponseField>
+    <ResponseField name="serial" type="string">
+      Aircraft serial number
+    </ResponseField>
+    <ResponseField name="acronym" type="string">
+      Aircraft acronym
+    </ResponseField>
+    <ResponseField name="model" type="string">
+      Aircraft model
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Aircraft status: VENDIDO, EN POSESION, or RENTADO
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Type of requisition
+  - `GENERAL` - General materials requisition
+  - `AERONAUTICO` - Aeronautical/aviation specific requisition
+</ResponseField>
+
+## Example Response
+
+```json
+{
+  "id": 1234,
+  "order_number": "REQ-2026-001",
+  "status": "APPROVED",
+  "created_by": {
+    "id": "user-123",
+    "username": "jdoe",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "jdoe@sigeac.com",
+    "isActive": true
+  },
+  "requested_by": "Maintenance Department",
+  "batch": [
+    {
+      "name": "Engine Parts Batch 001",
+      "batch_articles": [
+        {
+          "article_part_number": "ENG-2024-456",
+          "quantity": 2,
+          "unit": {
+            "primary_unit": {
+              "value": "EA",
+              "label": "Each"
+            },
+            "secondary_unit": {
+              "value": "BOX",
+              "label": "Box"
+            },
+            "equivalence": 1
+          },
+          "image": "/storage/articles/engine-part.jpg",
+          "aircraft": "YV-123CP"
+        }
+      ]
+    }
+  ],
+  "received_by": "Warehouse Manager",
+  "justification": "Required for scheduled maintenance of aircraft YV-123CP",
+  "arrival_date": "2026-03-20T00:00:00Z",
+  "submission_date": "2026-03-11T10:30:00Z",
+  "work_order": {
+    "id": 789,
+    "order_number": "WO-2026-045",
+    "status": "IN_PROGRESS",
+    "description": "100-hour inspection"
+  },
+  "aircraft": {
+    "id": 42,
+    "serial": "MSN-98765",
+    "acronym": "YV-123CP",
+    "model": "Bell 412",
+    "status": "EN POSESION"
+  },
+  "type": "AERONAUTICO"
+}
+```
+
+## Administration Requisition
+
+For administrative purposes, a simplified requisition type exists:
+
+<ResponseField name="id" type="number" required>
+  Unique identifier
+</ResponseField>
+
+<ResponseField name="order_number" type="string" required>
+  Order number
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status
+</ResponseField>
+
+<ResponseField name="created_by" type="User" required>
+  User who created the requisition
+</ResponseField>
+
+<ResponseField name="requested_by" type="string" required>
+  Requester name
+</ResponseField>
+
+<ResponseField name="batch" type="array" required>
+  Simplified batch information
+  <Expandable title="Batch properties">
+    <ResponseField name="batch_articles" type="object">
+      <ResponseField name="description" type="string">
+        Article description
+      </ResponseField>
+      <ResponseField name="quantity" type="number">
+        Quantity requested
+      </ResponseField>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="received_by" type="string" required>
+  Receiver name
+</ResponseField>
+
+<ResponseField name="justification" type="string" required>
+  Justification text
+</ResponseField>
+
+<ResponseField name="submission_date" type="Date" required>
+  Submission date
+</ResponseField>
+
+<ResponseField name="aircraft" type="Aircraft">
+  Optional associated aircraft
+</ResponseField>

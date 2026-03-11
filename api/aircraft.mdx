@@ -1,0 +1,260 @@
+---
+title: 'Aircraft'
+description: 'Aircraft management and tracking for maintenance operations'
+icon: 'plane'
+---
+
+## Overview
+
+The `MaintenanceAircraft` type represents aircraft within the SIGEAC maintenance system. It includes comprehensive aircraft information, flight tracking data, and hierarchical parts management.
+
+## Type Definition
+
+```typescript
+export type MaintenanceAircraft = {
+  id: number;
+  client: MaintenanceClient;
+  manufacturer: Manufacturer;
+  serial: string;
+  model: string;
+  acronym: string;
+  flight_hours: number | string;
+  flight_cycles: number | string;
+  fabricant_date: string;
+  aircraft_parts: MaintenanceAircraftPart[];
+  location: Location;
+  comments: string;
+};
+```
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the aircraft
+</ParamField>
+
+<ParamField path="client" type="MaintenanceClient" required>
+  The client who owns or operates the aircraft
+  
+  <Expandable title="MaintenanceClient properties">
+    <ResponseField name="id" type="number">
+      Client unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Client name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Contact email address
+    </ResponseField>
+    <ResponseField name="phone_number" type="string">
+      Contact phone number
+    </ResponseField>
+    <ResponseField name="authorizing" type="'PROPIETARIO' | 'EXPLOTADOR'">
+      Authorization type - either owner (PROPIETARIO) or operator (EXPLOTADOR)
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="manufacturer" type="Manufacturer" required>
+  Aircraft manufacturer information
+  
+  <Expandable title="Manufacturer properties">
+    <ResponseField name="id" type="number">
+      Manufacturer unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Manufacturer name (e.g., Boeing, Airbus, Cessna)
+    </ResponseField>
+    <ResponseField name="type" type="'AIRCRAFT' | 'ENGINE' | 'APU' | 'PROPELLER' | 'GENERAL' | 'PART'">
+      Manufacturer type - use 'AIRCRAFT' for aircraft manufacturers
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Additional manufacturer details
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="serial" type="string" required>
+  Aircraft serial number (unique identifier from manufacturer)
+</ParamField>
+
+<ParamField path="model" type="string" required>
+  Aircraft model designation (e.g., "737-800", "A320-200")
+</ParamField>
+
+<ParamField path="acronym" type="string" required>
+  Aircraft registration or tail number
+</ParamField>
+
+<ParamField path="flight_hours" type="number | string" required>
+  Total accumulated flight hours. May be formatted as string (e.g., "4,324.00")
+</ParamField>
+
+<ParamField path="flight_cycles" type="number | string" required>
+  Total accumulated flight cycles (takeoff/landing pairs). May be formatted as string (e.g., "324.00")
+</ParamField>
+
+<ParamField path="fabricant_date" type="string" required>
+  Manufacturing date in ISO 8601 format
+</ParamField>
+
+<ParamField path="aircraft_parts" type="MaintenanceAircraftPart[]" required>
+  Array of aircraft parts with hierarchical structure. See [Aircraft Parts](#aircraft-parts) section below.
+</ParamField>
+
+<ParamField path="location" type="Location" required>
+  Current physical location of the aircraft
+  
+  <Expandable title="Location properties">
+    <ResponseField name="id" type="number">
+      Location unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Location name
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Physical address
+    </ResponseField>
+    <ResponseField name="cod_iata" type="string">
+      IATA airport code if applicable
+    </ResponseField>
+    <ResponseField name="isMainBase" type="boolean">
+      Whether this is the main maintenance base
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="comments" type="string">
+  Additional notes or comments about the aircraft
+</ParamField>
+
+## Aircraft Parts
+
+Each aircraft contains a hierarchical structure of parts tracked through the `MaintenanceAircraftPart` type:
+
+```typescript
+export type MaintenanceAircraftPart = {
+  id?: number;
+  part_number: string;
+  part_name: string;
+  serial?: string;
+  condition_type: string;
+  time_since_new?: number | string;
+  time_since_overhaul?: number | string;
+  cycles_since_new?: number | string;
+  cycles_since_overhaul?: number | string;
+  part_hours?: number;
+  part_cycles?: number;
+  is_father?: boolean;
+  aircraft_id?: string;
+  aircraft_part_id?: string | null;
+  sub_parts?: MaintenanceAircraftPart[];
+  aircraft?: MaintenanceAircraft;
+};
+```
+
+### Part Fields
+
+<ResponseField name="part_number" type="string" required>
+  Manufacturer part number
+</ResponseField>
+
+<ResponseField name="part_name" type="string" required>
+  Descriptive name of the part
+</ResponseField>
+
+<ResponseField name="serial" type="string">
+  Part serial number (if serialized)
+</ResponseField>
+
+<ResponseField name="condition_type" type="string" required>
+  Current condition status of the part
+</ResponseField>
+
+<ResponseField name="time_since_new" type="number | string">
+  Operating time since part was new
+</ResponseField>
+
+<ResponseField name="time_since_overhaul" type="number | string">
+  Operating time since last overhaul
+</ResponseField>
+
+<ResponseField name="cycles_since_new" type="number | string">
+  Cycles accumulated since part was new
+</ResponseField>
+
+<ResponseField name="cycles_since_overhaul" type="number | string">
+  Cycles since last overhaul
+</ResponseField>
+
+<ResponseField name="is_father" type="boolean">
+  Indicates if this part has sub-components (parent part)
+</ResponseField>
+
+<ResponseField name="aircraft_part_id" type="string | null">
+  Reference to parent part ID. Null if this is a root-level part.
+</ResponseField>
+
+<ResponseField name="sub_parts" type="MaintenanceAircraftPart[]">
+  Array of child parts in the hierarchical structure
+</ResponseField>
+
+## Example Usage
+
+```typescript
+const aircraft: MaintenanceAircraft = {
+  id: 1,
+  serial: "MSN-12345",
+  model: "737-800",
+  acronym: "YV-1234",
+  flight_hours: "24,567.50",
+  flight_cycles: "18,234.00",
+  fabricant_date: "2015-06-15T00:00:00Z",
+  client: {
+    id: 1,
+    name: "Airline Operations Inc.",
+    email: "ops@airline.com",
+    phone_number: "+1-555-0100",
+    address: "123 Airport Road",
+    authorizing: "PROPIETARIO"
+  },
+  manufacturer: {
+    id: 1,
+    name: "Boeing",
+    type: "AIRCRAFT",
+    description: "Leading aircraft manufacturer"
+  },
+  location: {
+    id: 1,
+    name: "Main Hangar",
+    address: "Maiquetía Airport",
+    type: "MAINTENANCE_BASE",
+    cod_iata: "CCS",
+    isMainBase: true,
+    companies: []
+  },
+  aircraft_parts: [
+    {
+      id: 1,
+      part_number: "CFM56-7B26",
+      part_name: "Engine #1",
+      serial: "ENG-789456",
+      condition_type: "SERVICEABLE",
+      time_since_new: "12,345.00",
+      time_since_overhaul: "2,456.00",
+      cycles_since_new: "9,876.00",
+      cycles_since_overhaul: "1,234.00",
+      is_father: true,
+      aircraft_part_id: null,
+      sub_parts: []
+    }
+  ],
+  comments: "Recent C-check completed"
+};
+```
+
+## Related Types
+
+- [Work Orders](/api/work-orders) - Maintenance work performed on aircraft
+- [Flight Control](/api/flight-control) - Flight operations tracking
+- [Maintenance Services](/api/maintenance-services) - Service definitions applicable to aircraft

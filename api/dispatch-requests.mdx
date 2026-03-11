@@ -1,0 +1,431 @@
+---
+title: 'DispatchRequest'
+description: 'DispatchRequest entity type definition and field reference'
+icon: 'truck-fast'
+---
+
+## Overview
+
+The `DispatchRequest` type represents a request to dispatch articles from the warehouse to a specific destination. It extends the base `Request` type with additional fields specific to inventory dispatch operations.
+
+## Type Definition
+
+```typescript
+export interface DispatchRequest extends Request {
+  part_number: string;
+  destination_place: string;
+  batch: {
+    id: string;
+    name: string;
+    category: string;
+    article_count: number;
+    min_quantity: number;
+    articles: {
+      article_id: string;
+      serial: string;
+      part_number: string;
+      quantity: string;
+      unit: Convertion[];
+    }[];
+  };
+  category: string;
+}
+```
+
+## Base Request Fields
+
+As `DispatchRequest` extends `Request`, it inherits the following fields:
+
+```typescript
+export type Request = {
+  id: number;
+  request_number: string;
+  justification: string;
+  submission_date: string;
+  work_order?: WorkOrder;
+  requisition_order?: string;
+  article?: Article;
+  requested_by: string;
+  created_by: string;
+};
+```
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the dispatch request
+</ParamField>
+
+<ParamField path="request_number" type="string" required>
+  Human-readable request number for tracking (e.g., "DR-2024-00142")
+</ParamField>
+
+<ParamField path="justification" type="string" required>
+  Business justification or reason for the dispatch request
+</ParamField>
+
+<ParamField path="submission_date" type="string" required>
+  Date and time when the request was submitted (ISO 8601 format)
+</ParamField>
+
+<ParamField path="work_order" type="WorkOrder">
+  Optional reference to an associated work order if this dispatch supports maintenance operations
+</ParamField>
+
+<ParamField path="requisition_order" type="string">
+  Optional reference to a requisition order number
+</ParamField>
+
+<ParamField path="article" type="Article">
+  Optional reference to a specific article being dispatched. See [Article](/api/articles) for full reference.
+</ParamField>
+
+<ParamField path="requested_by" type="string" required>
+  Name or identifier of the person who requested the dispatch
+</ParamField>
+
+<ParamField path="created_by" type="string" required>
+  Name or identifier of the user who created the request in the system
+</ParamField>
+
+## Dispatch-Specific Fields
+
+<ParamField path="part_number" type="string" required>
+  Primary part number of the article(s) being dispatched
+</ParamField>
+
+<ParamField path="destination_place" type="string" required>
+  Destination location where the articles will be delivered (e.g., "Hangar 3", "Work Order #1234", "Aircraft N12345")
+</ParamField>
+
+<ParamField path="batch" type="object" required>
+  Detailed information about the batch and specific articles being dispatched
+  <Expandable title="Batch dispatch details">
+    <ResponseField name="id" type="string" required>
+      Batch identifier
+    </ResponseField>
+    <ResponseField name="name" type="string" required>
+      Batch name
+    </ResponseField>
+    <ResponseField name="category" type="string" required>
+      Batch category classification
+    </ResponseField>
+    <ResponseField name="article_count" type="number" required>
+      Total number of article types in the batch
+    </ResponseField>
+    <ResponseField name="min_quantity" type="number" required>
+      Minimum quantity threshold for the batch (for restock alerts)
+    </ResponseField>
+    <ResponseField name="articles" type="array" required>
+      Array of specific articles being dispatched from this batch
+      <Expandable title="Article details">
+        <ResponseField name="article_id" type="string" required>
+          Unique identifier for the article
+        </ResponseField>
+        <ResponseField name="serial" type="string" required>
+          Serial number of the specific article instance
+        </ResponseField>
+        <ResponseField name="part_number" type="string" required>
+          Part number identifier
+        </ResponseField>
+        <ResponseField name="quantity" type="string" required>
+          Quantity being dispatched (stored as string to handle decimals)
+        </ResponseField>
+        <ResponseField name="unit" type="Convertion[]" required>
+          Array of unit conversion information
+          <Expandable title="Convertion fields">
+            <ResponseField name="id" type="number">
+              Conversion rule identifier
+            </ResponseField>
+            <ResponseField name="secondary_unit" type="Unit">
+              Secondary unit of measurement
+            </ResponseField>
+            <ResponseField name="primary_unit" type="Unit">
+              Primary unit of measurement
+            </ResponseField>
+            <ResponseField name="equivalence" type="number">
+              Conversion ratio between units
+            </ResponseField>
+            <ResponseField name="registered_by" type="string">
+              User who registered the conversion
+            </ResponseField>
+            <ResponseField name="created_at" type="string">
+              Creation timestamp
+            </ResponseField>
+          </Expandable>
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="category" type="string" required>
+  Category classification for the dispatch (may differ from batch category for more specific classification)
+</ParamField>
+
+## Example Data
+
+### Basic Dispatch Request
+
+```json
+{
+  "id": 1523,
+  "request_number": "DR-2024-001523",
+  "justification": "Required for scheduled maintenance on Aircraft N12345",
+  "submission_date": "2024-03-15T14:30:00Z",
+  "requested_by": "John Mechanic",
+  "created_by": "warehouse_clerk_01",
+  "part_number": "AN960-416",
+  "destination_place": "Hangar 3 - Bay 2",
+  "batch": {
+    "id": "78",
+    "name": "Hydraulic System Seals",
+    "category": "Seals & Gaskets",
+    "article_count": 3,
+    "min_quantity": 50,
+    "articles": [
+      {
+        "article_id": "1245",
+        "serial": "SN-2024-001234",
+        "part_number": "AN960-416",
+        "quantity": "10",
+        "unit": [
+          {
+            "id": 1,
+            "primary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "secondary_unit": {
+              "id": 2,
+              "value": "BX",
+              "label": "Box"
+            },
+            "equivalence": 100,
+            "registered_by": "admin",
+            "created_at": "2023-01-15T08:00:00Z"
+          }
+        ]
+      }
+    ]
+  },
+  "category": "Fasteners"
+}
+```
+
+### Dispatch Request with Work Order
+
+```json
+{
+  "id": 1524,
+  "request_number": "DR-2024-001524",
+  "justification": "Emergency repair for hydraulic leak - AOG situation",
+  "submission_date": "2024-03-15T16:45:00Z",
+  "requested_by": "Chief Mechanic - Sarah Johnson",
+  "created_by": "emergency_dispatch",
+  "work_order": {
+    "id": 892,
+    "order_number": "WO-2024-0892",
+    "status": "IN_PROGRESS",
+    "description": "Emergency hydraulic system repair"
+  },
+  "part_number": "HS-9942-01",
+  "destination_place": "Aircraft N99234 - Gate A5",
+  "batch": {
+    "id": "142",
+    "name": "Hydraulic Hoses and Fittings",
+    "category": "Hydraulics",
+    "article_count": 2,
+    "min_quantity": 15,
+    "articles": [
+      {
+        "article_id": "3421",
+        "serial": "HS-092344",
+        "part_number": "HS-9942-01",
+        "quantity": "2",
+        "unit": [
+          {
+            "id": 5,
+            "primary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "secondary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "equivalence": 1,
+            "registered_by": "system",
+            "created_at": "2023-01-15T08:00:00Z"
+          }
+        ]
+      },
+      {
+        "article_id": "3422",
+        "serial": "FT-882901",
+        "part_number": "FT-8829-A",
+        "quantity": "4",
+        "unit": [
+          {
+            "id": 5,
+            "primary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "secondary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "equivalence": 1,
+            "registered_by": "system",
+            "created_at": "2023-01-15T08:00:00Z"
+          }
+        ]
+      }
+    ]
+  },
+  "category": "Emergency Parts",
+  "requisition_order": "REQ-2024-0445"
+}
+```
+
+### Multi-Article Dispatch Request
+
+```json
+{
+  "id": 1525,
+  "request_number": "DR-2024-001525",
+  "justification": "Routine stock replenishment for line maintenance",
+  "submission_date": "2024-03-16T09:00:00Z",
+  "requested_by": "Line Maintenance Supervisor",
+  "created_by": "inventory_manager",
+  "part_number": "VARIOUS",
+  "destination_place": "Line Maintenance Tool Room",
+  "batch": {
+    "id": "201",
+    "name": "General Consumables",
+    "category": "Consumables",
+    "article_count": 5,
+    "min_quantity": 100,
+    "articles": [
+      {
+        "article_id": "5001",
+        "serial": "N/A",
+        "part_number": "GLOVES-NITRILE-L",
+        "quantity": "50",
+        "unit": [
+          {
+            "id": 10,
+            "primary_unit": {
+              "id": 1,
+              "value": "EA",
+              "label": "Each"
+            },
+            "secondary_unit": {
+              "id": 2,
+              "value": "BX",
+              "label": "Box"
+            },
+            "equivalence": 100,
+            "registered_by": "admin",
+            "created_at": "2023-01-15T08:00:00Z"
+          }
+        ]
+      },
+      {
+        "article_id": "5002",
+        "serial": "N/A",
+        "part_number": "WIPES-INDUSTRIAL",
+        "quantity": "10",
+        "unit": [
+          {
+            "id": 11,
+            "primary_unit": {
+              "id": 3,
+              "value": "PKG",
+              "label": "Package"
+            },
+            "secondary_unit": {
+              "id": 3,
+              "value": "PKG",
+              "label": "Package"
+            },
+            "equivalence": 1,
+            "registered_by": "admin",
+            "created_at": "2023-01-15T08:00:00Z"
+          }
+        ]
+      }
+    ]
+  },
+  "category": "General Supplies"
+}
+```
+
+## Unit Conversion System
+
+The `Convertion` type enables flexible quantity management:
+
+```typescript
+export type Convertion = {
+  id: number;
+  registered_by: string;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  secondary_unit: Unit;
+  primary_unit: Unit;
+  equivalence: number;
+};
+```
+
+### Example Conversions
+
+- **Each to Box**: 1 Box = 100 Each
+- **Liters to Gallons**: 1 Gallon = 3.785 Liters
+- **Meters to Feet**: 1 Foot = 0.3048 Meters
+
+## Use Cases
+
+### Maintenance Operations
+
+Dispatch parts for scheduled or emergency aircraft maintenance:
+
+- Link to specific work orders
+- Track AOG (Aircraft on Ground) emergency dispatches
+- Support line maintenance stock replenishment
+
+### Inventory Tracking
+
+Maintain accurate inventory records:
+
+- Deduct quantities from batch inventory
+- Trigger restock alerts when batch falls below `min_quantity`
+- Track serial-numbered items throughout their lifecycle
+
+### Audit Trail
+
+Complete traceability for regulatory compliance:
+
+- Who requested the dispatch
+- Who processed the request
+- What was dispatched and in what quantities
+- When and where items were delivered
+- Why the dispatch was necessary (justification)
+
+### Multi-Unit Support
+
+Handle various unit systems:
+
+- Convert between metric and imperial units
+- Support bulk packaging (boxes, cases, pallets)
+- Maintain precision for liquid measurements
+
+## Related Types
+
+- [Article](/api/articles) - Items being dispatched
+- [Batch](/api/batches) - Source batch for dispatched articles
+- [Warehouse](/api/warehouses) - Origin warehouse for dispatch

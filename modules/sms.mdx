@@ -1,0 +1,447 @@
+---
+title: 'SMS (Safety Management System)'
+description: 'Safety reporting, hazard identification, risk analysis, and mitigation'
+icon: 'shield'
+---
+
+The Safety Management System (SMS) module implements a comprehensive aviation safety program compliant with ICAO and regulatory requirements. It manages safety reporting, hazard identification, risk assessment, and mitigation planning.
+
+## Overview
+
+SMS provides a complete framework for proactive safety management in aviation operations, from initial safety reports through risk mitigation and follow-up.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Safety Reporting" icon="file-circle-exclamation">
+    Voluntary and obligatory safety reports with public submission portal
+  </Card>
+  
+  <Card title="Hazard Identification" icon="triangle-exclamation">
+    Systematic hazard analysis with risk evaluation and prioritization
+  </Card>
+  
+  <Card title="Risk Management" icon="shield-check">
+    Risk assessment matrix with pre and post-mitigation tracking
+  </Card>
+  
+  <Card title="Mitigation Planning" icon="clipboard-check">
+    Action plans with assigned responsibilities and follow-up controls
+  </Card>
+</CardGroup>
+
+## Safety Reporting System
+
+### Report Types
+
+<Tabs>
+  <Tab title="Voluntary Reports">
+    **Employee-initiated safety reports** for proactive hazard identification:
+    
+    ```typescript
+    Voluntary Report:
+    - Report number (auto-generated)
+    - Report date
+    - Hazard identification date
+    - Location:
+      - Danger location (general)
+      - Airport location (if applicable)
+      - Danger area (operational area)
+    - Description of observed hazard
+    - Possible consequences
+    - Reporter information (optional):
+      - Name and last name
+      - Phone and email
+    - Supporting documentation:
+      - Images
+      - Documents
+    - Status tracking
+    - Linked hazard identification
+    ```
+    
+    **Confidential Reporting**: Reporter information is optional to encourage reporting.
+  </Tab>
+  
+  <Tab title="Obligatory Reports">
+    **Required incident/accident reports** per regulatory requirements:
+    
+    ```typescript
+    Obligatory Report:
+    - Report number
+    - Incident details:
+      - Date and time
+      - Location
+      - Description
+    - Flight information:
+      - Flight number
+      - Origin, destination, alternate
+      - Flight time at incident
+    - Aircraft:
+      - Aircraft involved
+      - Pilot and co-pilot
+    - Incident classification:
+      - Incident types (multiple selection)
+      - Other incidents description
+    - Supporting documentation:
+      - Images
+      - Documents  
+    - Status
+    - Linked hazard identification
+    ```
+    
+    **Incident Types**: Bird strike, runway incursion, system failure, weather event, etc.
+  </Tab>
+</Tabs>
+
+### Public Reporting Portal
+
+SMS includes a **public-facing portal** for safety report submission:
+
+- Accessible without authentication
+- Submit voluntary reports from any device
+- Submit obligatory incident reports
+- View safety bulletins
+- Take safety surveys
+
+<Note>
+Public URL pattern: `/acceso_publico/[company]/sms/crear_reporte`
+
+This encourages reporting from all personnel, including contractors and visitors.
+</Note>
+
+## Hazard Identification & Risk Analysis
+
+### Hazard Identification Process
+
+<Steps>
+  <Step title="Identify Hazard">
+    Create hazard identification from safety report or proactive analysis
+  </Step>
+  
+  <Step title="Describe Risk">
+    Document the hazard, current defenses, and potential consequences
+  </Step>
+  
+  <Step title="Analyze Risk">
+    Assess probability and severity using risk matrix
+  </Step>
+  
+  <Step title="Determine Action">
+    Based on risk level, create mitigation plan or accept/monitor risk
+  </Step>
+</Steps>
+
+### Hazard Identification Structure
+
+```typescript
+Hazard Identification:
+- Danger description
+- Current defenses in place
+- Danger area (operational area)
+- Danger type (classification)
+- Location
+- Possible consequences
+- Consequence to evaluate (primary concern)
+- Root cause analysis
+- Information source:
+  - Name
+  - Type: PROACTIVO, REACTIVO, PREDICTIVO
+- Risk management start date
+- Risk analysis (probability × severity)
+- Linked reports:
+  - Voluntary report
+  - Obligatory report
+- Mitigation plan (if required)
+```
+
+### Risk Analysis Matrix
+
+Risk is assessed using **Probability × Severity**:
+
+**Probability Levels**:
+| Level | Description | Likelihood |
+|-------|-------------|------------|
+| **5 - Frequent** | Occurs regularly | > 1/100 |
+| **4 - Occasional** | Occurs sometimes | 1/100 to 1/1,000 |
+| **3 - Remote** | Unlikely but possible | 1/1,000 to 1/10,000 |
+| **2 - Improbable** | Very unlikely | 1/10,000 to 1/100,000 |
+| **1 - Extremely Improbable** | Almost impossible | < 1/100,000 |
+
+**Severity Levels**:
+| Level | Description | Impact |
+|-------|-------------|--------|
+| **A - Catastrophic** | Multiple fatalities, aircraft destroyed |
+| **B - Hazardous** | Serious injury, major damage |
+| **C - Major** | Injury, significant damage |
+| **D - Minor** | Minor injury, minor damage |
+| **E - Negligible** | No injury, minimal damage |
+
+**Risk Result** = Probability Number + Severity Letter
+
+Examples: 5A (highest risk), 1E (lowest risk)
+
+### Risk Acceptance Criteria
+
+<Accordion title="Risk Tolerance Levels">
+  Based on the risk matrix result:
+  
+  - **Intolerable (Red)**: Requires immediate mitigation (5A, 5B, 4A)
+  - **Undesirable (Yellow)**: Requires mitigation plan (4B, 3A, 5C)
+  - **Acceptable (Green)**: May be accepted with monitoring (1D, 1E, 2E)
+  
+  Organization defines specific acceptance criteria.
+</Accordion>
+
+## Mitigation Planning
+
+### Mitigation Plan Structure
+
+```typescript
+Mitigation Plan:
+- Description
+- Responsible person (overall plan owner)
+- Start date
+- Linked hazard identification
+- Mitigation measures (actions)
+- Post-mitigation risk analysis
+```
+
+### Mitigation Measures
+
+Each plan contains specific actions:
+
+```typescript
+Mitigation Measure:
+- Description (action to be taken)
+- Implementation responsible (person executing)
+- Implementation supervisor (oversight)
+- Estimated completion date
+- Actual execution date
+- Follow-up controls (verification actions)
+- Status tracking
+```
+
+### Follow-Up Controls
+
+Verify mitigation effectiveness:
+
+```typescript
+Follow-Up Control:
+- Date conducted
+- Description of verification
+- Linked mitigation measure
+- Supporting documentation:
+  - Images
+  - Documents
+```
+
+<Accordion title="Example Mitigation Plan">
+  **Hazard**: Foreign object debris (FOD) on apron
+  
+  **Mitigation Plan**:
+  - Responsible: Safety Manager
+  - Start: 2024-01-15
+  
+  **Measures**:
+  1. **Daily FOD Walks**
+     - Responsible: Ramp Supervisor
+     - Supervisor: Safety Manager
+     - Estimated: 2024-01-20
+     - Follow-up: Weekly FOD walk logs review
+  
+  2. **Install FOD Containers**
+     - Responsible: Facilities Manager
+     - Supervisor: Safety Manager  
+     - Estimated: 2024-02-01
+     - Follow-up: Container usage inspection
+  
+  3. **Staff Training**
+     - Responsible: Training Manager
+     - Supervisor: Safety Manager
+     - Estimated: 2024-01-30
+     - Follow-up: Training completion records
+  
+  **Post-Mitigation Risk**: Reduced from 4B to 2C
+</Accordion>
+
+## Safety Promotion
+
+### SMS Activities
+
+Plan and track safety promotion activities:
+
+```typescript
+SMS Activity:
+- Title and activity name
+- Activity number
+- Schedule:
+  - Start and end date
+  - Start and end time
+- Location/place
+- Topics covered
+- Objective
+- Description
+- Personnel:
+  - Authorized by (employee)
+  - Planned by (employee)
+  - Executed by
+- Status
+- Attendance tracking
+```
+
+**Activity Types**: Safety meetings, training sessions, toolbox talks, drills, audits
+
+### Attendance Management
+
+Track employee participation:
+
+- Link employees to activities
+- Record attendance status
+- Generate attendance reports
+- Track training completion
+
+### Safety Training Integration
+
+Links to course management:
+
+- Initial SMS training
+- Recurrent training
+- Training expiration tracking
+- Course completion status
+
+### Safety Bulletins
+
+Publish safety communications:
+
+```typescript
+Safety Bulletin:
+- Date published
+- Title
+- Description
+- Supporting documents
+- Images
+- Public visibility
+```
+
+Bulletins are accessible via public portal for wide distribution.
+
+### Safety Surveys
+
+Create and distribute safety surveys:
+
+```typescript
+Survey:
+- Title and survey number
+- Type: QUIZ or SURVEY
+- Description
+- Active status
+- Location/setting
+- Questions:
+  - Text
+  - Type: SINGLE (radio), MULTIPLE (checkbox), OPEN (text)
+  - Required flag
+  - Options (for single/multiple choice)
+  - Correct answer (for quizzes)
+- Answers count
+```
+
+**Survey Results**: Track responses, analyze trends, measure safety culture
+
+## SMS Statistics & Reporting
+
+### Dashboard Metrics
+
+- **Report Statistics**:
+  - Total reports (voluntary + obligatory)
+  - Open vs. closed reports
+  - Reports by area
+  - Report trends by month
+
+- **Risk Statistics**:
+  - Hazards by risk level (pre-mitigation)
+  - Hazards by risk level (post-mitigation)
+  - Risk reduction effectiveness
+  - Hazards by type
+
+- **Activity Statistics**:
+  - Planned vs. completed activities
+  - Attendance rates
+  - Training completion
+
+### Analytics & Trends
+
+<Accordion title="SMS Analytics Features">
+  - **Reports by Area**: Bar chart showing which operational areas generate most reports
+  - **Risk by Type**: Pie chart of hazard classifications
+  - **Monthly Trends**: Line graph of report volume over time
+  - **Pre vs. Post Risk**: Compare risk levels before and after mitigation
+  - **Source Analysis**: Reports by source type (proactive/reactive/predictive)
+  - **Mitigation Progress**: Track open vs. closed mitigation plans
+</Accordion>
+
+## User Workflows
+
+### For All Personnel
+
+1. **Submit Safety Report**:
+   - Use public portal or internal system
+   - Describe observed hazard or incident
+   - Provide details and supporting evidence
+   - Submit (optional: provide contact info)
+
+2. **Participate in Safety Activities**:
+   - Attend safety meetings
+   - Complete safety training
+   - Respond to safety surveys
+
+### For Safety Staff
+
+1. **Process Reports**:
+   - Review submitted safety reports
+   - Create hazard identifications
+   - Conduct risk analysis
+   - Determine if mitigation required
+
+2. **Manage Mitigation**:
+   - Create mitigation plans for high-risk hazards
+   - Assign mitigation measures to responsible parties
+   - Track implementation progress
+   - Verify effectiveness through follow-up controls
+
+3. **Safety Promotion**:
+   - Plan and schedule SMS activities
+   - Publish safety bulletins
+   - Create and distribute surveys
+   - Analyze safety trends
+
+## Regulatory Compliance
+
+<Note>
+**ICAO SMS Framework Alignment**:
+
+The module supports the four pillars of SMS:
+1. **Safety Policy**: Document safety objectives and promotion activities
+2. **Safety Risk Management**: Hazard identification and risk analysis
+3. **Safety Assurance**: Monitoring through follow-up controls and metrics
+4. **Safety Promotion**: Training, bulletins, surveys, and activities
+</Note>
+
+## Integration with Operations
+
+<CardGroup cols={2}>
+  <Card title="Planning Integration">
+    Safety reports can reference specific aircraft, work orders, or flight operations
+  </Card>
+  
+  <Card title="Training Integration">
+    SMS training requirements link to course management and employee records
+  </Card>
+  
+  <Card title="Incident Response">
+    Obligatory reports trigger investigation and mitigation workflows
+  </Card>
+  
+  <Card title="Continuous Improvement">
+    Analytics identify trends for proactive safety improvements
+  </Card>
+</CardGroup>

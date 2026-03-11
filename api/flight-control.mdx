@@ -1,0 +1,351 @@
+---
+title: 'Flight Control'
+description: 'Flight operations tracking and aircraft utilization monitoring'
+icon: 'plane-departure'
+---
+
+## Overview
+
+The `FlightControl` type tracks individual flight operations in SIGEAC. It records flight details, accumulates aircraft flight hours and cycles, and provides essential data for maintenance planning and aircraft utilization monitoring.
+
+## Type Definition
+
+```typescript
+export type FlightControl = {
+  id: number;
+  flight_number: string;
+  aircraft_operator: string;
+  origin: string;
+  destination: string;
+  flight_date: string;
+  flight_hours: number;
+  flight_cycles: number;
+  aircraft: MaintenanceAircraft;
+};
+```
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the flight control record
+</ParamField>
+
+<ParamField path="flight_number" type="string" required>
+  Flight number or identifier (e.g., "AA123", "FERRY-001", "TEST-FLIGHT-01")
+</ParamField>
+
+<ParamField path="aircraft_operator" type="string" required>
+  Name of the aircraft operator conducting the flight. May differ from aircraft owner.
+</ParamField>
+
+<ParamField path="origin" type="string" required>
+  Departure airport (typically ICAO or IATA code, e.g., "SVMI", "CCS")
+</ParamField>
+
+<ParamField path="destination" type="string" required>
+  Arrival airport (typically ICAO or IATA code, e.g., "SVMC", "MAR")
+</ParamField>
+
+<ParamField path="flight_date" type="string" required>
+  Date of flight in ISO 8601 format (e.g., "2024-03-15T14:30:00Z")
+</ParamField>
+
+<ParamField path="flight_hours" type="number" required>
+  Duration of flight in hours (decimal format, e.g., 2.5 for 2 hours 30 minutes).
+  This value is added to the aircraft's total flight hours.
+</ParamField>
+
+<ParamField path="flight_cycles" type="number" required>
+  Number of flight cycles (takeoff/landing pairs) for this flight. Typically 1 for a standard flight,
+  but may be higher for flights with multiple takeoffs and landings (e.g., training flights, touch-and-go operations).
+</ParamField>
+
+<ParamField path="aircraft" type="MaintenanceAircraft" required>
+  Aircraft that performed this flight. See [Aircraft documentation](/api/aircraft) for complete structure.
+  
+  <Expandable title="Key aircraft properties">
+    <ResponseField name="id" type="number">
+      Aircraft unique identifier
+    </ResponseField>
+    <ResponseField name="acronym" type="string">
+      Aircraft registration (e.g., "YV-1234")
+    </ResponseField>
+    <ResponseField name="model" type="string">
+      Aircraft model (e.g., "737-800")
+    </ResponseField>
+    <ResponseField name="serial" type="string">
+      Aircraft serial number
+    </ResponseField>
+    <ResponseField name="flight_hours" type="number | string">
+      Total accumulated flight hours (updated after each flight)
+    </ResponseField>
+    <ResponseField name="flight_cycles" type="number | string">
+      Total accumulated cycles (updated after each flight)
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+## Flight Cycle Tracking
+
+Flight cycles are critical for maintenance scheduling as many components have cycle-limited lifespans:
+
+- **Standard Flight**: 1 cycle (one takeoff, one landing)
+- **Training Flight**: Multiple cycles (multiple takeoffs and landings)
+- **Touch-and-Go**: Each touch-and-go counts as 1 cycle
+- **Rejected Takeoff**: May count as 0.5 cycle depending on operator policy
+
+<Note>
+  Flight hours and cycles are automatically accumulated to the aircraft and its time-tracked components when a flight control record is created.
+</Note>
+
+## Flight History Integration
+
+Flight control data feeds into the flight history system for component tracking:
+
+```typescript
+export type FlightHistory = {
+  id: number;
+  flight_number: string;
+  aircraft_part_id: string | number;
+  aircraft_part?: MaintenanceAircraftPart;
+  flight?: FlightControl;
+  time_since_new: number | string;
+  time_since_overhaul: number | string;
+  cycles_since_new: number | string;
+  cycles_since_overhaul: number | string;
+  flight_cycles: number | string;
+  flight_hours: number | string;
+  created_at: string;
+  updated_at: string;
+};
+```
+
+Each flight control record can generate multiple flight history entries—one for each tracked component on the aircraft.
+
+## Example Usage
+
+### Standard Commercial Flight
+
+```typescript
+const commercialFlight: FlightControl = {
+  id: 1001,
+  flight_number: "VE-125",
+  aircraft_operator: "Venezuelan Airlines",
+  origin: "SVMI",
+  destination: "SVMC",
+  flight_date: "2024-03-15T08:30:00Z",
+  flight_hours: 1.2,
+  flight_cycles: 1,
+  aircraft: {
+    id: 1,
+    serial: "MSN-12345",
+    model: "737-800",
+    acronym: "YV-1234",
+    flight_hours: "24,567.50",
+    flight_cycles: "18,234.00",
+    fabricant_date: "2015-06-15T00:00:00Z",
+    client: {
+      id: 1,
+      name: "Venezuelan Airlines",
+      email: "ops@venezolana.com",
+      phone_number: "+58-212-555-0100",
+      address: "Caracas, Venezuela",
+      authorizing: "PROPIETARIO"
+    },
+    manufacturer: {
+      id: 1,
+      name: "Boeing",
+      type: "AIRCRAFT",
+      description: "Boeing Commercial Airplanes"
+    },
+    location: {
+      id: 1,
+      name: "Main Base",
+      address: "Maiquetía",
+      type: "AIRPORT",
+      cod_iata: "CCS",
+      isMainBase: true,
+      companies: []
+    },
+    aircraft_parts: [],
+    comments: ""
+  }
+};
+```
+
+### Maintenance Test Flight
+
+```typescript
+const testFlight: FlightControl = {
+  id: 1002,
+  flight_number: "TEST-FLIGHT-001",
+  aircraft_operator: "Maintenance Department",
+  origin: "SVMI",
+  destination: "SVMI",
+  flight_date: "2024-03-15T10:00:00Z",
+  flight_hours: 0.8,
+  flight_cycles: 1,
+  aircraft: {
+    id: 1,
+    serial: "MSN-12345",
+    model: "737-800",
+    acronym: "YV-1234",
+    // ... aircraft details
+  }
+};
+```
+
+### Training Flight with Multiple Cycles
+
+```typescript
+const trainingFlight: FlightControl = {
+  id: 1003,
+  flight_number: "TRAINING-045",
+  aircraft_operator: "Flight School Division",
+  origin: "SVVA",
+  destination: "SVVA",
+  flight_date: "2024-03-15T14:00:00Z",
+  flight_hours: 2.5,
+  flight_cycles: 8, // Multiple touch-and-go landings
+  aircraft: {
+    id: 2,
+    serial: "MSN-67890",
+    model: "Cessna 172",
+    acronym: "YV-5678",
+    // ... aircraft details
+  }
+};
+```
+
+## Maintenance Planning Integration
+
+Flight control data is essential for maintenance planning:
+
+### Time-Based Maintenance
+
+```typescript
+// Calculate hours until next A-Check (every 800 hours)
+const calculateNextACheck = (aircraft: MaintenanceAircraft): number => {
+  const currentHours = parseFloat(aircraft.flight_hours.toString().replace(/,/g, ''));
+  const nextCheckDue = Math.ceil(currentHours / 800) * 800;
+  return nextCheckDue - currentHours;
+};
+```
+
+### Cycle-Based Maintenance
+
+```typescript
+// Calculate cycles until landing gear overhaul (every 20,000 cycles)
+const calculateLandingGearOverhaulDue = (aircraft: MaintenanceAircraft): number => {
+  const currentCycles = parseFloat(aircraft.flight_cycles.toString().replace(/,/g, ''));
+  const overhaul_interval = 20000;
+  return overhaul_interval - (currentCycles % overhaul_interval);
+};
+```
+
+### Component Tracking
+
+```typescript
+// Update component hours and cycles after flight
+const updateComponentTracking = (
+  flightControl: FlightControl,
+  component: MaintenanceAircraftPart
+): MaintenanceAircraftPart => {
+  return {
+    ...component,
+    time_since_new: parseFloat(component.time_since_new || "0") + flightControl.flight_hours,
+    time_since_overhaul: parseFloat(component.time_since_overhaul || "0") + flightControl.flight_hours,
+    cycles_since_new: parseFloat(component.cycles_since_new || "0") + flightControl.flight_cycles,
+    cycles_since_overhaul: parseFloat(component.cycles_since_overhaul || "0") + flightControl.flight_cycles
+  };
+};
+```
+
+## Utilization Reports
+
+Flight control data enables comprehensive utilization reporting:
+
+```typescript
+interface UtilizationReport {
+  period: string;
+  total_flights: number;
+  total_hours: number;
+  total_cycles: number;
+  average_flight_duration: number;
+  utilization_rate: number; // hours per day
+}
+
+const generateUtilizationReport = (
+  flights: FlightControl[],
+  startDate: Date,
+  endDate: Date
+): UtilizationReport => {
+  const periodFlights = flights.filter(
+    f => new Date(f.flight_date) >= startDate && new Date(f.flight_date) <= endDate
+  );
+  
+  const total_hours = periodFlights.reduce((sum, f) => sum + f.flight_hours, 0);
+  const total_cycles = periodFlights.reduce((sum, f) => sum + f.flight_cycles, 0);
+  const days = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+  
+  return {
+    period: `${startDate.toISOString()} to ${endDate.toISOString()}`,
+    total_flights: periodFlights.length,
+    total_hours,
+    total_cycles,
+    average_flight_duration: periodFlights.length > 0 ? total_hours / periodFlights.length : 0,
+    utilization_rate: days > 0 ? total_hours / days : 0
+  };
+};
+```
+
+## Best Practices
+
+1. **Accurate Recording**: Ensure flight hours are recorded to at least 0.1 hour precision
+2. **Cycle Counting**: Properly count all takeoff/landing pairs, including touch-and-go operations
+3. **Timely Entry**: Enter flight data promptly after flight completion
+4. **Validation**: Validate that accumulated hours/cycles match aircraft tech log
+5. **Ferry Flights**: Don't forget to record maintenance ferry flights and test flights
+6. **Component Updates**: Ensure component tracking is updated after each flight
+
+## Regulatory Compliance
+
+<Warning>
+  Accurate flight hour and cycle tracking is required for:
+  - Compliance with maintenance program requirements
+  - Component life-limit tracking
+  - Airworthiness directive compliance
+  - Regulatory inspections and audits
+</Warning>
+
+## Data Validation
+
+```typescript
+const validateFlightControl = (flight: FlightControl): string[] => {
+  const errors: string[] = [];
+  
+  if (flight.flight_hours <= 0) {
+    errors.push("Flight hours must be greater than 0");
+  }
+  
+  if (flight.flight_cycles < 1) {
+    errors.push("Flight cycles must be at least 1");
+  }
+  
+  if (flight.flight_hours > 24) {
+    errors.push("Flight hours exceed maximum daily limit");
+  }
+  
+  if (!flight.origin || !flight.destination) {
+    errors.push("Origin and destination are required");
+  }
+  
+  return errors;
+};
+```
+
+## Related Types
+
+- [Aircraft](/api/aircraft) - Aircraft performing flights
+- [Work Orders](/api/work-orders) - Maintenance triggered by flight hours/cycles
+- [Maintenance Services](/api/maintenance-services) - Services scheduled based on utilization

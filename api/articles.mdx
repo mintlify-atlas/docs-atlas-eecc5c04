@@ -1,0 +1,298 @@
+---
+title: 'Article'
+description: 'Article entity type definition and field reference'
+icon: 'box'
+---
+
+## Overview
+
+The `Article` type represents inventory items in the SIGEAC system. Articles can have different types (consumable, component, tool) and track various properties including serial numbers, part numbers, condition, and associated documentation.
+
+## Type Definition
+
+```typescript
+export type Article = {
+  id: number;
+  article_type?: string;
+  part_number: string;
+  alternative_part_number?: string[];
+  status?: string;
+  serial?: string;
+  description?: string;
+  zone?: string;
+  manufacturer?: Manufacturer;
+  condition?: Condition;
+  condition_id?: string;
+  weight?: number;
+  cost?: number;
+  unit?: string;
+  quantity?: number;
+  batches?: Batch;
+  batch_id?: number;
+  vendor_id?: string;
+  certifcate_8130?: File | string;
+  certifcate_vendor?: File | string;
+  certifcate_fabricant?: File | string;
+  image?: File | string;
+  primary_unit_id?: number;
+  inspector?: string;
+  inspect_date?: string;
+  ata_code?: string;
+};
+```
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the article
+</ParamField>
+
+<ParamField path="article_type" type="string">
+  Type classification of the article (e.g., "CONSUMABLE", "COMPONENT", "TOOL")
+</ParamField>
+
+<ParamField path="part_number" type="string" required>
+  Primary part number identifier for the article
+</ParamField>
+
+<ParamField path="alternative_part_number" type="string[]">
+  Array of alternative or cross-reference part numbers
+</ParamField>
+
+<ParamField path="status" type="string">
+  Current status of the article (e.g., "VENDIDO", "EN POSESION", "RENTADO")
+</ParamField>
+
+<ParamField path="serial" type="string">
+  Serial number for tracking individual article instances
+</ParamField>
+
+<ParamField path="description" type="string">
+  Detailed description of the article
+</ParamField>
+
+<ParamField path="zone" type="string">
+  Physical location or zone within the warehouse
+</ParamField>
+
+<ParamField path="manufacturer" type="Manufacturer">
+  Reference to the manufacturer entity
+  <Expandable title="Manufacturer fields">
+    <ResponseField name="id" type="number">
+      Manufacturer unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Manufacturer name
+    </ResponseField>
+    <ResponseField name="type" type="string">
+      Type: "AIRCRAFT" | "ENGINE" | "APU" | "PROPELLER" | "GENERAL" | "PART"
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Manufacturer description
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="condition" type="Condition">
+  Current condition classification of the article
+  <Expandable title="Condition fields">
+    <ResponseField name="id" type="number">
+      Condition unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Condition name
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Detailed condition description
+    </ResponseField>
+    <ResponseField name="registered_by" type="string">
+      User who registered the condition
+    </ResponseField>
+    <ResponseField name="updated_by" type="string">
+      User who last updated the condition
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="condition_id" type="string">
+  Foreign key reference to the condition
+</ParamField>
+
+<ParamField path="weight" type="number">
+  Weight of the article (unit depends on primary_unit)
+</ParamField>
+
+<ParamField path="cost" type="number">
+  Cost or price of the article
+</ParamField>
+
+<ParamField path="unit" type="string">
+  Unit of measurement (e.g., "EA", "KG", "L")
+</ParamField>
+
+<ParamField path="quantity" type="number">
+  Available quantity in inventory
+</ParamField>
+
+<ParamField path="batches" type="Batch">
+  Associated batch/category for this article. See [Batch](/api/batches) for full reference.
+</ParamField>
+
+<ParamField path="batch_id" type="number">
+  Foreign key reference to the batch
+</ParamField>
+
+<ParamField path="vendor_id" type="string">
+  Foreign key reference to the vendor
+</ParamField>
+
+<ParamField path="certifcate_8130" type="File | string">
+  FAA Form 8130-3 Airworthiness Approval Tag certificate (file upload or URL)
+</ParamField>
+
+<ParamField path="certifcate_vendor" type="File | string">
+  Vendor certification documentation (file upload or URL)
+</ParamField>
+
+<ParamField path="certifcate_fabricant" type="File | string">
+  Manufacturer certification documentation (file upload or URL)
+</ParamField>
+
+<ParamField path="image" type="File | string">
+  Article image (file upload or URL)
+</ParamField>
+
+<ParamField path="primary_unit_id" type="number">
+  Foreign key reference to the primary unit of measurement
+</ParamField>
+
+<ParamField path="inspector" type="string">
+  Name of the inspector who verified the article
+</ParamField>
+
+<ParamField path="inspect_date" type="string">
+  Date of inspection (ISO 8601 format)
+</ParamField>
+
+<ParamField path="ata_code" type="string">
+  ATA chapter code for aviation maintenance categorization
+</ParamField>
+
+## Extended Article Types
+
+### ConsumableArticle
+
+Extends `Article` with additional fields for consumable items:
+
+```typescript
+export interface ConsumableArticle extends Article {
+  is_managed?: boolean;
+  quantity?: number;
+  min_quantity?: number;
+  expiration_date?: string;
+  fabrication_date?: string;
+}
+```
+
+<ParamField path="is_managed" type="boolean">
+  Indicates if the consumable is tracked in inventory management
+</ParamField>
+
+<ParamField path="min_quantity" type="number">
+  Minimum quantity threshold for restock alerts
+</ParamField>
+
+<ParamField path="expiration_date" type="string">
+  Expiration date for time-sensitive consumables
+</ParamField>
+
+<ParamField path="fabrication_date" type="string">
+  Manufacturing/production date
+</ParamField>
+
+### ComponentArticle
+
+Extends `Article` with additional fields for aircraft components:
+
+```typescript
+export interface ComponentArticle extends Article {
+  expiration_date?: string;
+  fabrication_date?: string;
+  hour_date?: number;
+  cycle_date?: number;
+  calendar_date?: string;
+  component_id?: number;
+}
+```
+
+<ParamField path="hour_date" type="number">
+  Flight hours since last maintenance/installation
+</ParamField>
+
+<ParamField path="cycle_date" type="number">
+  Flight cycles since last maintenance/installation
+</ParamField>
+
+<ParamField path="calendar_date" type="string">
+  Calendar-based maintenance due date
+</ParamField>
+
+<ParamField path="component_id" type="number">
+  Reference to parent component if this is a sub-component
+</ParamField>
+
+### ToolArticle
+
+Extends `Article` with tool-specific properties:
+
+```typescript
+export interface ToolArticle extends Article {
+  is_special: boolean;
+}
+```
+
+<ParamField path="is_special" type="boolean" required>
+  Indicates if the tool requires special handling or calibration
+</ParamField>
+
+## Example Data
+
+```json
+{
+  "id": 1245,
+  "article_type": "COMPONENT",
+  "part_number": "AN960-416",
+  "alternative_part_number": ["MS20002C4", "NAS1149F0463P"],
+  "status": "EN POSESION",
+  "serial": "SN-2024-001234",
+  "description": "Flat Washer, Steel, Cadmium Plated",
+  "zone": "A-12-B",
+  "manufacturer": {
+    "id": 42,
+    "name": "Boeing",
+    "type": "PART",
+    "description": "Aircraft component manufacturer"
+  },
+  "condition": {
+    "id": 5,
+    "name": "Serviceable",
+    "description": "Item is airworthy and ready for installation",
+    "registered_by": "admin",
+    "updated_by": "inspector_01"
+  },
+  "weight": 0.05,
+  "cost": 2.50,
+  "unit": "EA",
+  "quantity": 150,
+  "batch_id": 78,
+  "ata_code": "53-10-00",
+  "inspector": "John Doe",
+  "inspect_date": "2024-03-15T10:30:00Z"
+}
+```
+
+## Related Types
+
+- [Batch](/api/batches) - Article grouping and categorization
+- [Warehouse](/api/warehouses) - Storage location management
+- [DispatchRequest](/api/dispatch-requests) - Article distribution requests

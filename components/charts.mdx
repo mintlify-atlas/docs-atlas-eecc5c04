@@ -1,0 +1,539 @@
+---
+title: Charts
+description: Data visualization components using Recharts for bar charts, pie charts, line charts, and multi-series graphs
+---
+
+## Overview
+
+SIGEAC uses Recharts for responsive, accessible data visualization. All charts support light/dark themes and are optimized for dashboard displays.
+
+## Chart Components
+
+### BarChartComponent
+
+Stacked bar chart for comparing two metrics.
+
+**Location**: `components/charts/BarChartComponent.tsx:26`
+
+#### Props
+
+<ParamField path="data" type="GeneralStats" required>
+  Data object containing open, closed, and total counts
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Chart title displayed above the visualization
+</ParamField>
+
+<ParamField path="height" type="number" default="260">
+  Height of the chart in pixels
+</ParamField>
+
+<ParamField path="barSize" type="number" default="48">
+  Width of each bar in pixels
+</ParamField>
+
+<ParamField path="bar_first_name" type="string" required>
+  Label for the first metric (e.g., "Abiertos")
+</ParamField>
+
+<ParamField path="bar_second_name" type="string" required>
+  Label for the second metric (e.g., "Cerrados")
+</ParamField>
+
+#### Type Definition
+
+```tsx
+interface BarChartProps {
+  data: GeneralStats;
+  title: string;
+  height?: number;
+  barSize?: number;
+  bar_first_name: string;
+  bar_second_name: string;
+}
+
+interface GeneralStats {
+  total: number;
+  open: number;
+  closed: number;
+}
+```
+
+#### Usage Example
+
+```tsx
+import BarChartComponent from '@/components/charts/BarChartComponent';
+
+export function ReportsDashboard() {
+  const reportStats = {
+    total: 150,
+    open: 45,
+    closed: 105,
+  };
+
+  return (
+    <div className="p-6">
+      <BarChartComponent
+        data={reportStats}
+        title="Reportes de Mantenimiento"
+        height={300}
+        barSize={60}
+        bar_first_name="Abiertos"
+        bar_second_name="Cerrados"
+      />
+    </div>
+  );
+}
+```
+
+#### Features
+
+- **Stacked bars**: Shows two metrics stacked in a single bar
+- **Theme-aware colors**: Adapts to light/dark mode
+- **Grid lines**: Dashed grid for easier value reading
+- **Tooltips**: Hover to see exact values with locale formatting
+- **Legend**: Displays metric names with colors
+- **Empty state**: Shows message when no data available
+
+#### Color Scheme
+
+```tsx
+const barColors = {
+  open: '#64bda5ff',    // Teal for open items
+  closed: '#0369a1',    // Blue for closed items
+};
+```
+
+### PieChartComponent
+
+Donut chart for displaying categorical data with percentages.
+
+**Location**: `components/charts/PieChartComponent.tsx:31`
+
+#### Props
+
+<ParamField path="data" type="pieChartData[]" required>
+  Array of data points with name and value
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Chart title displayed above the visualization
+</ParamField>
+
+<ParamField path="height" type="number" default="260">
+  Height of the chart in pixels
+</ParamField>
+
+<ParamField path="colors" type="string[]" optional>
+  Custom color palette (uses default colors if not provided)
+</ParamField>
+
+#### Type Definition
+
+```tsx
+type Props = {
+  data: pieChartData[];
+  title: string;
+  height?: number;
+  colors?: string[];
+};
+
+interface pieChartData {
+  name: string;
+  value: number;
+}
+
+const DEFAULT_COLORS = [
+  '#64bda5ff',  // Teal
+  '#0369a1',    // Blue
+  '#7c3aed',    // Purple
+  '#ea580c',    // Orange
+  '#16a34a',    // Green
+  '#be123c',    // Red
+  '#4b5563',    // Gray
+];
+```
+
+#### Usage Example
+
+<Tabs>
+  <Tab title="Basic Usage">
+    ```tsx
+    import { PieChartComponent } from '@/components/charts/PieChartComponent';
+
+    export function StatusDistribution() {
+      const statusData = [
+        { name: 'Activo', value: 120 },
+        { name: 'Inactivo', value: 30 },
+        { name: 'En Proceso', value: 45 },
+        { name: 'Completado', value: 80 },
+      ];
+
+      return (
+        <PieChartComponent
+          data={statusData}
+          title="Distribución de Estados"
+          height={300}
+        />
+      );
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Custom Colors">
+    ```tsx
+    const customColors = [
+      '#3b82f6',  // Blue
+      '#ef4444',  // Red
+      '#10b981',  // Green
+      '#f59e0b',  // Amber
+    ];
+
+    <PieChartComponent
+      data={statusData}
+      title="Estados con Colores Personalizados"
+      colors={customColors}
+    />
+    ```
+  </Tab>
+</Tabs>
+
+#### Features
+
+- **Donut style**: Inner radius at 40% for modern look
+- **Percentage labels**: Shows percentage directly on chart segments
+- **Tooltips**: Displays value and percentage on hover
+- **Legend**: Lists all categories with colors
+- **Responsive**: Adapts to container size
+- **Empty state**: Handles missing or empty data gracefully
+
+#### Label Formatting
+
+```tsx
+// Percentage label inside chart
+label={({ value }) => {
+  const v = Number(value);
+  if (!total) return "";
+  const pct = ((v / total) * 100).toFixed(0);
+  return `${pct}%`;
+}}
+
+// Tooltip with value and percentage
+formatter={(value: number, _name, payload: any) => {
+  const v = Number(value) || 0;
+  const pct = total ? (v / total) * 100 : 0;
+  return [
+    `${v.toLocaleString("es-ES")} (${pct.toFixed(1)}%)`,
+    payload?.name,
+  ];
+}}
+```
+
+### SimpleLineChart
+
+Line chart for time-series or trend data.
+
+**Location**: `components/charts/SimpleLineChart.tsx`
+
+```tsx
+import SimpleLineChart from '@/components/charts/SimpleLineChart';
+
+const timeSeriesData = [
+  { month: 'Ene', value: 120 },
+  { month: 'Feb', value: 135 },
+  { month: 'Mar', value: 150 },
+  { month: 'Abr', value: 148 },
+  { month: 'May', value: 162 },
+  { month: 'Jun', value: 175 },
+];
+
+<SimpleLineChart
+  data={timeSeriesData}
+  title="Tendencia Mensual"
+  dataKey="value"
+  xAxisKey="month"
+/>
+```
+
+### MultipleBarChartComponent
+
+Side-by-side bar chart for comparing multiple metrics.
+
+**Location**: `components/charts/MultipleBarChartComponent.tsx`
+
+```tsx
+import MultipleBarChartComponent from '@/components/charts/MultipleBarChartComponent';
+
+const comparisonData = [
+  { category: 'Enero', actual: 120, target: 100 },
+  { category: 'Febrero', actual: 135, target: 120 },
+  { category: 'Marzo', actual: 150, target: 140 },
+];
+
+<MultipleBarChartComponent
+  data={comparisonData}
+  title="Actual vs. Objetivo"
+  bars={[
+    { dataKey: 'actual', name: 'Real', color: '#64bda5ff' },
+    { dataKey: 'target', name: 'Objetivo', color: '#0369a1' },
+  ]}
+/>
+```
+
+### DynamicBarChart
+
+Configurable bar chart with dynamic data keys.
+
+**Location**: `components/charts/DynamicBarChart.tsx`
+
+```tsx
+import DynamicBarChart from '@/components/charts/DynamicBarChart';
+
+const dynamicData = [
+  { name: 'Q1', sales: 4000, expenses: 2400, profit: 1600 },
+  { name: 'Q2', sales: 3000, expenses: 1398, profit: 1602 },
+  { name: 'Q3', sales: 2000, expenses: 9800, profit: -7800 },
+  { name: 'Q4', sales: 2780, expenses: 3908, profit: -1128 },
+];
+
+<DynamicBarChart
+  data={dynamicData}
+  title="Reporte Financiero"
+  dataKeys={['sales', 'expenses', 'profit']}
+  labels={['Ventas', 'Gastos', 'Ganancia']}
+/>
+```
+
+## Theme Integration
+
+All charts automatically adapt to light/dark mode:
+
+```tsx
+import { useTheme } from 'next-themes';
+
+const { theme } = useTheme();
+const isDark = theme === 'dark';
+
+const axisColor = useMemo(
+  () => (isDark ? '#e5e7eb' : '#111827'),
+  [isDark]
+);
+
+const gridColor = useMemo(
+  () => (isDark ? '#4b5563' : '#d1d5db'),
+  [isDark]
+);
+```
+
+## Chart Layout
+
+### Responsive Container
+
+All charts use ResponsiveContainer for fluid sizing:
+
+```tsx
+<div style={{ width: '100%', height }}>
+  <ResponsiveContainer width="100%" height="100%">
+    <BarChart data={chartData}>
+      {/* Chart elements */}
+    </BarChart>
+  </ResponsiveContainer>
+</div>
+```
+
+### Margins
+
+Standard margins for proper spacing:
+
+```tsx
+<BarChart
+  data={chartData}
+  margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
+>
+  {/* Chart elements */}
+</BarChart>
+```
+
+### Grid Styling
+
+```tsx
+<CartesianGrid
+  strokeDasharray="4"
+  stroke={gridColor}
+  opacity={1}
+  strokeWidth={2}
+/>
+```
+
+## Tooltips
+
+### Custom Tooltip Content
+
+```tsx
+<Tooltip
+  formatter={(value: number) => value.toLocaleString('es-ES')}
+  labelFormatter={() => 'Resumen'}
+  contentStyle={{
+    backgroundColor: isDark ? '#1f2937' : '#ffffff',
+    border: `1px solid ${gridColor}`,
+    borderRadius: '6px',
+    fontSize: '12px',
+  }}
+/>
+```
+
+### Multi-Value Tooltip
+
+```tsx
+<Tooltip
+  formatter={(value: number, _name, payload: any) => {
+    const v = Number(value) || 0;
+    const pct = total ? (v / total) * 100 : 0;
+    return [
+      `${v.toLocaleString('es-ES')} (${pct.toFixed(1)}%)`,
+      payload?.name,
+    ];
+  }}
+/>
+```
+
+## Dashboard Layout
+
+Combine multiple charts in a dashboard grid:
+
+```tsx
+import BarChartComponent from '@/components/charts/BarChartComponent';
+import { PieChartComponent } from '@/components/charts/PieChartComponent';
+import SimpleLineChart from '@/components/charts/SimpleLineChart';
+
+export function Dashboard() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Reportes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BarChartComponent
+            data={reportStats}
+            title=""
+            bar_first_name="Abiertos"
+            bar_second_name="Cerrados"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribución</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PieChartComponent
+            data={statusData}
+            title=""
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Tendencia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SimpleLineChart
+            data={trendData}
+            title=""
+            dataKey="value"
+            xAxisKey="month"
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+## Accessibility
+
+### ARIA Labels
+
+Add descriptive labels for screen readers:
+
+```tsx
+<div role="img" aria-label={`Bar chart showing ${title}`}>
+  <ResponsiveContainer>
+    {/* Chart */}
+  </ResponsiveContainer>
+</div>
+```
+
+### Keyboard Navigation
+
+Recharts provides built-in keyboard support for interactive elements.
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Provide empty states">
+    Always check if data exists and show a helpful message when it doesn't.
+  </Accordion>
+  
+  <Accordion title="Use locale formatting">
+    Format numbers with `toLocaleString('es-ES')` for Spanish locale.
+  </Accordion>
+  
+  <Accordion title="Choose appropriate chart types">
+    Bar charts for comparisons, pie charts for proportions, line charts for trends.
+  </Accordion>
+  
+  <Accordion title="Limit color palette">
+    Use consistent colors across charts for better comprehension.
+  </Accordion>
+  
+  <Accordion title="Add clear titles">
+    Every chart should have a descriptive title explaining what it shows.
+  </Accordion>
+  
+  <Accordion title="Consider mobile sizes">
+    Test charts at small viewport widths and adjust margins/font sizes as needed.
+  </Accordion>
+</AccordionGroup>
+
+## Performance
+
+### Memoize Calculations
+
+```tsx
+const total = useMemo(
+  () => data.reduce((acc, item) => acc + (Number(item.value) || 0), 0),
+  [data]
+);
+
+const chartData = useMemo(() => [
+  {
+    name: 'Estadísticas',
+    total: data.total,
+    open: data.open,
+    closed: data.closed,
+  },
+], [data]);
+```
+
+### Lazy Loading
+
+Load chart components only when needed:
+
+```tsx
+import dynamic from 'next/dynamic';
+
+const BarChartComponent = dynamic(
+  () => import('@/components/charts/BarChartComponent'),
+  { ssr: false }
+);
+```
+
+## Related Components
+
+- [Navigation](/components/navigation) - Dashboard layouts that contain charts
+- [Tables](/components/tables) - Display raw data that feeds into charts

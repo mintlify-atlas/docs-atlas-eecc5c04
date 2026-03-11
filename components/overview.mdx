@@ -1,0 +1,208 @@
+---
+title: Component Library Overview
+description: SIGEAC's comprehensive React component library built with shadcn/ui, Radix UI, and Tailwind CSS
+---
+
+## Introduction
+
+SIGEAC's component library is a production-ready collection of **395+ components** designed specifically for aviation management systems. Built on top of modern React patterns and industry-standard UI primitives, it provides a cohesive design system for building enterprise applications.
+
+## Technology Stack
+
+The component library leverages best-in-class technologies:
+
+- **React 18+** with TypeScript for type safety
+- **shadcn/ui** for accessible, customizable components
+- **Radix UI** primitives for robust accessibility
+- **Tailwind CSS** for utility-first styling
+- **Recharts** for data visualization
+- **TanStack Table** for advanced data grids
+- **React Hook Form** with Zod validation
+
+## Design System
+
+### Color Palette
+
+SIGEAC uses a semantic color system with full dark mode support:
+
+```css
+/* Light Mode */
+--primary: 226 100% 60%        /* Primary blue */
+--secondary: 226 30% 90%       /* Light blue-gray */
+--accent: 188 30% 90%          /* Teal accent */
+--muted: 188 30% 95%           /* Muted backgrounds */
+--destructive: 0 100% 50%      /* Error red */
+
+/* Dark Mode */
+--primary: 226 100% 60%        /* Consistent primary */
+--secondary: 226 30% 20%       /* Dark blue-gray */
+--accent: 188 30% 25%          /* Dark teal */
+```
+
+### Typography
+
+The design system uses system fonts with fallbacks:
+
+- **Headings**: Bold, 14-18px on mobile, 16-24px on desktop
+- **Body**: Regular, 14px base size
+- **Labels**: Medium weight, 12-14px
+
+## Component Categories
+
+<CardGroup cols={2}>
+  <Card title="Forms" icon="input-text" href="/components/forms">
+    Multi-step forms with validation, employee creation, aircraft management, and course registration.
+  </Card>
+  
+  <Card title="Tables" icon="table" href="/components/tables">
+    Advanced data tables with sorting, filtering, pagination, and column visibility controls.
+  </Card>
+  
+  <Card title="Dialogs" icon="window" href="/components/dialogs">
+    Modal dialogs for create/edit operations, confirmations, and image galleries.
+  </Card>
+  
+  <Card title="Charts" icon="chart-line" href="/components/charts">
+    Data visualization with bar charts, pie charts, line charts, and multi-series graphs.
+  </Card>
+  
+  <Card title="Sidebar" icon="sidebar" href="/components/sidebar">
+    Collapsible navigation with role-based menu items and nested submenus.
+  </Card>
+  
+  <Card title="Navigation" icon="compass" href="/components/navigation">
+    Headers, breadcrumbs, user menus, and company selection components.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Accessibility
+
+All components follow WCAG 2.1 AA standards:
+
+- Keyboard navigation support
+- Screen reader announcements
+- Focus management
+- ARIA attributes
+- Color contrast compliance
+
+### Internationalization
+
+Components are built for Spanish (primary) with English support:
+
+```tsx
+// Labels and messages in Spanish
+<FormLabel>Nombre de Usuario</FormLabel>
+<FormMessage>Mínimo 3 caracteres</FormMessage>
+
+// Pagination text
+{table.getFilteredSelectedRowModel().rows.length} de{" "}
+{table.getFilteredRowModel().rows.length} fila(s) seleccionada.
+```
+
+### Responsive Design
+
+Components adapt seamlessly across devices:
+
+- **Mobile-first**: Optimized for small screens
+- **Breakpoints**: sm (640px), md (768px), lg (1024px), xl (1280px)
+- **Touch-friendly**: Adequate tap targets (min 44x44px)
+- **Adaptive layouts**: Flex/grid systems that reflow
+
+### Type Safety
+
+Full TypeScript coverage ensures type safety:
+
+```tsx
+interface DataTablePaginationProps<TData> {
+  table: Table<TData>
+}
+
+interface BarChartProps {
+  data: GeneralStats
+  title: string
+  height?: number
+  barSize?: number
+  bar_first_name: string
+  bar_second_name: string
+}
+```
+
+## Component Organization
+
+```
+components/
+├── ui/                    # Base UI primitives (button, input, dialog)
+├── forms/                 # Form components and validators
+│   ├── general/          # Employee, department, role forms
+│   ├── aerolinea/        # Airline-specific forms
+│   └── mantenimiento/    # Maintenance forms
+├── tables/               # Data table components
+├── dialogs/              # Modal dialog components
+├── charts/               # Chart and visualization components
+├── sidebar/              # Navigation sidebar components
+├── layout/               # Layout wrappers and containers
+├── cards/                # Card components for dashboards
+├── selects/              # Custom select components
+└── dashboard/            # Dashboard-specific components
+```
+
+## Getting Started
+
+Each component page includes:
+
+- **Purpose and use cases** - When to use the component
+- **API reference** - Props, types, and interfaces
+- **Code examples** - Real implementations from the codebase
+- **Best practices** - Patterns and conventions
+
+<Card title="Next Steps" icon="arrow-right">
+  Start exploring specific component categories using the navigation menu.
+</Card>
+
+## Design Principles
+
+### Consistency
+
+Components share common patterns:
+
+- Unified prop naming (`className`, `variant`, `size`)
+- Consistent event handlers (`onSuccess`, `onChange`, `onClick`)
+- Standardized loading states with `Loader2` spinner
+- Common form validation with Zod schemas
+
+### Composition
+
+Components are designed to be composed:
+
+```tsx
+<Dialog>
+  <DialogTrigger asChild>
+    <Button variant="outline">Open</Button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Title</DialogTitle>
+    </DialogHeader>
+    <CreateEmployeeForm />
+  </DialogContent>
+</Dialog>
+```
+
+### Performance
+
+Optimized for production:
+
+- React 18 concurrent features
+- Memoized computations with `useMemo`
+- Lazy loading for heavy components
+- Efficient re-renders with proper dependencies
+
+## Browser Support
+
+- Chrome/Edge (last 2 versions)
+- Firefox (last 2 versions)
+- Safari (last 2 versions)
+- Mobile Safari (iOS 14+)
+- Chrome Android (last 2 versions)

@@ -1,0 +1,147 @@
+---
+title: "Introduction"
+description: "Welcome to SIGEAC - Aviation Management SaaS Platform"
+---
+
+# Welcome to SIGEAC
+
+SIGEAC (Sistema de Gestión de Aeronaves y Componentes) is a comprehensive aviation management platform designed for aircraft tracking, maintenance operations, warehouse management, and safety compliance.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get started with SIGEAC in minutes
+  </Card>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Set up your development environment
+  </Card>
+  <Card title="User Guides" icon="book" href="/guides/dashboard-overview">
+    Learn how to use SIGEAC features
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/authentication">
+    Explore the complete API documentation
+  </Card>
+</CardGroup>
+
+## Key Features
+
+SIGEAC provides a complete suite of tools for aviation management:
+
+<CardGroup cols={2}>
+  <Card title="Multi-Tenant Architecture" icon="building">
+    Manage multiple companies with isolated data and role-based access control
+  </Card>
+  <Card title="Aircraft Tracking" icon="plane">
+    Comprehensive tracking of aircraft, components, flight hours, and cycles
+  </Card>
+  <Card title="Warehouse Management" icon="warehouse">
+    Track inventory, batches, articles, and manage dispatch operations
+  </Card>
+  <Card title="Maintenance System" icon="wrench">
+    Create and manage work orders, track maintenance tasks and inspections
+  </Card>
+  <Card title="SMS Integration" icon="shield">
+    Safety Management System with incident reporting and risk mitigation
+  </Card>
+  <Card title="Financial Management" icon="dollar-sign">
+    Handle credits, payments, invoicing, and cash flow tracking
+  </Card>
+</CardGroup>
+
+## Platform Modules
+
+SIGEAC is organized into specialized modules for different aspects of aviation operations:
+
+<Accordion title="Warehouse Management">
+  Manage inventory of aircraft parts and components, track batches, handle incoming and outgoing articles, and monitor stock levels with automatic restock alerts.
+</Accordion>
+
+<Accordion title="Maintenance">
+  Create work orders, assign technicians, track maintenance tasks, manage preliminary inspections, and generate maintenance reports for aircraft and components.
+</Accordion>
+
+<Accordion title="Purchasing">
+  Process requisitions, create purchase orders, manage quotes from vendors, and track the complete procurement workflow from request to delivery.
+</Accordion>
+
+<Accordion title="Administration">
+  Handle financial operations including credits, payments, cash management, bank accounts, and generate financial reports.
+</Accordion>
+
+<Accordion title="Safety Management System (SMS)">
+  Report incidents, identify dangers, create mitigation plans, conduct safety activities, and maintain compliance with aviation safety regulations.
+</Accordion>
+
+<Accordion title="Planning">
+  Schedule maintenance tasks, plan work orders, manage calendars, and coordinate resource allocation across operations.
+</Accordion>
+
+<Accordion title="Quality Control">
+  Perform inspections, track quality metrics, ensure compliance with aviation standards, and maintain quality documentation.
+</Accordion>
+
+## Technology Stack
+
+SIGEAC is built with modern web technologies:
+
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **UI Components**: Radix UI with Tailwind CSS
+- **State Management**: Zustand and React Context
+- **Data Fetching**: TanStack Query (React Query)
+- **Forms**: React Hook Form with Zod validation
+- **Real-time**: Laravel Echo with Pusher
+- **Charts**: Recharts
+- **PDF Generation**: React PDF and pdf-lib
+
+## Getting Started
+
+<Steps>
+  <Step title="Install Dependencies">
+    Clone the repository and install the required packages:
+    
+    ```bash
+    git clone https://github.com/transmandu/SIGEAC_Frontend.git
+    cd SIGEAC_Frontend
+    npm install
+    ```
+  </Step>
+  
+  <Step title="Configure Environment">
+    Set up your environment variables for API endpoints and authentication.
+  </Step>
+  
+  <Step title="Run Development Server">
+    Start the development server:
+    
+    ```bash
+    npm run dev
+    ```
+    
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Core Concepts" icon="lightbulb" href="/concepts/multi-tenant-architecture">
+    Learn about multi-tenant architecture and authentication
+  </Card>
+  <Card title="Browse Modules" icon="grid" href="/modules/overview">
+    Discover all available modules and their capabilities
+  </Card>
+  <Card title="Read User Guides" icon="book-open" href="/guides/dashboard-overview">
+    Follow step-by-step guides for common workflows
+  </Card>
+  <Card title="Developer Documentation" icon="code" href="/development/tech-stack">
+    Dive into the technical architecture and development guides
+  </Card>
+</CardGroup>
+
+## Support
+
+Need help? Here are some resources:
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/transmandu/SIGEAC_Frontend">
+  View the source code, report issues, and contribute to the project
+</Card>

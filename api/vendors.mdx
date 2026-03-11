@@ -1,0 +1,252 @@
+---
+title: 'Vendors'
+description: 'API documentation for managing vendors in SIGEAC'
+icon: 'building'
+---
+
+## Overview
+
+Vendors are suppliers or beneficiaries in the SIGEAC system. They provide parts, materials, and services required for aircraft maintenance and operations.
+
+## Vendor Object
+
+<ResponseField name="id" type="string | number" required>
+  Unique identifier for the vendor
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Vendor's company or business name
+</ResponseField>
+
+<ResponseField name="phone" type="string" required>
+  Primary contact phone number
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Vendor classification:
+  - `PROVEEDOR` - Supplier (provides goods/materials)
+  - `BENEFICIARIO` - Beneficiary (receives payments for services)
+</ResponseField>
+
+<ResponseField name="address" type="string" required>
+  Physical address of the vendor
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  Primary contact email address
+</ResponseField>
+
+## Example Response
+
+```json
+{
+  "id": 42,
+  "name": "Aviation Parts International",
+  "phone": "+1-305-555-0199",
+  "type": "PROVEEDOR",
+  "address": "1234 Aviation Blvd, Miami, FL 33142",
+  "email": "sales@aviationparts.com"
+}
+```
+
+## Administration Vendor
+
+For administrative purposes, an extended vendor type includes audit information:
+
+<ResponseField name="id" type="string | number" required>
+  Unique identifier
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Vendor name
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  Email address
+</ResponseField>
+
+<ResponseField name="phone" type="string" required>
+  Phone number
+</ResponseField>
+
+<ResponseField name="address" type="string" required>
+  Physical address
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Vendor type: PROVEEDOR or BENEFICIARIO
+</ResponseField>
+
+<ResponseField name="created_at" type="Date" required>
+  Timestamp when the vendor was created
+</ResponseField>
+
+<ResponseField name="updated_at" type="Date" required>
+  Timestamp of last update
+</ResponseField>
+
+### Example Administration Vendor Response
+
+```json
+{
+  "id": "vendor-789",
+  "name": "Global Aircraft Components Ltd",
+  "email": "procurement@globalaircraft.com",
+  "phone": "+44-20-7946-0958",
+  "address": "45 Heathrow Airport, London, UK TW6 2GA",
+  "type": "PROVEEDOR",
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2026-02-20T14:22:00Z"
+}
+```
+
+## Vendor Types
+
+### PROVEEDOR (Supplier)
+
+Suppliers provide physical goods and materials:
+
+<Card title="Aviation Parts" icon="plane-engines">
+  Aircraft components, engines, and spare parts
+</Card>
+
+<Card title="Consumables" icon="oil-can">
+  Oils, fluids, chemicals, and consumable materials
+</Card>
+
+<Card title="Tools" icon="wrench">
+  Maintenance tools and equipment
+</Card>
+
+<Card title="General Materials" icon="boxes-stacked">
+  Office supplies, safety equipment, and general materials
+</Card>
+
+### BENEFICIARIO (Beneficiary)
+
+Beneficiaries receive payments for services:
+
+<Card title="Service Providers" icon="screwdriver-wrench">
+  Maintenance, repair, and overhaul services
+</Card>
+
+<Card title="Contractors" icon="hard-hat">
+  Independent contractors and consultants
+</Card>
+
+<Card title="Utilities" icon="bolt">
+  Utility companies and service providers
+</Card>
+
+## Related Entities
+
+Vendors are referenced in multiple business processes:
+
+### Quotes
+
+Vendors provide price quotations for requested materials:
+
+```json
+{
+  "quote_number": "QTE-2026-067",
+  "vendor": {
+    "id": 42,
+    "name": "Aviation Parts International",
+    "type": "PROVEEDOR"
+  },
+  "total": 8800.00
+}
+```
+
+### Purchase Orders
+
+Approved quotes become purchase orders with the vendor:
+
+```json
+{
+  "order_number": "PO-2026-0234",
+  "vendor": {
+    "id": 42,
+    "name": "Aviation Parts International",
+    "email": "sales@aviationparts.com"
+  },
+  "total": 9611.50,
+  "status": "CONFIRMED"
+}
+```
+
+### Credits & Payments
+
+Vendors are involved in accounts payable transactions:
+
+```json
+{
+  "credit": {
+    "type": "PAGAR",
+    "vendor": {
+      "id": 42,
+      "name": "Aviation Parts International"
+    },
+    "debt": 9611.50,
+    "status": "PENDIENTE"
+  }
+}
+```
+
+### Cash Movements
+
+Vendor payments are tracked in cash movements:
+
+```json
+{
+  "cash_movement": {
+    "type": "OUTPUT",
+    "vendor": {
+      "id": 42,
+      "name": "Aviation Parts International"
+    },
+    "total_amount": "9611.50",
+    "details": "Payment for PO-2026-0234"
+  }
+}
+```
+
+## Vendor Management Best Practices
+
+<Steps>
+  <Step title="Vendor Registration">
+    Verify vendor information including business registration, certifications, and compliance documents
+  </Step>
+  <Step title="Contact Information">
+    Maintain up-to-date contact information for procurement and accounts payable
+  </Step>
+  <Step title="Performance Tracking">
+    Monitor vendor performance including delivery times, quality, and pricing
+  </Step>
+  <Step title="Relationship Management">
+    Build strong relationships with key suppliers for better service and pricing
+  </Step>
+  <Step title="Compliance">
+    Ensure vendors meet aviation industry standards and regulatory requirements
+  </Step>
+</Steps>
+
+## Integration Points
+
+<CardGroup cols={2}>
+  <Card title="Requisitions" icon="file-invoice" href="/api/requisitions">
+    Material requests that lead to vendor quotes
+  </Card>
+  
+  <Card title="Quotes" icon="file-invoice-dollar" href="/api/quotes">
+    Price quotations from vendors
+  </Card>
+  
+  <Card title="Purchase Orders" icon="cart-shopping" href="/api/purchase-orders">
+    Confirmed orders to vendors
+  </Card>
+  
+  <Card title="Payments" icon="money-bill-transfer">
+    Payment processing and accounts payable
+  </Card>
+</CardGroup>

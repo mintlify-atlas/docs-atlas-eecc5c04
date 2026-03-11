@@ -1,0 +1,707 @@
+---
+title: Adding Modules
+description: How to add new modules and features to SIGEAC
+---
+
+## Overview
+
+SIGEAC is organized into modules representing different business domains (Almacén, Mantenimiento, SMS, etc.). This guide shows you how to add a new module.
+
+## Module Structure
+
+Each module typically includes:
+
+<CardGroup cols={2}>
+  <Card title="Routes" icon="route">
+    Pages in `/app/[company]/module-name/`
+  </Card>
+  <Card title="Components" icon="cube">
+    UI components in `/components/module-name/`
+  </Card>
+  <Card title="Hooks" icon="link">
+    Data fetching hooks in `/hooks/module-name/`
+  </Card>
+  <Card title="Actions" icon="bolt">
+    Mutations in `/actions/module-name/`
+  </Card>
+</CardGroup>
+
+## Step-by-Step Guide
+
+<Steps>
+  <Step title="Plan your module structure">
+    Decide on:
+    - Module name and slug (e.g., `recursos-humanos` or `rrhh`)
+    - Main features (list views, detail views, forms)
+    - Data models and types
+    - API endpoints
+    
+    Example: Creating a "Training" module for employee training management
+  </Step>
+  
+  <Step title="Add TypeScript types">
+    Define types in `types/index.ts`:
+    
+    ```typescript types/index.ts
+    export type Training = {
+      id: number
+      title: string
+      description: string
+      start_date: Date
+      end_date: Date
+      instructor: Employee
+      participants: Employee[]
+      status: "SCHEDULED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
+      location: Location
+      max_participants: number
+    }
+    
+    export type TrainingEnrollment = {
+      id: number
+      training: Training
+      employee: Employee
+      enrolled_at: Date
+      attended: boolean
+      completion_status: "PENDING" | "COMPLETED" | "FAILED"
+    }
+    ```
+  </Step>
+  
+  <Step title="Create the route structure">
+    Create directories in `/app/[company]/`:
+    
+    ```bash
+    mkdir -p app/[company]/capacitacion
+    mkdir -p app/[company]/capacitacion/trainings
+    mkdir -p app/[company]/capacitacion/trainings/[id]
+    mkdir -p app/[company]/capacitacion/enrollments
+    ```
+    
+    Your structure should look like:
+    ```
+    app/[company]/capacitacion/
+    ├── page.tsx                    # Module dashboard
+    ├── trainings/
+    │   ├── page.tsx                # Training list
+    │   ├── new/
+    │   │   └── page.tsx            # Create training
+    │   └── [id]/
+    │       ├── page.tsx            # Training detail
+    │       └── edit/
+    │           └── page.tsx        # Edit training
+    └── enrollments/
+        └── page.tsx                # Enrollments list
+    ```
+  </Step>
+  
+  <Step title="Create data fetching hooks">
+    Create hooks in `/hooks/capacitacion/`:
+    
+    ```typescript hooks/capacitacion/useGetTrainings.ts
+    import axiosInstance from "@/lib/axios"
+    import { Training } from "@/types"
+    import { useQuery } from "@tanstack/react-query"
+    
+    const fetchTrainings = async (company: string | undefined): Promise<Training[]> => {
+      const { data } = await axiosInstance.get(`/${company}/trainings`)
+      return data
+    }
+    
+    export const useGetTrainings = (company: string | undefined) => {
+      return useQuery<Training[]>({
+        queryKey: ["trainings", company],
+        queryFn: () => fetchTrainings(company),
+        staleTime: 1000 * 60 * 5,
+        enabled: !!company,
+      })
+    }
+    ```
+    
+    ```typescript hooks/capacitacion/useGetTrainingById.ts
+    import axiosInstance from "@/lib/axios"
+    import { Training } from "@/types"
+    import { useQuery } from "@tanstack/react-query"
+    
+    const fetchTrainingById = async (
+      company: string,
+      id: string
+    ): Promise<Training> => {
+      const { data } = await axiosInstance.get(`/${company}/trainings/${id}`)
+      return data
+    }
+    
+    export const useGetTrainingById = (
+      company: string | undefined,
+      id: string | undefined
+    ) => {
+      return useQuery<Training>({
+        queryKey: ["training", company, id],
+        queryFn: () => fetchTrainingById(company!, id!),
+        enabled: !!company && !!id,
+      })
+    }
+    ```
+  </Step>
+  
+  <Step title="Create mutation actions">
+    Create actions in `/actions/capacitacion/actions.ts`:
+    
+    ```typescript actions/capacitacion/actions.ts
+    import axiosInstance from "@/lib/axios"
+    import { useMutation, useQueryClient } from "@tanstack/react-query"
+    import { toast } from "sonner"
+    
+    interface CreateTrainingData {
+      title: string
+      description: string
+      start_date: string
+      end_date: string
+      instructor_id: number
+      location_id: number
+      max_participants: number
+    }
+    
+    export const useCreateTraining = () => {
+      const queryClient = useQueryClient()
+    
+      return useMutation({
+        mutationFn: async ({
+          company,
+          data
+        }: {
+          company: string
+          data: CreateTrainingData
+        }) => {
+          const response = await axiosInstance.post(`/${company}/trainings`, data)
+          return response.data
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['trainings'] })
+          toast.success("¡Capacitación creada!", {
+            description: "La capacitación se ha creado correctamente"
+          })
+        },
+        onError: (error) => {
+          toast.error("Error", {
+            description: `Error al crear la capacitación: ${error}`
+          })
+        },
+      })
+    }
+    
+    export const useUpdateTraining = () => {
+      const queryClient = useQueryClient()
+    
+      return useMutation({
+        mutationFn: async ({
+          company,
+          id,
+          data
+        }: {
+          company: string
+          id: string
+          data: Partial<CreateTrainingData>
+        }) => {
+          const response = await axiosInstance.patch(
+            `/${company}/trainings/${id}`,
+            data
+          )
+          return response.data
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['trainings'] })
+          queryClient.invalidateQueries({ queryKey: ['training'] })
+          toast.success("¡Actualizada!", {
+            description: "La capacitación se ha actualizado correctamente"
+          })
+        },
+        onError: (error) => {
+          toast.error("Error", {
+            description: `Error al actualizar: ${error}`
+          })
+        },
+      })
+    }
+    
+    export const useDeleteTraining = () => {
+      const queryClient = useQueryClient()
+    
+      return useMutation({
+        mutationFn: async ({
+          company,
+          id
+        }: {
+          company: string
+          id: string
+        }) => {
+          await axiosInstance.delete(`/${company}/trainings/${id}`)
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['trainings'] })
+          toast.success("¡Eliminada!", {
+            description: "La capacitación se ha eliminado correctamente"
+          })
+        },
+        onError: () => {
+          toast.error("Error", {
+            description: "Error al eliminar la capacitación"
+          })
+        },
+      })
+    }
+    ```
+  </Step>
+  
+  <Step title="Create the list page">
+    Create the main list view:
+    
+    ```tsx app/[company]/capacitacion/trainings/page.tsx
+    "use client"
+    
+    import { useGetTrainings } from '@/hooks/capacitacion/useGetTrainings'
+    import { useCompanyStore } from '@/stores/CompanyStore'
+    import { Button } from '@/components/ui/button'
+    import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    import { Plus } from 'lucide-react'
+    import Link from 'next/link'
+    import { useRouter } from 'next/navigation'
+    
+    export default function TrainingsPage() {
+      const { selectedCompany } = useCompanyStore()
+      const router = useRouter()
+      const { data: trainings, isLoading } = useGetTrainings(selectedCompany?.slug)
+    
+      if (isLoading) return <div>Cargando...</div>
+    
+      return (
+        <div className="container mx-auto py-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Capacitaciones</h1>
+            <Button onClick={() => router.push(`/${selectedCompany?.slug}/capacitacion/trainings/new`)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Capacitación
+            </Button>
+          </div>
+    
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {trainings?.map((training) => (
+              <Link
+                key={training.id}
+                href={`/${selectedCompany?.slug}/capacitacion/trainings/${training.id}`}
+              >
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle>{training.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {training.description}
+                    </p>
+                    <div className="mt-4 space-y-1 text-sm">
+                      <p>Instructor: {training.instructor.first_name}</p>
+                      <p>Participantes: {training.participants.length} / {training.max_participants}</p>
+                      <p>Estado: {training.status}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )
+    }
+    ```
+  </Step>
+  
+  <Step title="Create the detail page">
+    Create the detail view:
+    
+    ```tsx app/[company]/capacitacion/trainings/[id]/page.tsx
+    "use client"
+    
+    import { useParams, useRouter } from 'next/navigation'
+    import { useGetTrainingById } from '@/hooks/capacitacion/useGetTrainingById'
+    import { useDeleteTraining } from '@/actions/capacitacion/actions'
+    import { useCompanyStore } from '@/stores/CompanyStore'
+    import { Button } from '@/components/ui/button'
+    import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    
+    export default function TrainingDetailPage() {
+      const params = useParams<{ company: string; id: string }>()
+      const router = useRouter()
+      const { selectedCompany } = useCompanyStore()
+      const { data: training, isLoading } = useGetTrainingById(
+        selectedCompany?.slug,
+        params.id
+      )
+      const { mutate: deleteTraining } = useDeleteTraining()
+    
+      if (isLoading) return <div>Cargando...</div>
+      if (!training) return <div>Capacitación no encontrada</div>
+    
+      const handleDelete = () => {
+        if (confirm('¿Está seguro de eliminar esta capacitación?')) {
+          deleteTraining(
+            { company: selectedCompany?.slug!, id: params.id },
+            {
+              onSuccess: () => {
+                router.push(`/${selectedCompany?.slug}/capacitacion/trainings`)
+              }
+            }
+          )
+        }
+      }
+    
+      return (
+        <div className="container mx-auto py-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">{training.title}</h1>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/${selectedCompany?.slug}/capacitacion/trainings/${params.id}/edit`)}
+              >
+                Editar
+              </Button>
+              <Button variant="destructive" onClick={handleDelete}>
+                Eliminar
+              </Button>
+            </div>
+          </div>
+    
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Información General</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="font-semibold">Descripción</dt>
+                    <dd>{training.description}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Instructor</dt>
+                    <dd>{training.instructor.first_name} {training.instructor.last_name}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Fecha de inicio</dt>
+                    <dd>{new Date(training.start_date).toLocaleDateString()}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Fecha de fin</dt>
+                    <dd>{new Date(training.end_date).toLocaleDateString()}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Estado</dt>
+                    <dd>{training.status}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Participantes</dt>
+                    <dd>{training.participants.length} / {training.max_participants}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+    
+            <Card>
+              <CardHeader>
+                <CardTitle>Participantes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {training.participants.map((participant) => (
+                    <li key={participant.id} className="flex items-center justify-between">
+                      <span>{participant.first_name} {participant.last_name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {participant.job_title.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )
+    }
+    ```
+  </Step>
+  
+  <Step title="Create a form component">
+    Create a reusable form:
+    
+    ```tsx components/capacitacion/TrainingForm.tsx
+    "use client"
+    
+    import { useForm } from 'react-hook-form'
+    import { zodResolver } from '@hookform/resolvers/zod'
+    import * as z from 'zod'
+    import { Button } from '@/components/ui/button'
+    import { Input } from '@/components/ui/input'
+    import { Textarea } from '@/components/ui/textarea'
+    import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+    import { Training } from '@/types'
+    
+    const trainingSchema = z.object({
+      title: z.string().min(1, "El título es requerido"),
+      description: z.string().min(1, "La descripción es requerida"),
+      start_date: z.string(),
+      end_date: z.string(),
+      instructor_id: z.number(),
+      location_id: z.number(),
+      max_participants: z.number().min(1),
+    })
+    
+    type TrainingFormData = z.infer<typeof trainingSchema>
+    
+    interface TrainingFormProps {
+      training?: Training
+      onSubmit: (data: TrainingFormData) => void
+      isLoading?: boolean
+    }
+    
+    export function TrainingForm({ training, onSubmit, isLoading }: TrainingFormProps) {
+      const form = useForm<TrainingFormData>({
+        resolver: zodResolver(trainingSchema),
+        defaultValues: training ? {
+          title: training.title,
+          description: training.description,
+          start_date: training.start_date.toString(),
+          end_date: training.end_date.toString(),
+          instructor_id: training.instructor.id,
+          location_id: training.location.id,
+          max_participants: training.max_participants,
+        } : undefined,
+      })
+    
+      return (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Título</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+    
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+    
+            {/* Add more fields... */}
+    
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </form>
+        </Form>
+      )
+    }
+    ```
+  </Step>
+  
+  <Step title="Add navigation">
+    Update the sidebar navigation to include your new module:
+    
+    ```typescript lib/menu-list.tsx
+    export const menuList = [
+      // ... existing items
+      {
+        groupLabel: "Capacitación",
+        menus: [
+          {
+            href: "/capacitacion/trainings",
+            label: "Capacitaciones",
+            icon: GraduationCap,
+          },
+          {
+            href: "/capacitacion/enrollments",
+            label: "Inscripciones",
+            icon: Users,
+          },
+        ],
+      },
+    ]
+    ```
+  </Step>
+  
+  <Step title="Add route protection (optional)">
+    If needed, add your module to protected routes in `middleware.ts`:
+    
+    ```typescript middleware.ts
+    const PROTECTED_ROUTES = [
+      '/inicio',
+      '/capacitacion', // Add your module
+      // ... other routes
+    ]
+    ```
+  </Step>
+</Steps>
+
+## Module Checklist
+
+Use this checklist when creating a new module:
+
+<AccordionGroup>
+  <Accordion title="Types & Interfaces">
+    - [ ] Add TypeScript types to `types/index.ts`
+    - [ ] Include all entity relationships
+    - [ ] Export all types properly
+  </Accordion>
+  
+  <Accordion title="Data Layer">
+    - [ ] Create hooks directory `/hooks/module-name/`
+    - [ ] Create query hooks for fetching data
+    - [ ] Create mutation hooks in `/actions/module-name/`
+    - [ ] Include proper error handling
+    - [ ] Set appropriate cache times
+  </Accordion>
+  
+  <Accordion title="Routes & Pages">
+    - [ ] Create route directory `/app/[company]/module-name/`
+    - [ ] Create list page
+    - [ ] Create detail page with `[id]` route
+    - [ ] Create form pages (new, edit)
+    - [ ] Add loading.tsx files
+    - [ ] Add error.tsx files
+  </Accordion>
+  
+  <Accordion title="Components">
+    - [ ] Create reusable form components
+    - [ ] Create table/list components
+    - [ ] Create card components
+    - [ ] Add proper TypeScript props
+    - [ ] Include loading states
+  </Accordion>
+  
+  <Accordion title="Navigation">
+    - [ ] Add to sidebar menu
+    - [ ] Add to protected routes (if needed)
+    - [ ] Test navigation flows
+  </Accordion>
+  
+  <Accordion title="Testing">
+    - [ ] Test CRUD operations
+    - [ ] Test error handling
+    - [ ] Test loading states
+    - [ ] Test with different user roles
+  </Accordion>
+</AccordionGroup>
+
+## Module Templates
+
+### Simple CRUD Module
+
+For basic create, read, update, delete operations:
+
+```
+module-name/
+├── hooks/
+│   ├── useGetItems.ts
+│   └── useGetItemById.ts
+├── actions/
+│   └── actions.ts (create, update, delete)
+├── components/
+│   ├── ItemForm.tsx
+│   ├── ItemList.tsx
+│   └── ItemCard.tsx
+└── app/[company]/module-name/
+    ├── page.tsx (list)
+    ├── new/page.tsx
+    └── [id]/
+        ├── page.tsx (detail)
+        └── edit/page.tsx
+```
+
+### Complex Module with Sub-resources
+
+For modules with nested resources:
+
+```
+module-name/
+├── hooks/
+│   ├── parent/
+│   │   ├── useGetParents.ts
+│   │   └── useGetParentById.ts
+│   └── child/
+│       ├── useGetChildren.ts
+│       └── useGetChildById.ts
+├── actions/
+│   ├── parent/
+│   │   └── actions.ts
+│   └── child/
+│       └── actions.ts
+└── app/[company]/module-name/
+    ├── page.tsx
+    ├── parents/
+    │   ├── page.tsx
+    │   └── [id]/
+    │       ├── page.tsx
+    │       └── children/
+    │           ├── page.tsx
+    │           └── [childId]/
+    │               └── page.tsx
+    └── children/
+        └── page.tsx (all children)
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Consistent Naming" icon="tag">
+    Use consistent naming across files:
+    - `useGet{Entity}` for queries
+    - `useCreate{Entity}` for mutations
+    - `{Entity}Form` for forms
+  </Card>
+  
+  <Card title="Type Safety" icon="shield-check">
+    Always type your components and hooks:
+    - Use TypeScript interfaces
+    - Type all props
+    - Type API responses
+  </Card>
+  
+  <Card title="Error Handling" icon="triangle-exclamation">
+    Handle errors gracefully:
+    - Show error messages to users
+    - Log errors for debugging
+    - Provide retry options
+  </Card>
+  
+  <Card title="Loading States" icon="spinner">
+    Always show loading states:
+    - Use skeletons for lists
+    - Disable buttons during mutations
+    - Show progress indicators
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Hooks" icon="link" href="/development/custom-hooks">
+    Learn advanced hook patterns
+  </Card>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Connect to backend APIs
+  </Card>
+</CardGroup>

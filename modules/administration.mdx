@@ -1,0 +1,380 @@
+---
+title: 'Administration'
+description: 'Financial operations, cash management, and credit control'
+icon: 'building'
+---
+
+The Administration module manages financial operations for aviation service businesses, including cash flow, accounts receivable/payable, flight invoicing, and rental management.
+
+## Overview
+
+This module handles the business administration aspects of aviation operations, focusing on revenue management, payment tracking, and financial controls.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Cash Management" icon="cash-register">
+    Control multiple cash boxes and bank accounts with movement tracking
+  </Card>
+  
+  <Card title="Credit Control" icon="credit-card">
+    Manage accounts receivable and payable with payment tracking
+  </Card>
+  
+  <Card title="Flight Management" icon="plane">
+    Invoice and track payments for flight services
+  </Card>
+  
+  <Card title="Rental Operations" icon="handshake">
+    Manage aircraft and equipment rentals with payment schedules
+  </Card>
+</CardGroup>
+
+## Cash Management (Gestión de Cajas)
+
+### Cash Box System
+
+Manage multiple cash boxes and payment methods:
+
+```typescript
+Cash Box:
+- Name/identifier
+- Total amount
+- Currency: BOLIVARES, DOLARES, EUROS
+- Type: EFECTIVO (cash) or TRANSFERENCIA (transfer)
+- Assigned company
+```
+
+### Bank Accounts
+
+Track organizational bank accounts:
+
+- Account name and number
+- Account type (checking, savings)
+- Account owner
+- Associated bank
+- Linked company
+- Associated cards
+
+### Cash Movements
+
+Record all financial transactions:
+
+```typescript
+Cash Movement:
+- Date and reference code
+- Type: INCOME or OUTPUT
+- Responsible employee
+- Cash box or bank account
+- Total amount
+- Details and description
+- Associated entities:
+  - Vendor (for payments)
+  - Client (for receipts)
+  - Accountant category
+- Movement line items:
+  - Category breakdown
+  - Amount per category
+  - Description
+```
+
+### Movement Categories
+
+Financial movements are classified by accounting categories:
+
+- Operating expenses
+- Parts and materials
+- Labor costs
+- Flight revenue
+- Rental income
+- Service revenue
+- Administrative expenses
+
+<Accordion title="Recording a Cash Movement">
+  **Example: Payment to Vendor**
+  
+  1. **Movement Header**:
+     - Type: OUTPUT (payment)
+     - Cash box: Main USD Account
+     - Vendor: Aircraft Parts Inc.
+     - Amount: $5,240.00
+     - Reference: INV-2024-1234
+  
+  2. **Movement Details**:
+     - Category: Parts Purchase - $4,500.00
+     - Category: Shipping - $550.00
+     - Category: Import Tax - $190.00
+  
+  3. **Result**: Cash box balance decreases, expense categories updated
+</Accordion>
+
+## Credit Management
+
+Track accounts receivable (cuentas por cobrar) and payable (cuentas por pagar):
+
+### Credit Types
+
+<Tabs>
+  <Tab title="Accounts Receivable (COBRAR)">
+    Money owed TO the organization:
+    
+    - **Flight Credits**: Unpaid flight services
+    - **Rental Credits**: Unpaid aircraft/equipment rentals  
+    - **Sales Credits**: Unpaid part sales
+    
+    Track customer payment obligations and aging.
+  </Tab>
+  
+  <Tab title="Accounts Payable (PAGAR)">
+    Money owed BY the organization:
+    
+    - **Vendor Credits**: Outstanding vendor invoices
+    - **Service Credits**: Unpaid service provider bills
+    
+    Monitor payment deadlines and cash flow.
+  </Tab>
+</Tabs>
+
+### Credit Structure
+
+```typescript
+Credit:
+- Type: COBRAR (receivable) or PAGAR (payable)
+- Associated record:
+  - Flight
+  - Rental
+  - Vendor invoice
+- Client or vendor
+- Details and description
+- Dates:
+  - Opening date (when credit created)
+  - Closing date (when paid off)
+  - Deadline (payment due date)
+- Financial:
+  - Total debt
+  - Paid amount
+  - Outstanding balance
+- Status: PENDIENTE (pending) or PAGADO (paid)
+```
+
+### Payment Tracking
+
+Record payments against credits:
+
+```typescript
+Credit Payment:
+- Bank account used
+- Payment method: EFECTIVO or TRANSFERENCIA
+- Payment amount
+- Payment date
+- Description/notes
+- Linked credit
+```
+
+<Note>
+Partial payments are supported - make multiple payments until the credit is fully paid and status updates to PAGADO.
+</Note>
+
+## Flight Management (Gestión de Vuelos)
+
+### Flight Operations
+
+Track commercial flight operations and invoicing:
+
+```typescript
+Flight:
+- Guide code (airway bill number)
+- Client
+- Route (origin, destination, layovers)
+- Aircraft used
+- Flight date
+- Flight type:
+  - CARGA (cargo)
+  - PAX (passenger)
+  - CHART (charter)
+- Pricing:
+  - Fee/rate
+  - Total amount
+  - Paid amount
+- Payment:
+  - Bank account for receipt
+  - Debt status: PENDIENTE or PAGADO
+- Details and notes
+```
+
+### Flight Revenue Tracking
+
+1. **Create Flight Record**: Log flight details and invoice amount
+2. **Payment Collection**: Record payments as received
+3. **Credit Management**: Unpaid flights automatically create receivables
+4. **Payment Methods**: Track cash vs. transfer payments by bank account
+
+### Flight Payment Processing
+
+<Accordion title="Recording Flight Payments">
+  When a client pays for flight services:
+  
+  1. Select the flight record
+  2. Create payment:
+     - Amount paid
+     - Payment method (cash/transfer)
+     - Bank account receiving funds
+     - Payment date
+  3. System updates:
+     - Flight paid amount
+     - Outstanding balance
+     - Debt status (if fully paid)
+     - Credit record (if applicable)
+</Accordion>
+
+## Rental Management (Arrendamiento)
+
+### Rental Operations
+
+Manage aircraft and equipment rentals:
+
+```typescript
+Rental:
+- Type: AERONAVE (aircraft) or ARTICULO (equipment)
+- Rented item:
+  - Aircraft (with details)
+  - Article (equipment)
+- Client
+- Rental period:
+  - Start date
+  - End date  
+  - Deadline
+- Pricing:
+  - Rental price
+  - Paid amount
+- Status:
+  - EN PROCESO (in progress)
+  - CULMINADO (completed)
+  - RETRASADO (overdue)
+- Debt status: PENDIENTE or PAGADO
+- Bank account for payments
+- Description and terms
+```
+
+### Rental Status Management
+
+| Status | Description |
+|--------|-------------|
+| **EN PROCESO** | Active rental, currently in use |
+| **CULMINADO** | Rental completed and returned |
+| **RETRASADO** | Past due date or payment overdue |
+
+### Rental Workflow
+
+<Steps>
+  <Step title="Create Rental">
+    Define rental terms, pricing, and duration for aircraft or equipment
+  </Step>
+  
+  <Step title="Activate Rental">
+    Status: EN PROCESO when client receives the rented item
+  </Step>
+  
+  <Step title="Track Payments">
+    Record rental payments as received throughout the rental period
+  </Step>
+  
+  <Step title="Monitor Deadlines">
+    System flags RETRASADO if past due date
+  </Step>
+  
+  <Step title="Complete Rental">
+    Mark CULMINADO when item returned and fully paid
+  </Step>
+</Steps>
+
+## Client Management
+
+Maintain customer database:
+
+```typescript
+Client:
+- Name
+- DNI/ID (type and number)
+- Contact:
+  - Address
+  - Email
+  - Phone
+- Financial:
+  - Current balance
+  - Credit payment terms (days)
+- Linked records:
+  - Flights
+  - Rentals
+  - Credits
+```
+
+## Financial Reports
+
+### Available Reports
+
+1. **Cash Movement Reports**:
+   - Income report (reporte de ingresos)
+   - Expense report (reporte de egresos)
+   - Cash flow by period
+   - Category breakdown
+
+2. **Credit Reports**:
+   - Aging receivables
+   - Aging payables
+   - Payment history
+   - Outstanding balances
+
+3. **Revenue Reports**:
+   - Flight revenue by period
+   - Rental income
+   - Payment collection rates
+
+## User Workflows
+
+### Daily Operations
+
+1. **Record Income**:
+   - Flight payments
+   - Rental payments
+   - Service payments
+   - Record in appropriate cash box/bank account
+
+2. **Record Expenses**:
+   - Vendor payments
+   - Operational costs
+   - Categorize by accounting category
+   - Link to purchase orders when applicable
+
+3. **Monitor Credits**:
+   - Review aging receivables
+   - Follow up on overdue payments
+   - Process incoming payments
+   - Track payment commitments
+
+### Financial Controls
+
+<Note>
+**Best Practices**:
+- Reconcile cash boxes and bank accounts daily
+- Review credit aging weekly
+- Follow up on overdue accounts promptly
+- Maintain accurate categorization for reporting
+- Link payments to source documents (invoices, POs)
+</Note>
+
+## Integration with Other Modules
+
+<CardGroup cols={2}>
+  <Card title="Purchasing Integration">
+    Purchase orders create accounts payable and trigger vendor payments
+  </Card>
+  
+  <Card title="Planning Integration">
+    Work orders can generate invoices for maintenance services
+  </Card>
+  
+  <Card title="Aircraft Registry">
+    Aircraft rental management links to aircraft database
+  </Card>
+</CardGroup>

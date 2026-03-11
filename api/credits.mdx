@@ -1,0 +1,89 @@
+---
+title: "Credits"
+description: "Manage accounts payable and receivable in SIGEAC"
+---
+
+## Credit Object
+
+Represents a credit transaction that can be either payable (to vendors) or receivable (from clients).
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the credit
+</ResponseField>
+
+<ResponseField name="renting" type="Renting">
+  Associated renting agreement if credit originated from a rental
+</ResponseField>
+
+<ResponseField name="flight" type="Flight">
+  Associated flight if credit originated from flight services
+</ResponseField>
+
+<ResponseField name="vendor" type="AdministrationVendor">
+  Vendor information for payable credits
+</ResponseField>
+
+<ResponseField name="client" type="Client">
+  Client information for receivable credits
+</ResponseField>
+
+<ResponseField name="details" type="string" required>
+  Description of the credit transaction
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Type of credit transaction
+  <Expandable title="values">
+    - `PAGAR` - Accounts payable (money owed to vendors)
+    - `COBRAR` - Accounts receivable (money owed by clients)
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="opening_date" type="Date" required>
+  Date when the credit was opened
+</ResponseField>
+
+<ResponseField name="closing_date" type="Date">
+  Date when the credit was closed/settled
+</ResponseField>
+
+<ResponseField name="deadline" type="Date" required>
+  Payment deadline for the credit
+</ResponseField>
+
+<ResponseField name="debt" type="number" required>
+  Total debt amount
+</ResponseField>
+
+<ResponseField name="payed_amount" type="number" required>
+  Amount already paid towards the debt
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status of the credit
+  <Expandable title="values">
+    - `PENDIENTE` - Pending payment
+    - `PAGADO` - Fully paid
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```json
+{
+  "id": 1,
+  "client": {
+    "id": 42,
+    "name": "Aerolíneas del Caribe C.A.",
+    "dni": "J-12345678",
+    "email": "contact@aerocaribe.com"
+  },
+  "details": "Flight services for March 2026",
+  "type": "COBRAR",
+  "opening_date": "2026-03-01T00:00:00Z",
+  "deadline": "2026-03-31T00:00:00Z",
+  "debt": 15000.00,
+  "payed_amount": 5000.00,
+  "status": "PENDIENTE"
+}
+```

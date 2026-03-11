@@ -1,0 +1,168 @@
+---
+title: "Mitigation Plans"
+description: "Risk mitigation plans and measures for identified dangers"
+---
+
+## MitigationPlan Object
+
+Represents a comprehensive plan to mitigate identified risks.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the mitigation plan
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Overview of the mitigation strategy
+</ResponseField>
+
+<ResponseField name="responsible" type="string" required>
+  Person responsible for overseeing the mitigation plan
+</ResponseField>
+
+<ResponseField name="start_date" type="Date" required>
+  Date when the mitigation plan was initiated
+</ResponseField>
+
+<ResponseField name="measures" type="MitigationMeasure[]" required>
+  Array of specific mitigation measures to be implemented
+</ResponseField>
+
+<ResponseField name="analysis" type="Analysis" required>
+  Risk analysis associated with this plan
+</ResponseField>
+
+## MitigationMeasure Object
+
+Specific action or measure to reduce risk.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the measure
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the mitigation measure
+</ResponseField>
+
+<ResponseField name="implementation_supervisor" type="string" required>
+  Supervisor overseeing implementation
+</ResponseField>
+
+<ResponseField name="implementation_responsible" type="string" required>
+  Person directly responsible for implementing the measure
+</ResponseField>
+
+<ResponseField name="estimated_date" type="Date" required>
+  Target date for completion
+</ResponseField>
+
+<ResponseField name="execution_date" type="Date | null">
+  Actual completion date (null if not yet completed)
+</ResponseField>
+
+<ResponseField name="mitigation_plan_id" type="number" required>
+  ID of the parent mitigation plan
+</ResponseField>
+
+<ResponseField name="follow_up_control" type="FollowUpControl[]" required>
+  Follow-up activities and verification checks
+</ResponseField>
+
+## FollowUpControl Object
+
+Tracks verification and follow-up of implemented measures.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the follow-up control
+</ResponseField>
+
+<ResponseField name="date" type="Date" required>
+  Date of the follow-up activity
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Description of the follow-up activity and findings
+</ResponseField>
+
+<ResponseField name="mitigation_measure_id" type="number" required>
+  ID of the associated mitigation measure
+</ResponseField>
+
+<ResponseField name="image" type="string">
+  Path to supporting image file
+</ResponseField>
+
+<ResponseField name="document" type="string">
+  Path to supporting documentation
+</ResponseField>
+
+## DangerIdentificationWithAll Object
+
+Extended view including mitigation details.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Description of the identified danger
+</ResponseField>
+
+<ResponseField name="measures" type="MitigationMeasure[]" required>
+  All mitigation measures for this danger
+</ResponseField>
+
+<ResponseField name="analysis" type="Analysis" required>
+  Risk analysis results
+</ResponseField>
+
+## Example - MitigationPlan
+
+```json
+{
+  "id": 5,
+  "description": "Enhanced runway inspection and FOD management program",
+  "responsible": "Safety Manager - Juan Pérez",
+  "start_date": "2026-03-15T00:00:00Z",
+  "measures": [
+    {
+      "id": 1,
+      "description": "Increase runway inspection frequency to every 2 hours during peak operations",
+      "implementation_supervisor": "Operations Director - María González",
+      "implementation_responsible": "Ground Operations Supervisor - Carlos Ruiz",
+      "estimated_date": "2026-03-20T00:00:00Z",
+      "execution_date": null,
+      "mitigation_plan_id": 5,
+      "follow_up_control": []
+    },
+    {
+      "id": 2,
+      "description": "Install additional FOD detection equipment at runway entry points",
+      "implementation_supervisor": "Facilities Manager - Ana Rodríguez",
+      "implementation_responsible": "Maintenance Lead - Roberto Díaz",
+      "estimated_date": "2026-04-30T00:00:00Z",
+      "execution_date": null,
+      "mitigation_plan_id": 5,
+      "follow_up_control": []
+    }
+  ],
+  "analysis": {
+    "id": 12,
+    "probability": "OCCASIONAL",
+    "severity": "HAZARDOUS",
+    "result": "MEDIUM"
+  }
+}
+```
+
+## Example - FollowUpControl
+
+```json
+{
+  "id": 1,
+  "date": "2026-03-25T10:00:00Z",
+  "description": "Verified implementation of enhanced inspection schedule. All shifts are conducting inspections every 2 hours. No FOD incidents reported since implementation.",
+  "mitigation_measure_id": 1,
+  "image": "/storage/follow-up/2026/03/inspection-log-001.jpg",
+  "document": "/storage/follow-up/2026/03/inspection-report-001.pdf"
+}
+```

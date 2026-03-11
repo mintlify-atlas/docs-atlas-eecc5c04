@@ -1,0 +1,391 @@
+---
+title: 'Work Orders'
+description: 'Maintenance work order management and tracking'
+icon: 'clipboard-list'
+---
+
+## Overview
+
+The `WorkOrder` type represents maintenance work orders in SIGEAC. Work orders track all maintenance activities performed on aircraft, from routine inspections to complex repairs. They include task assignments, technician hours, preliminary inspections, and comprehensive reporting.
+
+## Type Definition
+
+```typescript
+export interface WorkOrder extends Request {
+  order_number: string;
+  client: MaintenanceClient;
+  aircraft: MaintenanceAircraft;
+  status: string;
+  date: string;
+  description: string;
+  elaborated_by: string;
+  reviewed_by: string;
+  approved_by: string;
+  preliminary_inspection?: PrelimInspection;
+  work_order_report_pages?: WorkOrderReport;
+  work_order_tasks: WorkOrderTask[];
+}
+```
+
+<Note>
+  WorkOrder extends the base `Request` type, inheriting fields like `id`, `request_number`, `justification`, and `submission_date`.
+</Note>
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the work order (inherited from Request)
+</ParamField>
+
+<ParamField path="order_number" type="string" required>
+  Unique work order number for tracking and reference
+</ParamField>
+
+<ParamField path="client" type="MaintenanceClient" required>
+  Client associated with this work order. See [Aircraft documentation](/api/aircraft#fields) for MaintenanceClient structure.
+</ParamField>
+
+<ParamField path="aircraft" type="MaintenanceAircraft" required>
+  Aircraft on which maintenance is being performed. See [Aircraft documentation](/api/aircraft).
+</ParamField>
+
+<ParamField path="status" type="string" required>
+  Current status of the work order (e.g., "PENDING", "IN_PROGRESS", "COMPLETED", "APPROVED")
+</ParamField>
+
+<ParamField path="date" type="string" required>
+  Work order creation date in ISO 8601 format
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Detailed description of maintenance work to be performed
+</ParamField>
+
+<ParamField path="elaborated_by" type="string" required>
+  Name or ID of person who created the work order
+</ParamField>
+
+<ParamField path="reviewed_by" type="string" required>
+  Name or ID of person who reviewed the work order
+</ParamField>
+
+<ParamField path="approved_by" type="string" required>
+  Name or ID of person who approved the work order
+</ParamField>
+
+<ParamField path="preliminary_inspection" type="PrelimInspection">
+  Initial inspection performed before work begins. See [Preliminary Inspection](#preliminary-inspection) section.
+</ParamField>
+
+<ParamField path="work_order_report_pages" type="WorkOrderReport">
+  Completion reports documenting work performed. See [Work Order Reports](#work-order-reports) section.
+</ParamField>
+
+<ParamField path="work_order_tasks" type="WorkOrderTask[]" required>
+  Array of maintenance tasks to be performed. See [Work Order Tasks](#work-order-tasks) section.
+</ParamField>
+
+<ParamField path="justification" type="string" required>
+  Justification for the work order (inherited from Request)
+</ParamField>
+
+<ParamField path="submission_date" type="string" required>
+  Date when request was submitted (inherited from Request)
+</ParamField>
+
+<ParamField path="requested_by" type="string" required>
+  Person who requested the work (inherited from Request)
+</ParamField>
+
+## Work Order Tasks
+
+Each work order contains multiple tasks that define the specific maintenance activities:
+
+```typescript
+export type WorkOrderTask = {
+  id: number;
+  description_task: string;
+  status: string;
+  technician_responsable?: string;
+  assigned_technicians?: AssignedTechnician[];
+  total_man_hours?: number;
+  inspector_responsable?: string;
+  ata: string;
+  task_number: string;
+  origin_manual: string;
+  old_technician?: string[];
+  task_items: {
+    article_serial: string;
+    article_part_number: string;
+    article_alt_part_number: string;
+  }[];
+  non_routine?: NonRoutineTask;
+  task_events?: WorkOrderTaskEvent[];
+};
+```
+
+### Task Fields
+
+<ResponseField name="id" type="number" required>
+  Unique task identifier
+</ResponseField>
+
+<ResponseField name="description_task" type="string" required>
+  Detailed description of the maintenance task
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current task status (e.g., "PENDING", "IN_PROGRESS", "COMPLETED")
+</ResponseField>
+
+<ResponseField name="technician_responsable" type="string">
+  Primary technician responsible for the task
+</ResponseField>
+
+<ResponseField name="assigned_technicians" type="AssignedTechnician[]">
+  List of technicians assigned to the task with their hours
+  
+  <Expandable title="AssignedTechnician structure">
+    ```typescript
+    type AssignedTechnician = {
+      name: string;
+      hours: number;
+    };
+    ```
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="total_man_hours" type="number">
+  Total man-hours required or spent on the task
+</ResponseField>
+
+<ResponseField name="inspector_responsable" type="string">
+  Inspector who will verify task completion
+</ResponseField>
+
+<ResponseField name="ata" type="string" required>
+  ATA chapter code (Air Transport Association system for categorizing aircraft systems)
+</ResponseField>
+
+<ResponseField name="task_number" type="string" required>
+  Task reference number from maintenance manual
+</ResponseField>
+
+<ResponseField name="origin_manual" type="string" required>
+  Source manual for the task (e.g., "AMM", "CMM", "SRM")
+</ResponseField>
+
+<ResponseField name="task_items" type="array" required>
+  Parts and materials required for the task
+  
+  <Expandable title="Task item properties">
+    <ResponseField name="article_serial" type="string">
+      Serial number of the part
+    </ResponseField>
+    <ResponseField name="article_part_number" type="string">
+      Manufacturer part number
+    </ResponseField>
+    <ResponseField name="article_alt_part_number" type="string">
+      Alternative or superseded part number
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="non_routine" type="object">
+  Non-routine work discovered during maintenance
+  
+  <Expandable title="Non-routine structure">
+    <ResponseField name="id" type="number">
+      Non-routine finding identifier
+    </ResponseField>
+    <ResponseField name="ata" type="string">
+      ATA chapter where issue was found
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Description of the non-routine finding
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Status of non-routine work
+    </ResponseField>
+    <ResponseField name="action" type="string">
+      Action taken or planned
+    </ResponseField>
+    <ResponseField name="needs_task" type="boolean">
+      Whether additional tasks are required
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="task_events" type="WorkOrderTaskEvent[]">
+  Scheduled events for the task (for planning and calendar integration)
+</ResponseField>
+
+## Preliminary Inspection
+
+The preliminary inspection is performed before maintenance work begins:
+
+```typescript
+export type PrelimInspection = {
+  id: number | string;
+  work_order: WorkOrder;
+  status: string;
+  authorizing: string;
+  observation: string;
+  pre_inspection_items: PrelimInspectionItem[];
+};
+
+export type PrelimInspectionItem = {
+  id: number | string;
+  ata: string;
+  description: string;
+  location: string;
+};
+```
+
+<ResponseField name="status" type="string" required>
+  Inspection completion status
+</ResponseField>
+
+<ResponseField name="authorizing" type="string" required>
+  Person authorizing the inspection
+</ResponseField>
+
+<ResponseField name="observation" type="string" required>
+  General observations from the preliminary inspection
+</ResponseField>
+
+<ResponseField name="pre_inspection_items" type="array" required>
+  Individual inspection items with ATA codes, descriptions, and locations
+</ResponseField>
+
+## Work Order Reports
+
+Completion reports document the work performed:
+
+```typescript
+export type WorkOrderReport = {
+  id: number | string;
+  reports: WorkOrderReportItem[];
+}
+
+export type WorkOrderReportItem = {
+  ata_code: string;
+  report: string;
+  action_taken: string;
+}
+```
+
+<ResponseField name="reports" type="array" required>
+  Array of report items
+  
+  <Expandable title="Report item properties">
+    <ResponseField name="ata_code" type="string">
+      ATA chapter code for this report item
+    </ResponseField>
+    <ResponseField name="report" type="string">
+      Detailed report of findings
+    </ResponseField>
+    <ResponseField name="action_taken" type="string">
+      Actions taken to address findings
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Usage
+
+```typescript
+const workOrder: WorkOrder = {
+  id: 1001,
+  order_number: "WO-2024-001",
+  request_number: "REQ-2024-001",
+  client: {
+    id: 1,
+    name: "Airline Operations Inc.",
+    email: "ops@airline.com",
+    phone_number: "+1-555-0100",
+    address: "123 Airport Road",
+    authorizing: "PROPIETARIO"
+  },
+  aircraft: {
+    id: 1,
+    serial: "MSN-12345",
+    model: "737-800",
+    acronym: "YV-1234",
+    // ... other aircraft fields
+  },
+  status: "IN_PROGRESS",
+  date: "2024-03-15T08:00:00Z",
+  description: "A-Check inspection and routine maintenance",
+  justification: "Scheduled maintenance per maintenance program",
+  submission_date: "2024-03-10T10:00:00Z",
+  requested_by: "John Smith",
+  elaborated_by: "Jane Doe",
+  reviewed_by: "Mike Johnson",
+  approved_by: "Sarah Williams",
+  work_order_tasks: [
+    {
+      id: 1,
+      description_task: "Perform engine oil change",
+      status: "COMPLETED",
+      technician_responsable: "Tech-001",
+      assigned_technicians: [
+        { name: "Carlos Rodriguez", hours: 2.5 },
+        { name: "Maria Garcia", hours: 1.5 }
+      ],
+      total_man_hours: 4.0,
+      inspector_responsable: "INS-001",
+      ata: "72",
+      task_number: "72-10-01",
+      origin_manual: "AMM",
+      task_items: [
+        {
+          article_serial: "OIL-123456",
+          article_part_number: "P-N-789",
+          article_alt_part_number: "ALT-789"
+        }
+      ]
+    }
+  ],
+  preliminary_inspection: {
+    id: 1,
+    status: "COMPLETED",
+    authorizing: "Lead Inspector",
+    observation: "Aircraft in good general condition",
+    pre_inspection_items: [
+      {
+        id: 1,
+        ata: "53",
+        description: "Fuselage skin inspection",
+        location: "Forward fuselage"
+      }
+    ]
+  },
+  work_order_report_pages: {
+    id: 1,
+    reports: [
+      {
+        ata_code: "72",
+        report: "Engine oil change completed per manual",
+        action_taken: "Replaced oil and filter, ops check normal"
+      }
+    ]
+  }
+};
+```
+
+## Workflow
+
+1. **Creation**: Work order is created with basic information and tasks
+2. **Preliminary Inspection**: Initial inspection identifies existing conditions
+3. **Task Assignment**: Tasks are assigned to technicians
+4. **Execution**: Technicians perform work and log hours
+5. **Non-Routine Work**: Any discrepancies are documented as non-routine items
+6. **Inspection**: Inspector verifies completed work
+7. **Reporting**: Work order report documents all actions taken
+8. **Approval**: Authorized personnel approve the completed work
+
+## Related Types
+
+- [Aircraft](/api/aircraft) - Aircraft under maintenance
+- [Maintenance Services](/api/maintenance-services) - Predefined service tasks
+- [Flight Control](/api/flight-control) - Post-maintenance flight tracking

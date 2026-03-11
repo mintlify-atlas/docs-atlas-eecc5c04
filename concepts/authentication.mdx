@@ -1,0 +1,483 @@
+---
+title: 'Authentication'
+description: 'Understand how SIGEAC handles user authentication, JWT tokens, and session management'
+icon: 'shield-halved'
+---
+
+## Overview
+
+SIGEAC implements a **JWT-based authentication system** with Laravel backend and Next.js frontend. The system uses HTTP-only cookies for secure token storage and implements automatic session refresh and logout detection.
+
+## Authentication Flow
+
+<Steps>
+  <Step title="User Login">
+    User submits credentials (login/password) via the login form:
+    
+    ```tsx Login Request
+    const loginMutation = useMutation({
+      mutationFn: async (credentials: { login: string; password: string }) => {
+        const response = await axiosInstance.post<User>('/login', credentials, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        const token = response.headers['authorization'];
+        if (!token) throw new Error('No se recibió token de autenticación');
+
+        createCookie("auth_token", token);
+        await createSession(response.data.id);
+
+        return response.data;
+      },
+    });
+    ```
+  </Step>
+  
+  <Step title="Token Storage">
+    On successful authentication, SIGEAC stores TWO tokens:
+    
+    - **`auth_token`**: JWT token from Laravel (in Authorization header)
+    - **`session`**: Encrypted session cookie with user ID and expiration
+    
+    ```typescript Token Storage
+    // 1. Store Laravel JWT token
+    createCookie("auth_token", token);
+    
+    // 2. Create encrypted session (24-hour expiration)
+    await createSession(response.data.id);
+    ```
+  </Step>
+  
+  <Step title="User Data Fetch">
+    After token storage, the system fetches full user data:
+    
+    ```typescript Fetch User
+    const fetchUser = useCallback(async (): Promise<User | null> => {
+      try {
+        const { data } = await axiosInstance.get<User>('/user');
+        
+        // Only update state if data actually changed (performance optimization)
+        setUser(prevUser => {
+          if (JSON.stringify(prevUser) === JSON.stringify(data)) return prevUser;
+          return data;
+        });
+
+        setError(null);
+        return data;
+      } catch (err) {
+        setUser(null);
+        return null;
+      }
+    }, []);
+    ```
+  </Step>
+  
+  <Step title="Redirect to Dashboard">
+    User is redirected to `/inicio` to select company and station:
+    
+    ```typescript Post-Login Redirect
+    onSuccess: async (userData) => {
+      await fetchUser();
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      router.push('/inicio');
+      toast.success('¡Bienvenido!');
+    }
+    ```
+  </Step>
+</Steps>
+
+## JWT Token Management
+
+### Token Structure
+
+The `auth_token` cookie contains a JWT token in the format:
+
+```
+Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+```
+
+### Axios Interceptor
+
+Every API request automatically includes the token:
+
+```typescript lib/axios.ts
+import axios from 'axios';
+import Cookies from 'js-cookie';
+
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+});
+
+// Request Interceptor: Attach JWT token to every request
+axiosInstance.interceptors.request.use((config) => {
+  const token = Cookies.get('auth_token');
+  
+  if (token) {
+    // Laravel expects "Bearer " prefix
+    const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    config.headers.Authorization = authHeader;
+  }
+  
+  return config;
+});
+
+// Response Interceptor: Handle 401 Unauthorized
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("⚠️ Sesión inválida: Redirigiendo al login...");
+      
+      // Clear invalid tokens
+      Cookies.remove('auth_token');
+      Cookies.remove('jwt');
+      
+      // Force redirect to login
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login?session=expired';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+```
+
+<Note>
+**Automatic Token Injection**: You don't need to manually add the Authorization header to API requests. The Axios interceptor handles this automatically.
+</Note>
+
+## Session Management
+
+### Session Encryption
+
+SIGEAC creates an encrypted JWT session cookie using `jose` library:
+
+```typescript lib/session.ts
+import { jwtVerify, SignJWT } from 'jose';
+import { cookies } from 'next/headers';
+
+const key = new TextEncoder().encode(process.env.SECRET_KEY_JWT);
+
+const cookieConfig = {
+  name: "session",
+  options: {
+    httpOnly: true,
+    sameSite: 'lax',
+    path: "/",
+  },
+  duration: 24 * 60 * 60 * 1000, // 24 hours
+};
+
+interface SessionPayload {
+  userId: string;
+  expires: Date;
+}
+
+export async function encryptJWT(payload: SessionPayload): Promise<string> {
+  return new SignJWT(payload as Record<string, any>)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('1day')
+    .sign(key);
+}
+
+export async function createSession(userId: string) {
+  const expires = new Date(Date.now() + cookieConfig.duration);
+  const session = await encryptJWT({ userId, expires });
+  
+  cookies().set(cookieConfig.name, session, {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: "/",
+    expires: expires,
+  });
+}
+```
+
+### Session Verification
+
+Protected server-side routes verify the session:
+
+```typescript Session Verification
+export async function verifySession() {
+  const cookie = cookies().get(cookieConfig.name)?.value;
+  const session = await decryptJWT(cookie);
+  
+  if (!session?.userId) {
+    redirect('/login');
+  }
+  
+  return { userId: session.userId };
+}
+```
+
+### Automatic Session Sync
+
+The AuthContext implements **intelligent session synchronization**:
+
+```typescript contexts/AuthContext.tsx
+const syncSession = useCallback(async () => {
+  const hasToken = document.cookie.includes('auth_token');
+  if (!hasToken) return;
+
+  const data = await fetchUser();
+
+  // Special handling for SUPERUSER - don't auto-logout
+  const isSuperUser = data?.roles?.some(
+    (role) => role.name === 'SUPERUSER'
+  );
+
+  if (isSuperUser) return;
+
+  if (!data && hasToken) {
+    logout();
+  }
+}, [fetchUser, logout]);
+
+// Sync on window focus
+useEffect(() => {
+  window.addEventListener('focus', syncSession);
+  
+  // Sync every 5 minutes
+  const interval = setInterval(() => {
+    syncSession();
+  }, 300000);
+
+  return () => {
+    window.removeEventListener('focus', syncSession);
+    clearInterval(interval);
+  };
+}, [syncSession]);
+```
+
+<Warning>
+**SUPERUSER Exception**: Users with the SUPERUSER role are exempt from automatic session expiration checks. This prevents admin accounts from being logged out during long operations.
+</Warning>
+
+## Middleware Protection
+
+Next.js middleware protects routes before they render:
+
+```typescript middleware.ts
+import { NextRequest, NextResponse } from "next/server";
+
+const PROTECTED_ROUTES = [
+  '/inicio',
+  '/transmandu',
+  '/hangar74',
+  '/ajustes',
+  '/planificacion',
+  '/administracion'
+];
+
+export default async function middleware(req: NextRequest) {
+  const currentPath = req.nextUrl.pathname;
+
+  const isProtectedRoute = PROTECTED_ROUTES.some(route =>
+    currentPath.startsWith(route)
+  );
+
+  if (isProtectedRoute) {
+    const authToken = req.cookies.get('auth_token')?.value;
+
+    if (!authToken) {
+      // Save requested URL for post-login redirect
+      const loginUrl = new URL('/login', req.nextUrl.origin);
+      loginUrl.searchParams.set('from', currentPath);
+
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|images|icons|fonts).*)',
+  ],
+};
+```
+
+## 401 Error Handling
+
+SIGEAC implements **dual 401 detection**:
+
+### 1. Axios Interceptor (Global)
+
+```typescript
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      logout();
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+### 2. AuthContext Interceptor (Per-Session)
+
+```typescript
+useEffect(() => {
+  const interceptor = axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        logout();
+      }
+      return Promise.reject(error);
+    }
+  );
+  return () => axiosInstance.interceptors.response.eject(interceptor);
+}, [logout]);
+```
+
+<Note>
+The dual-interceptor approach ensures that 401 errors are caught both globally (in axios.ts) and per-session (in AuthContext), providing redundancy.
+</Note>
+
+## Logout Flow
+
+```typescript
+const logout = useCallback(async () => {
+  try {
+    // 1. Clear user state
+    setUser(null);
+    setError(null);
+    
+    // 2. Delete server-side session
+    await deleteSession();
+    
+    // 3. Reset company/location selection
+    await reset();
+    
+    // 4. Clear all React Query cache
+    queryClient.clear();
+    
+    // 5. Redirect to login
+    router.push('/login');
+    
+    toast.info('Sesión finalizada', { position: 'bottom-center' });
+  } catch (err) {
+    console.error('Error durante logout:', err);
+  }
+}, [router, queryClient, reset]);
+```
+
+The `deleteSession()` function clears both cookies:
+
+```typescript lib/session.ts
+export async function deleteSession() {
+  cookies().delete('session');
+  cookies().delete('auth_token');
+}
+```
+
+## Authentication State
+
+The `useAuth` hook provides authentication state:
+
+```typescript
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+  loginMutation: UseMutationResult<User, Error, { login: string; password: string }>;
+  logout: () => Promise<void>;
+}
+
+const { user, isAuthenticated, loading, loginMutation, logout } = useAuth();
+```
+
+### Usage Example
+
+```tsx
+import { useAuth } from '@/contexts/AuthContext';
+
+export default function MyComponent() {
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  if (loading) return <LoadingSpinner />;
+  
+  if (!isAuthenticated) {
+    return <LoginPrompt />;
+  }
+  
+  return (
+    <div>
+      <h1>Welcome, {user.first_name}!</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}
+```
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="HTTP-Only Cookies">
+    Both `auth_token` and `session` cookies are marked as `httpOnly: true`, preventing JavaScript access and protecting against XSS attacks.
+  </Accordion>
+  
+  <Accordion title="Secure Flag in Production">
+    In production, cookies should have the `secure: true` flag to ensure they're only sent over HTTPS:
+    
+    ```typescript
+    cookies().set('session', session, {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Token Rotation">
+    Consider implementing token rotation where the backend issues a new JWT on each request or periodically to minimize the window of token theft.
+  </Accordion>
+  
+  <Accordion title="CSRF Protection">
+    The `sameSite: 'lax'` setting provides basic CSRF protection. For sensitive operations, implement additional CSRF tokens.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<Tabs>
+  <Tab title="Session Expired">
+    **Problem**: User sees "session expired" message
+    
+    **Solution**: Check if:
+    - JWT token has expired (24-hour limit)
+    - Backend session was invalidated
+    - User cleared cookies
+    
+    The system automatically redirects to `/login?session=expired`.
+  </Tab>
+  
+  <Tab title="401 Errors">
+    **Problem**: Constant 401 errors on API requests
+    
+    **Solution**: Verify:
+    - `auth_token` cookie exists in browser
+    - Token has "Bearer " prefix
+    - Backend is receiving Authorization header
+    - Token hasn't expired
+  </Tab>
+  
+  <Tab title="Infinite Redirects">
+    **Problem**: Login page keeps redirecting to itself
+    
+    **Solution**: Check middleware config to ensure `/login` is not in PROTECTED_ROUTES.
+  </Tab>
+</Tabs>
+
+## Related Concepts
+
+- [Multi-Tenant Architecture](/concepts/multi-tenant-architecture) - Company and location selection after login
+- [Role-Based Access Control](/concepts/role-based-access) - Permissions and roles within the system

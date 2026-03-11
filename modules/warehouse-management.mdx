@@ -1,0 +1,211 @@
+---
+title: 'Warehouse Management'
+description: 'Inventory control, dispatch operations, and warehouse workflows'
+icon: 'warehouse'
+---
+
+The Warehouse Management module provides comprehensive inventory control for aviation parts, tools, and consumables. It handles the complete lifecycle from receiving to dispatch.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Inventory Control" icon="boxes">
+    Track articles by part number, serial, batch, condition, and location
+  </Card>
+  
+  <Card title="Dispatch Management" icon="truck">
+    Process dispatch requests for work orders and general operations
+  </Card>
+  
+  <Card title="Tool Management" icon="toolbox">
+    Manage toolboxes, calibration tracking, and tool assignment to technicians
+  </Card>
+  
+  <Card title="Incoming Articles" icon="arrow-down">
+    Receive and locate new inventory with status tracking
+  </Card>
+</CardGroup>
+
+## Article Types
+
+The system manages different article classifications:
+
+### Aeronautical Articles
+- **Component Articles**: Aircraft parts with TSN/TSO tracking, hour/cycle limits
+- **Consumable Articles**: Expendable items with quantity and expiration management
+- **Tool Articles**: Special tools requiring calibration and maintenance
+
+### General Articles
+- Office supplies and consumables
+- Equipment and materials not aircraft-specific
+
+## Warehouse Operations
+
+### Incoming Workflow
+
+<Steps>
+  <Step title="In Transit">
+    Articles are marked as in transit when purchase orders are confirmed with tracking information (USA tracking, OCK tracking)
+  </Step>
+  
+  <Step title="Incoming Reception">
+    When articles arrive, they enter the incoming status for initial inspection and documentation
+  </Step>
+  
+  <Step title="Quality Control">
+    Articles flow to Quality Control module for certification review (8130, vendor certificates)
+  </Step>
+  
+  <Step title="Waiting to Locate">
+    Approved articles await physical location assignment in the warehouse
+  </Step>
+  
+  <Step title="Located & Available">
+    Articles are assigned to warehouse zones and become available for dispatch
+  </Step>
+</Steps>
+
+### Dispatch Workflow
+
+<Accordion title="Dispatch Request Process">
+  1. **Request Creation**: Users create dispatch requests specifying:
+     - Part number and quantity needed
+     - Destination (work order, department, or general use)
+     - Justification and urgency
+  
+  2. **Warehouse Processing**: Warehouse staff:
+     - Locate the requested articles by batch and serial
+     - Verify condition and certificates
+     - Prepare items for dispatch
+  
+  3. **Dispatch Confirmation**: 
+     - Articles are removed from inventory
+     - Dispatch documentation is generated
+     - Receiving party confirms receipt
+</Accordion>
+
+### Tool Management
+
+<Accordion title="Toolbox System">
+  **Toolboxes** are assigned to employees (typically maintenance technicians) and contain:
+  
+  - Tool inventory with serial numbers
+  - Calibration due dates for precision tools
+  - Special tool flags for critical equipment
+  - Delivery and return tracking
+  
+  **Dashboard Alerts**:
+  - Tools requiring calibration
+  - Overdue tool returns
+  - Expired calibration certificates
+</Accordion>
+
+## Inventory Management
+
+### Batch System
+
+Articles are organized into **batches** for efficient management:
+
+```typescript
+Batch Properties:
+- Name and description
+- ATA code (aircraft system classification)
+- Category (e.g., "FASTENERS", "AVIONICS", "ENGINE PARTS")
+- Brand/manufacturer
+- Hazardous material flag
+- Primary unit of measure
+- Minimum quantity threshold
+- Warehouse zone assignment
+```
+
+### Quantity Tracking
+
+<Note>
+The system supports multiple units of measure with automatic conversion:
+- Primary unit (e.g., "EACH", "BOX")
+- Secondary units with equivalence ratios
+- Automatic conversion in dispatch and incoming operations
+</Note>
+
+### Stock Alerts
+
+The warehouse dashboard provides real-time visibility:
+
+- **Out of Stock Articles**: Items below minimum quantity
+- **Restock Needed**: Low inventory alerts based on batch minimum
+- **Tool Calibration**: Tools approaching or past calibration due dates
+- **User Statistics**: Dispatch and incoming activity by warehouse staff
+
+## Article Conditions
+
+Aviation articles are tracked by regulatory condition:
+
+| Condition | Description |
+|-----------|-------------|
+| **SV (Serviceable)** | New or overhauled, airworthy with certificates |
+| **OH (Overhauled)** | Completely overhauled to manufacturer specs |
+| **RP (Repairable)** | Requires repair before use |
+| **AR (As Removed)** | Removed from aircraft, condition unknown |
+| **BER (Beyond Economic Repair)** | Not economically repairable |
+| **INSP (Inspection)** | Requires inspection before release |
+
+## Warehouse Zones
+
+Physical organization by location and type:
+
+- Zone assignment for efficient picking
+- Location-based inventory searches
+- Multi-warehouse support for different bases
+
+## User Workflows
+
+### For Warehouse Staff
+
+1. **Daily Operations**:
+   - Review pending dispatch requests
+   - Process incoming articles
+   - Locate and assign warehouse zones
+   - Update inventory quantities
+
+2. **Inventory Control**:
+   - Conduct cycle counts
+   - Manage tool calibrations
+   - Monitor stock levels
+   - Generate inventory reports
+
+### For Requesters
+
+1. **Create dispatch requests** for needed parts
+2. **Track request status** through the workflow
+3. **Confirm receipt** of dispatched items
+4. **View inventory availability** before requesting
+
+## Integration with Other Modules
+
+<CardGroup cols={2}>
+  <Card title="Purchasing Integration">
+    Purchase orders automatically create incoming inventory when articles arrive
+  </Card>
+  
+  <Card title="Quality Control">
+    Incoming articles flow to QC for inspection and certification review
+  </Card>
+  
+  <Card title="Planning Integration">
+    Work orders trigger dispatch requests for required parts and materials
+  </Card>
+  
+  <Card title="Maintenance">
+    Tool assignment to maintenance technicians and component tracking
+  </Card>
+</CardGroup>
+
+## Reporting
+
+Warehouse management includes comprehensive reporting:
+
+- Inventory levels by batch, category, or ATA code
+- Dispatch history and trends
+- User activity statistics
+- Stock movement reports
+- Tool calibration schedules

@@ -1,0 +1,245 @@
+---
+title: 'Quotes'
+description: 'API documentation for managing quotes in SIGEAC'
+icon: 'file-invoice-dollar'
+---
+
+## Overview
+
+Quotes represent price quotations from vendors for requested materials. They are typically generated in response to requisitions and serve as the basis for creating purchase orders once approved.
+
+## Quote Object
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the quote
+</ResponseField>
+
+<ResponseField name="quote_number" type="string" required>
+  The quote reference number
+</ResponseField>
+
+<ResponseField name="justification" type="string" required>
+  Justification for the quote request
+</ResponseField>
+
+<ResponseField name="article_quote_order" type="array" required>
+  Array of articles included in the quote
+  <Expandable title="Article properties">
+    <ResponseField name="batch" type="object">
+      Batch information for the article
+      <Expandable title="Batch properties">
+        <ResponseField name="name" type="string">
+          Name of the batch
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="article_part_number" type="string">
+      Part number of the article
+    </ResponseField>
+    <ResponseField name="quantity" type="number">
+      Quantity quoted
+    </ResponseField>
+    <ResponseField name="unit_price" type="string">
+      Price per unit
+    </ResponseField>
+    <ResponseField name="unit" type="Unit">
+      Unit of measurement
+      <Expandable title="Unit properties">
+        <ResponseField name="id" type="number">
+          Unit identifier
+        </ResponseField>
+        <ResponseField name="value" type="string">
+          Unit value (e.g., "EA", "LB", "KG")
+        </ResponseField>
+        <ResponseField name="label" type="string">
+          Unit label (e.g., "Each", "Pound", "Kilogram")
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="image" type="string">
+      URL or path to article image
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="sub_total" type="number" required>
+  Subtotal before any additional charges
+</ResponseField>
+
+<ResponseField name="total" type="number" required>
+  Total quoted price
+</ResponseField>
+
+<ResponseField name="vendor" type="Vendor" required>
+  Vendor providing the quote
+  <Expandable title="Vendor properties">
+    <ResponseField name="id" type="string | number">
+      Vendor unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Vendor name
+    </ResponseField>
+    <ResponseField name="phone" type="string">
+      Vendor phone number
+    </ResponseField>
+    <ResponseField name="type" type="string">
+      Vendor type: PROVEEDOR (Supplier) or BENEFICIARIO (Beneficiary)
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Vendor physical address
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Vendor email address
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="requisition_order" type="Requisition" required>
+  Related requisition order
+  <Expandable title="Requisition properties">
+    <ResponseField name="id" type="number">
+      Requisition identifier
+    </ResponseField>
+    <ResponseField name="order_number" type="string">
+      Requisition order number
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Requisition status
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="quote_date" type="Date" required>
+  Date when the quote was created or received
+</ResponseField>
+
+<ResponseField name="created_by" type="string" required>
+  User who created the quote
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status of the quote (e.g., PENDING, APPROVED, REJECTED, EXPIRED)
+</ResponseField>
+
+## Example Response
+
+```json
+{
+  "id": 3456,
+  "quote_number": "QTE-2026-067",
+  "justification": "Quotation requested for hydraulic system components",
+  "article_quote_order": [
+    {
+      "batch": {
+        "name": "Hydraulic Components Q1-2026"
+      },
+      "article_part_number": "HYD-4521-B",
+      "quantity": 5,
+      "unit_price": "1250.00",
+      "unit": {
+        "id": 1,
+        "value": "EA",
+        "label": "Each"
+      },
+      "image": "/storage/quotes/hyd-4521-b.jpg"
+    },
+    {
+      "batch": {
+        "name": "Hydraulic Components Q1-2026"
+      },
+      "article_part_number": "HYD-9876-C",
+      "quantity": 3,
+      "unit_price": "850.00",
+      "unit": {
+        "id": 1,
+        "value": "EA",
+        "label": "Each"
+      },
+      "image": "/storage/quotes/hyd-9876-c.jpg"
+    }
+  ],
+  "sub_total": 8800.00,
+  "total": 8800.00,
+  "vendor": {
+    "id": 42,
+    "name": "Aviation Parts International",
+    "phone": "+1-305-555-0199",
+    "type": "PROVEEDOR",
+    "address": "1234 Aviation Blvd, Miami, FL 33142",
+    "email": "sales@aviationparts.com"
+  },
+  "requisition_order": {
+    "id": 1234,
+    "order_number": "REQ-2026-001",
+    "status": "PENDING_QUOTE"
+  },
+  "quote_date": "2026-03-11T09:15:00Z",
+  "created_by": "procurement@sigeac.com",
+  "status": "APPROVED"
+}
+```
+
+## Quote Workflow
+
+<Steps>
+  <Step title="Quote Request">
+    A quote is requested based on an approved requisition
+  </Step>
+  <Step title="Vendor Response">
+    Vendors provide pricing and availability information
+  </Step>
+  <Step title="Quote Review">
+    Procurement team reviews and compares quotes from multiple vendors
+  </Step>
+  <Step title="Quote Approval">
+    Selected quote is approved and ready for purchase order creation
+  </Step>
+  <Step title="Purchase Order">
+    An approved quote is converted into a purchase order
+  </Step>
+</Steps>
+
+## Quote Status Values
+
+Common status values for quotes:
+
+- **PENDING** - Quote has been requested but not yet received
+- **RECEIVED** - Quote received from vendor and under review
+- **APPROVED** - Quote approved and ready for PO generation
+- **REJECTED** - Quote rejected (better alternative found or pricing unacceptable)
+- **EXPIRED** - Quote validity period has passed
+- **CONVERTED** - Quote has been converted to a purchase order
+
+## General Sales Report
+
+Quotes are part of the general sales reporting structure:
+
+<ResponseField name="requisition_order" type="Requisition">
+  The originating requisition
+</ResponseField>
+
+<ResponseField name="purchase_order" type="PurchaseOrder">
+  Related purchase order (if quote was approved and converted)
+</ResponseField>
+
+<ResponseField name="quote_order" type="Quote[]">
+  Array of quotes obtained for the requisition
+</ResponseField>
+
+## Best Practices
+
+<Card title="Multiple Quotes" icon="clipboard-list">
+  Request quotes from multiple vendors to ensure competitive pricing
+</Card>
+
+<Card title="Quote Validity" icon="clock">
+  Track quote expiration dates to avoid delays in procurement
+</Card>
+
+<Card title="Documentation" icon="file-image">
+  Maintain article images and vendor documentation with each quote
+</Card>
+
+<Card title="Price Comparison" icon="chart-line">
+  Compare unit prices across quotes, accounting for quantities and shipping
+</Card>

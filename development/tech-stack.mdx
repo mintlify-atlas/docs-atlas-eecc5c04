@@ -1,0 +1,602 @@
+---
+title: Tech Stack
+description: Technologies and libraries powering SIGEAC
+---
+
+## Overview
+
+SIGEAC is built with modern web technologies focused on performance, developer experience, and maintainability.
+
+## Core Technologies
+
+<CardGroup cols={3}>
+  <Card title="Next.js 14" icon="N">
+    React framework with App Router
+  </Card>
+  <Card title="React 18" icon="react">
+    UI library with hooks and concurrent features
+  </Card>
+  <Card title="TypeScript 5" icon="code">
+    Type-safe JavaScript
+  </Card>
+</CardGroup>
+
+## Framework & Runtime
+
+### Next.js 14.2.14
+
+SIGEAC uses Next.js 14 with the App Router for:
+
+- **Server Components** - Improved performance with server-side rendering
+- **File-based Routing** - Intuitive route structure in `/app` directory
+- **Layouts** - Shared UI across routes
+- **Dynamic Routes** - `[company]` parameter for multi-tenancy
+- **Middleware** - Route protection and authentication
+- **API Routes** - Backend-for-frontend patterns
+
+```typescript
+// Example: Dynamic company route
+// app/[company]/dashboard/page.tsx
+export default function DashboardPage() {
+  const { selectedCompany } = useCompanyStore()
+  return <div>Dashboard for {selectedCompany?.name}</div>
+}
+```
+
+### React 18
+
+Utilizing React 18 features:
+
+- **Hooks** - useState, useEffect, useContext, custom hooks
+- **Suspense** - Loading states and code splitting
+- **Concurrent Rendering** - Better performance for complex UIs
+- **Client Components** - Interactive components with `'use client'`
+
+See: `app/[company]/dashboard/page.tsx:1`
+
+### TypeScript 5
+
+Full type safety across the application:
+
+- **Strict Mode** - Enabled for maximum type safety
+- **Type Definitions** - Comprehensive types in `types/index.ts`
+- **Path Aliases** - `@/*` for clean imports
+- **IntelliSense** - Better IDE support
+
+See: `types/index.ts:1`
+
+## State Management
+
+<Tabs>
+  <Tab title="React Query">
+    **@tanstack/react-query ^5.51.9**
+    
+    Server state management and data fetching:
+    
+    ```typescript
+    import { useQuery } from "@tanstack/react-query"
+    
+    export const useGetClients = (company: string | undefined) => {
+      return useQuery<Client[]>({
+        queryKey: ["clients", company],
+        queryFn: () => fetchClients(company),
+        staleTime: 1000 * 60 * 2,
+        enabled: !!company,
+      })
+    }
+    ```
+    
+    See: `hooks/general/clientes/useGetClients.ts:12`
+    
+    **Features:**
+    - Automatic caching and background updates
+    - Optimistic updates
+    - Infinite queries and pagination
+    - Request deduplication
+  </Tab>
+  
+  <Tab title="Zustand">
+    **zustand ^4.5.4**
+    
+    Client-side state management:
+    
+    ```typescript
+    import { create } from "zustand"
+    
+    export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
+      selectedCompany: null,
+      selectedStation: null,
+      
+      setSelectedCompany: (company) => {
+        set({ selectedCompany: company })
+        localStorage.setItem('selectedCompany', JSON.stringify(company))
+      },
+      
+      initFromLocalStorage: () => {
+        const saved = localStorage.getItem('selectedCompany')
+        if (saved) set({ selectedCompany: JSON.parse(saved) })
+      },
+    }))
+    ```
+    
+    See: `stores/CompanyStore.ts:29`
+    
+    **Features:**
+    - Simple API with minimal boilerplate
+    - No providers needed
+    - TypeScript support
+    - Middleware support
+  </Tab>
+  
+  <Tab title="React Context">
+    **Built-in React Context API**
+    
+    Global authentication state:
+    
+    ```typescript
+    export const AuthProvider = ({ children }: { children: ReactNode }) => {
+      const [user, setUser] = useState<User | null>(null)
+      const [loading, setIsLoading] = useState(true)
+      
+      const logout = useCallback(async () => {
+        setUser(null)
+        await deleteSession()
+        queryClient.clear()
+        router.push('/login')
+      }, [router, queryClient])
+      
+      return (
+        <AuthContext.Provider value={{ user, loading, logout }}>
+          {children}
+        </AuthContext.Provider>
+      )
+    }
+    ```
+    
+    See: `contexts/AuthContext.tsx:35`
+  </Tab>
+</Tabs>
+
+## UI & Styling
+
+### Tailwind CSS 3.4.1
+
+Utility-first CSS framework:
+
+```tsx
+<div className="flex items-center justify-between p-4 bg-background text-foreground">
+  <h1 className="text-2xl font-bold">Title</h1>
+  <Button className="bg-primary hover:bg-primary/90">Action</Button>
+</div>
+```
+
+**Additional Packages:**
+- `tailwindcss-animate` - Pre-built animations
+- `tailwind-merge` - Merge Tailwind classes efficiently
+- `class-variance-authority` - Variant-based component styling
+
+### shadcn/ui Components
+
+Built on Radix UI primitives:
+
+<CardGroup cols={2}>
+  <Card title="@radix-ui/react-dialog" icon="window">
+    Accessible modals and dialogs
+  </Card>
+  <Card title="@radix-ui/react-dropdown-menu" icon="bars">
+    Dropdown menus and context menus
+  </Card>
+  <Card title="@radix-ui/react-select" icon="chevron-down">
+    Custom select components
+  </Card>
+  <Card title="@radix-ui/react-toast" icon="bell">
+    Toast notifications
+  </Card>
+</CardGroup>
+
+All Radix components provide:
+- Full keyboard navigation
+- ARIA attributes
+- Focus management
+- Unstyled by default (styled with Tailwind)
+
+### Additional UI Libraries
+
+```json package.json
+{
+  "dependencies": {
+    "framer-motion": "^11.3.19",      // Animations
+    "lucide-react": "^0.408.0",       // Icons
+    "react-icons": "^5.5.0",          // Additional icons
+    "sonner": "^1.5.0",               // Toast notifications
+    "next-themes": "^0.3.0"           // Dark mode support
+  }
+}
+```
+
+## Data Visualization
+
+<Tabs>
+  <Tab title="Recharts">
+    **recharts ^2.15.1**
+    
+    Chart library built on D3:
+    
+    ```tsx
+    import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+    
+    export function FlightHoursChart({ data }) {
+      return (
+        <LineChart width={600} height={300} data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Line type="monotone" dataKey="hours" stroke="#8884d8" />
+        </LineChart>
+      )
+    }
+    ```
+    
+    **Features:**
+    - Line, Bar, Pie, Area charts
+    - Responsive design
+    - Animations
+    - Tooltips and legends
+  </Tab>
+  
+  <Tab title="TanStack Table">
+    **@tanstack/react-table ^8.19.3**
+    
+    Headless table library:
+    
+    ```typescript
+    const table = useReactTable({
+      data,
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+    })
+    ```
+    
+    **Features:**
+    - Sorting, filtering, pagination
+    - Column resizing and reordering
+    - Row selection
+    - Virtualization support
+  </Tab>
+  
+  <Tab title="Schedule-X">
+    **@schedule-x/react ^2.36.0**
+    
+    Calendar and scheduling:
+    
+    ```typescript
+    import { ScheduleXCalendar } from '@schedule-x/react'
+    
+    export function FlightCalendar({ events }) {
+      return (
+        <ScheduleXCalendar
+          calendarApp={calendar}
+          events={events}
+        />
+      )
+    }
+    ```
+    
+    **Features:**
+    - Drag and drop events
+    - Multiple views (day, week, month)
+    - Event modals
+    - Responsive design
+  </Tab>
+</Tabs>
+
+## Forms & Validation
+
+### React Hook Form 7.52.1
+
+Performant form handling:
+
+```typescript
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+
+const clientSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  phone: z.string().optional(),
+})
+
+export function ClientForm() {
+  const form = useForm<z.infer<typeof clientSchema>>({
+    resolver: zodResolver(clientSchema),
+  })
+  
+  const onSubmit = (data: z.infer<typeof clientSchema>) => {
+    // Handle form submission
+  }
+  
+  return <form onSubmit={form.handleSubmit(onSubmit)}>...</form>
+}
+```
+
+**Features:**
+- Minimal re-renders
+- Easy validation integration
+- TypeScript support
+- Field arrays and dynamic forms
+
+### Zod 3.23.8
+
+Schema validation:
+
+```typescript
+import { z } from "zod"
+
+const createClientSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email().optional(),
+  dni: z.string().min(1),
+  dni_type: z.enum(["V", "E", "J", "G"]),
+  authorizing: z.enum(["PROPIETARIO", "EXPLOTADOR"]),
+})
+
+type CreateClientInput = z.infer<typeof createClientSchema>
+```
+
+## HTTP Client
+
+### Axios 1.7.2
+
+Configured HTTP client:
+
+```typescript
+import axios from 'axios'
+import Cookies from 'js-cookie'
+
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  withCredentials: true,
+})
+
+// Request interceptor - Add auth token
+axiosInstance.interceptors.request.use((config) => {
+  const token = Cookies.get('auth_token')
+  if (token) {
+    config.headers.Authorization = token.startsWith('Bearer ') 
+      ? token 
+      : `Bearer ${token}`
+  }
+  return config
+})
+
+// Response interceptor - Handle 401
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      Cookies.remove('auth_token')
+      window.location.href = '/login?session=expired'
+    }
+    return Promise.reject(error)
+  }
+)
+```
+
+See: `lib/axios.ts:1`
+
+## Date & Time
+
+<CardGroup cols={2}>
+  <Card title="date-fns">
+    **date-fns ^3.6.0**
+    
+    Modern date utility library:
+    
+    ```typescript
+    import { format, addDays, subDays } from 'date-fns'
+    import { es } from 'date-fns/locale'
+    
+    const formatted = format(new Date(), 'PPP', { locale: es })
+    ```
+  </Card>
+  
+  <Card title="moment">
+    **moment ^2.30.1**
+    
+    Legacy date handling (being phased out):
+    
+    ```typescript
+    import moment from 'moment'
+    
+    const date = moment().format('YYYY-MM-DD')
+    ```
+  </Card>
+</CardGroup>
+
+## Authentication & Security
+
+<Tabs>
+  <Tab title="jose">
+    **jose ^5.6.3**
+    
+    JWT handling:
+    
+    ```typescript
+    import { SignJWT, jwtVerify } from 'jose'
+    
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+    const token = await new SignJWT({ userId })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('24h')
+      .sign(secret)
+    ```
+  </Tab>
+  
+  <Tab title="bcrypt-ts">
+    **bcrypt-ts ^5.0.2**
+    
+    Password hashing:
+    
+    ```typescript
+    import { hash, compare } from 'bcrypt-ts'
+    
+    const hashed = await hash(password, 10)
+    const valid = await compare(password, hashed)
+    ```
+  </Tab>
+  
+  <Tab title="Cookies">
+    **js-cookie ^3.0.5** & **nookies ^2.5.2**
+    
+    Cookie management:
+    
+    ```typescript
+    import Cookies from 'js-cookie'
+    
+    Cookies.set('auth_token', token, { expires: 7 })
+    const token = Cookies.get('auth_token')
+    Cookies.remove('auth_token')
+    ```
+  </Tab>
+</Tabs>
+
+## Real-time Communication
+
+### Laravel Echo & Pusher
+
+```json
+{
+  "laravel-echo": "^1.16.1",
+  "pusher-js": "^8.4.0-rc2"
+}
+```
+
+WebSocket integration for real-time features:
+
+```typescript
+import Echo from 'laravel-echo'
+import Pusher from 'pusher-js'
+
+const echo = new Echo({
+  broadcaster: 'pusher',
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  forceTLS: true,
+})
+
+echo.channel('notifications')
+  .listen('NotificationSent', (data) => {
+    toast.info(data.message)
+  })
+```
+
+## PDF Generation
+
+<Tabs>
+  <Tab title="@react-pdf/renderer">
+    **@react-pdf/renderer ^4.1.5**
+    
+    React components to PDF:
+    
+    ```tsx
+    import { Document, Page, Text, View, PDFViewer } from '@react-pdf/renderer'
+    
+    const InvoicePDF = ({ data }) => (
+      <Document>
+        <Page size="A4">
+          <View>
+            <Text>Invoice #{data.number}</Text>
+            <Text>Total: ${data.total}</Text>
+          </View>
+        </Page>
+      </Document>
+    )
+    ```
+  </Tab>
+  
+  <Tab title="pdf-lib">
+    **pdf-lib ^1.17.1**
+    
+    Modify existing PDFs:
+    
+    ```typescript
+    import { PDFDocument } from 'pdf-lib'
+    
+    const pdfDoc = await PDFDocument.load(existingPdfBytes)
+    const pages = pdfDoc.getPages()
+    const firstPage = pages[0]
+    firstPage.drawText('Watermark', { x: 50, y: 50 })
+    
+    const pdfBytes = await pdfDoc.save()
+    ```
+  </Tab>
+</Tabs>
+
+## Additional Libraries
+
+<AccordionGroup>
+  <Accordion title="UI Components">
+    - **qrcode.react** ^4.2.0 - QR code generation
+    - **react-confetti** ^6.4.0 - Confetti animations
+    - **input-otp** ^1.4.2 - OTP input component
+    - **cmdk** ^1.0.0 - Command palette
+    - **vaul** ^0.9.1 - Drawer component
+  </Accordion>
+  
+  <Accordion title="Data Handling">
+    - **query-string** ^9.1.1 - URL query string parsing
+    - **react-currency-input-field** ^3.8.0 - Currency input
+    - **react-day-picker** ^8.10.1 - Date picker
+  </Accordion>
+  
+  <Accordion title="Image Processing">
+    - **sharp** ^0.33.5 - High-performance image processing
+    - **next-images** ^1.8.5 - Image imports
+  </Accordion>
+</AccordionGroup>
+
+## Development Tools
+
+```json devDependencies
+{
+  "@types/node": "^20",
+  "@types/react": "^18",
+  "@types/react-dom": "^18",
+  "eslint": "^8",
+  "eslint-config-next": "14.2.5",
+  "prettier": "^3.5.3",
+  "postcss": "^8",
+  "tailwindcss": "^3.4.1",
+  "typescript": "^5"
+}
+```
+
+## Version Matrix
+
+| Technology | Version | Purpose |
+|-----------|---------|----------|
+| Next.js | 14.2.14 | Framework |
+| React | 18 | UI Library |
+| TypeScript | 5 | Type Safety |
+| Tailwind CSS | 3.4.1 | Styling |
+| React Query | 5.51.9 | Data Fetching |
+| Zustand | 4.5.4 | State Management |
+| Axios | 1.7.2 | HTTP Client |
+| React Hook Form | 7.52.1 | Forms |
+| Zod | 3.23.8 | Validation |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Learn how to manage state in SIGEAC
+  </Card>
+  <Card title="Data Fetching" icon="cloud-arrow-down" href="/development/data-fetching">
+    Understand data fetching patterns
+  </Card>
+</CardGroup>

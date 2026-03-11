@@ -1,0 +1,222 @@
+---
+title: "Incident Reports"
+description: "Manage obligatory and voluntary safety incident reports"
+---
+
+## ObligatoryReport Object
+
+Mandatory incident reports filed after safety events during flight operations.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the report
+</ResponseField>
+
+<ResponseField name="report_number" type="string" required>
+  Official report reference number
+</ResponseField>
+
+<ResponseField name="incident_location" type="string" required>
+  Location where the incident occurred
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the incident
+</ResponseField>
+
+<ResponseField name="report_date" type="Date" required>
+  Date when the report was filed
+</ResponseField>
+
+<ResponseField name="incident_date" type="Date" required>
+  Date when the incident occurred
+</ResponseField>
+
+<ResponseField name="incident_time" type="string" required>
+  Time when the incident occurred
+</ResponseField>
+
+<ResponseField name="flight_time" type="string" required>
+  Flight time when incident occurred
+</ResponseField>
+
+<ResponseField name="pilot" type="Pilot" required>
+  Pilot in command information
+</ResponseField>
+
+<ResponseField name="copilot" type="Pilot" required>
+  Copilot information
+</ResponseField>
+
+<ResponseField name="aircraft" type="Aircraft" required>
+  Aircraft involved in the incident
+</ResponseField>
+
+<ResponseField name="flight_number" type="string" required>
+  Flight number
+</ResponseField>
+
+<ResponseField name="flight_origin" type="string" required>
+  Departure location
+</ResponseField>
+
+<ResponseField name="flight_destiny" type="string" required>
+  Destination location
+</ResponseField>
+
+<ResponseField name="flight_alt_destiny" type="string" required>
+  Alternate destination
+</ResponseField>
+
+<ResponseField name="incidents" type="string" required>
+  Classification of incidents that occurred
+</ResponseField>
+
+<ResponseField name="other_incidents" type="string" required>
+  Additional incident information
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Report processing status
+</ResponseField>
+
+<ResponseField name="danger_identification" type="DangerIdentification" required>
+  Associated danger identification analysis
+</ResponseField>
+
+<ResponseField name="image" type="string">
+  Path to incident image file
+</ResponseField>
+
+<ResponseField name="document" type="string">
+  Path to incident documentation file
+</ResponseField>
+
+<ResponseField name="imageUrl" type="string">
+  URL to access incident image
+</ResponseField>
+
+<ResponseField name="documentUrl" type="string">
+  URL to access incident document
+</ResponseField>
+
+## VoluntaryReport Object
+
+Voluntary safety reports submitted proactively to identify hazards.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the report
+</ResponseField>
+
+<ResponseField name="report_number" type="string">
+  Report reference number (if assigned)
+</ResponseField>
+
+<ResponseField name="report_date" type="Date" required>
+  Date when the report was submitted
+</ResponseField>
+
+<ResponseField name="identification_date" type="Date" required>
+  Date when the hazard was identified
+</ResponseField>
+
+<ResponseField name="danger_location" type="string" required>
+  Location of the identified hazard
+</ResponseField>
+
+<ResponseField name="danger_area" type="string" required>
+  Operational area affected
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the hazard
+</ResponseField>
+
+<ResponseField name="airport_location" type="string" required>
+  Airport or facility location
+</ResponseField>
+
+<ResponseField name="possible_consequences" type="string" required>
+  Potential consequences of the hazard
+</ResponseField>
+
+<ResponseField name="danger_identification_id" type="number" required>
+  Associated danger identification ID
+</ResponseField>
+
+<ResponseField name="danger_identification" type="DangerIdentification" required>
+  Associated danger identification analysis
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Report processing status
+</ResponseField>
+
+<ResponseField name="reporter_name" type="string">
+  Name of person submitting report (optional for anonymous reports)
+</ResponseField>
+
+<ResponseField name="reporter_last_name" type="string">
+  Last name of reporter
+</ResponseField>
+
+<ResponseField name="reporter_phone" type="string">
+  Reporter contact phone
+</ResponseField>
+
+<ResponseField name="reporter_email" type="string">
+  Reporter contact email
+</ResponseField>
+
+<ResponseField name="image" type="File | string">
+  Image file or path
+</ResponseField>
+
+<ResponseField name="document" type="File | string">
+  Document file or path
+</ResponseField>
+
+<ResponseField name="imageUrl" type="string">
+  URL to access image
+</ResponseField>
+
+<ResponseField name="documentUrl" type="string">
+  URL to access document
+</ResponseField>
+
+## Example - ObligatoryReport
+
+```json
+{
+  "id": 1,
+  "report_number": "OR-2026-001",
+  "incident_location": "SVMI - Aeropuerto Internacional Simón Bolívar",
+  "description": "Bird strike during landing approach",
+  "report_date": "2026-03-11T16:00:00Z",
+  "incident_date": "2026-03-11T14:30:00Z",
+  "incident_time": "14:30",
+  "flight_time": "2.5",
+  "flight_number": "SG-101",
+  "flight_origin": "SVMI",
+  "flight_destiny": "SVBC",
+  "flight_alt_destiny": "SVVA",
+  "status": "UNDER_REVIEW"
+}
+```
+
+## Example - VoluntaryReport
+
+```json
+{
+  "id": 5,
+  "report_number": "VR-2026-005",
+  "report_date": "2026-03-10T09:00:00Z",
+  "identification_date": "2026-03-09T15:00:00Z",
+  "danger_location": "Hangar 3 - Maintenance Area",
+  "danger_area": "MAINTENANCE",
+  "description": "Inadequate lighting in engine inspection area",
+  "airport_location": "SVMI",
+  "possible_consequences": "Potential for missed defects during inspection",
+  "status": "OPEN",
+  "reporter_name": "Anonymous"
+}
+```

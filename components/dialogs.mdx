@@ -1,0 +1,502 @@
+---
+title: Dialogs
+description: Modal dialogs for create/edit operations, confirmations, and content display using Radix UI Dialog
+---
+
+## Overview
+
+SIGEAC uses Radix UI Dialog primitives for accessible, composable modal dialogs. All dialogs support keyboard navigation, focus management, and proper ARIA attributes.
+
+## Dialog Components
+
+### Dialog Primitives
+
+Base dialog components from `components/ui/dialog.tsx`:
+
+<ResponseField name="Dialog" type="component">
+  Root component that manages dialog state
+</ResponseField>
+
+<ResponseField name="DialogTrigger" type="component">
+  Button or element that opens the dialog
+</ResponseField>
+
+<ResponseField name="DialogContent" type="component">
+  Main dialog container with backdrop and close button
+</ResponseField>
+
+<ResponseField name="DialogHeader" type="component">
+  Header section with title and description
+</ResponseField>
+
+<ResponseField name="DialogTitle" type="component">
+  Main heading for the dialog
+</ResponseField>
+
+<ResponseField name="DialogDescription" type="component">
+  Descriptive text below the title
+</ResponseField>
+
+<ResponseField name="DialogFooter" type="component">
+  Footer section for action buttons
+</ResponseField>
+
+## Usage Patterns
+
+### Basic Dialog
+
+Simple dialog with trigger and content:
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+
+export function BasicDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Open Dialog</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Dialog Title</DialogTitle>
+          <DialogDescription>
+            This is a description of what the dialog does.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          {/* Dialog content */}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Controlled Dialog
+
+Manage dialog state with controlled props:
+
+```tsx
+import { useState } from 'react';
+
+export function ControlledDialog() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Open</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Controlled Dialog</DialogTitle>
+        </DialogHeader>
+        <Button onClick={() => setOpen(false)}>
+          Close Programmatically
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Form Dialog
+
+Real-world example from SIGEAC - Employee creation dialog:
+
+**Location**: `components/dialogs/general/CreateEmployeeDialog.tsx:16`
+
+```tsx
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { CreateEmployeeForm } from '@/components/forms/general/CreateEmployeeForm';
+
+export function CreateEmployeeDialog() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Crear Empleado</Button>
+      </DialogTrigger>
+
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Crear Empleado</DialogTitle>
+          <DialogDescription>
+            Completa la información para registrar un nuevo empleado.
+          </DialogDescription>
+        </DialogHeader>
+        <CreateEmployeeForm onSuccess={() => setOpen(false)} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Confirmation Dialog
+
+Alert-style dialog for destructive actions:
+
+```tsx
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+
+export function DeleteConfirmation({ onConfirm }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive" size="icon">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción no se puede deshacer. Se eliminará permanentemente
+            el registro de la base de datos.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+```
+
+## Dialog Sizes
+
+Customize dialog width with className:
+
+<Tabs>
+  <Tab title="Small (Default)">
+    ```tsx
+    <DialogContent>
+      {/* Default max-w-lg (32rem) */}
+    </DialogContent>
+    ```
+  </Tab>
+  
+  <Tab title="Medium">
+    ```tsx
+    <DialogContent className="max-w-2xl">
+      {/* 42rem width */}
+    </DialogContent>
+    ```
+  </Tab>
+  
+  <Tab title="Large">
+    ```tsx
+    <DialogContent className="max-w-4xl">
+      {/* 56rem width */}
+    </DialogContent>
+    ```
+  </Tab>
+  
+  <Tab title="Full Width">
+    ```tsx
+    <DialogContent className="max-w-[90vw]">
+      {/* 90% of viewport width */}
+    </DialogContent>
+    ```
+  </Tab>
+</Tabs>
+
+## Dialog with Footer
+
+Add action buttons in a footer:
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+
+export function DialogWithFooter() {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    // Perform save operation
+    await saveData();
+    setLoading(false);
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Edit Settings</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Settings</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {/* Form fields */}
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setOpen(false)}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              'Guardar'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+## Scrollable Dialog
+
+For dialogs with long content:
+
+```tsx
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+<DialogContent className="max-h-[90vh]">
+  <DialogHeader>
+    <DialogTitle>Long Content</DialogTitle>
+  </DialogHeader>
+  <ScrollArea className="h-[500px] pr-4">
+    {/* Long content that scrolls */}
+  </ScrollArea>
+  <DialogFooter>
+    {/* Footer stays visible */}
+  </DialogFooter>
+</DialogContent>
+```
+
+## Dialog Composition
+
+Nest multiple sections in a dialog:
+
+```tsx
+<Dialog>
+  <DialogTrigger asChild>
+    <Button>View Details</Button>
+  </DialogTrigger>
+  <DialogContent className="max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>Employee Details</DialogTitle>
+      <DialogDescription>
+        Complete employee information and access controls
+      </DialogDescription>
+    </DialogHeader>
+    
+    <Tabs defaultValue="personal">
+      <TabsList>
+        <TabsTrigger value="personal">Personal</TabsTrigger>
+        <TabsTrigger value="company">Company</TabsTrigger>
+        <TabsTrigger value="permissions">Permissions</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="personal">
+        {/* Personal info */}
+      </TabsContent>
+      
+      <TabsContent value="company">
+        {/* Company info */}
+      </TabsContent>
+      
+      <TabsContent value="permissions">
+        {/* Permissions */}
+      </TabsContent>
+    </Tabs>
+    
+    <DialogFooter>
+      <Button variant="outline">Close</Button>
+      <Button>Save Changes</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+## Dialog Styling
+
+The DialogContent component includes:
+
+- **Backdrop**: Semi-transparent black overlay (`bg-black/80`)
+- **Animations**: Fade in/out and slide animations
+- **Close Button**: Automatic X button in top-right
+- **Border Radius**: Rounded corners on desktop (`sm:rounded-lg`)
+- **Shadow**: Elevated shadow effect
+- **Positioning**: Centered in viewport
+
+### Custom Styling
+
+```tsx
+<DialogContent className="
+  max-w-2xl 
+  bg-gradient-to-br from-blue-50 to-blue-100 
+  dark:from-blue-950 dark:to-blue-900
+  border-2 
+  border-blue-200 
+  dark:border-blue-800
+">
+  {/* Content */}
+</DialogContent>
+```
+
+## Accessibility Features
+
+<CardGroup cols={2}>
+  <Card title="Focus Management" icon="circle-dot">
+    Focus automatically moves to dialog when opened and returns to trigger when closed
+  </Card>
+  
+  <Card title="Keyboard Navigation" icon="keyboard">
+    ESC key closes dialog, Tab cycles through interactive elements
+  </Card>
+  
+  <Card title="Screen Readers" icon="audio-description">
+    Proper ARIA labels and role attributes for assistive technologies
+  </Card>
+  
+  <Card title="Focus Trap" icon="lock">
+    Focus stays within dialog while open, preventing interaction with background
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use controlled state for complex flows">
+    When dialogs need to open/close based on external state or after async operations, use controlled state with `open` and `onOpenChange`.
+  </Accordion>
+  
+  <Accordion title="Close dialogs after successful actions">
+    Always close the dialog after successful form submissions or operations using `setOpen(false)`.
+  </Accordion>
+  
+  <Accordion title="Provide clear titles and descriptions">
+    Use `DialogTitle` and `DialogDescription` to clearly communicate the dialog's purpose.
+  </Accordion>
+  
+  <Accordion title="Handle loading states">
+    Disable action buttons and show loading indicators during async operations.
+  </Accordion>
+  
+  <Accordion title="Use appropriate sizes">
+    Choose dialog width based on content: forms need more space than simple confirmations.
+  </Accordion>
+  
+  <Accordion title="Add ScrollArea for long content">
+    If content might overflow, wrap it in a ScrollArea to prevent unusable dialogs.
+  </Accordion>
+</AccordionGroup>
+
+## Common Patterns
+
+### Multi-Step Dialog
+
+```tsx
+export function MultiStepDialog() {
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) setStep(1); // Reset on close
+    }}>
+      <DialogTrigger asChild>
+        <Button>Start Process</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Step {step} of 3</DialogTitle>
+        </DialogHeader>
+        {step === 1 && <Step1 onNext={() => setStep(2)} />}
+        {step === 2 && <Step2 onNext={() => setStep(3)} onBack={() => setStep(1)} />}
+        {step === 3 && <Step3 onComplete={() => setOpen(false)} onBack={() => setStep(2)} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Nested Dialogs
+
+Open a dialog from within another dialog:
+
+```tsx
+<Dialog>
+  <DialogTrigger>Open Parent</DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Parent Dialog</DialogTitle>
+    </DialogHeader>
+    
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Open Nested</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nested Dialog</DialogTitle>
+        </DialogHeader>
+        {/* Nested content */}
+      </DialogContent>
+    </Dialog>
+  </DialogContent>
+</Dialog>
+```
+
+## Related Components
+
+- [Forms](/components/forms) - Embed forms in dialogs for create/edit operations
+- [Tables](/components/tables) - Open dialogs from table action buttons

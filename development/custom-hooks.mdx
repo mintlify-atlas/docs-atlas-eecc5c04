@@ -1,0 +1,623 @@
+---
+title: Custom Hooks
+description: Creating and using custom hooks in SIGEAC
+---
+
+## Overview
+
+Custom hooks encapsulate reusable logic in SIGEAC. The application uses hooks for data fetching, form handling, UI state, and utilities.
+
+## Hook Categories
+
+<CardGroup cols={3}>
+  <Card title="Data Hooks" icon="database">
+    Fetching and mutating server data
+  </Card>
+  <Card title="UI Hooks" icon="window">
+    Managing component state
+  </Card>
+  <Card title="Utility Hooks" icon="wrench">
+    Helper functions and effects
+  </Card>
+</CardGroup>
+
+## Data Fetching Hooks
+
+### Query Hook Pattern
+
+Standard pattern for fetching data:
+
+```typescript hooks/general/clientes/useGetClients.ts
+"use client"
+
+import axiosInstance from "@/lib/axios"
+import { Client } from "@/types"
+import { useQuery } from "@tanstack/react-query"
+
+const fetchClients = async (company: string | undefined): Promise<Client[]> => {
+  const { data } = await axiosInstance.get(`/${company}/clients`)
+  return data
+}
+
+export const useGetClients = (company: string | undefined) => {
+  return useQuery<Client[]>({
+    queryKey: ["clients", company],
+    queryFn: () => fetchClients(company),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    enabled: !!company,
+  })
+}
+```
+
+See: `hooks/general/clientes/useGetClients.ts:1`
+
+### Parameterized Query Hook
+
+```typescript hooks/useGetArticlesByBatch.ts
+import axiosInstance from '@/lib/axios'
+import { Article } from '@/types'
+import { useMutation } from '@tanstack/react-query'
+
+const fetchArticlesByBatch = async (
+  location_id: number,
+  batch: string
+): Promise<Article[]> => {
+  const { data } = await axiosInstance.post(`/hangar74/batches/${batch}`, {
+    location_id
+  })
+  return data
+}
+
+export const useGetArticlesByBatch = (
+  location_id: number,
+  batch: string
+) => {
+  return useMutation<Article[], Error, number>({
+    mutationKey: ["articles"],
+    mutationFn: () => fetchArticlesByBatch(location_id, batch),
+  })
+}
+```
+
+See: `hooks/useGetArticlesByBatch.ts:1`
+
+<Note>
+This hook uses `useMutation` instead of `useQuery` because it requires a POST request with a body, even though it's fetching data.
+</Note>
+
+## Utility Hooks
+
+### useDebounce
+
+Delay value updates:
+
+```typescript hooks/helpers/useDebounce.ts
+import { useEffect, useState } from "react"
+
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+```
+
+See: `hooks/helpers/useDebounce.ts:1`
+
+**Usage:**
+
+```tsx
+import { useDebounce } from '@/hooks/helpers/useDebounce'
+import { useState } from 'react'
+
+export function SearchBar() {
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
+  
+  const { data } = useGetClients(company, debouncedSearch)
+  
+  return (
+    <input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Search clients..."
+    />
+  )
+}
+```
+
+### useStore
+
+Safe Zustand store access for Server Components:
+
+```typescript hooks/helpers/use-store.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+export const useStore = <T, F>(
+  store: (callback: (state: T) => unknown) => unknown,
+  callback: (state: T) => F
+) => {
+  const result = store(callback) as F
+  const [data, setData] = useState<F>()
+
+  useEffect(() => {
+    setData(result)
+  }, [result])
+
+  return data
+}
+```
+
+See: `hooks/helpers/use-store.tsx:1`
+
+**Usage:**
+
+```tsx
+'use client'
+
+import { useStore } from '@/hooks/helpers/use-store'
+import { useCompanyStore } from '@/stores/CompanyStore'
+
+export function CompanyName() {
+  const selectedCompany = useStore(
+    useCompanyStore,
+    (state) => state.selectedCompany
+  )
+  
+  return <div>{selectedCompany?.name}</div>
+}
+```
+
+## Creating Custom Data Hooks
+
+### Step 1: Define the Fetch Function
+
+```typescript
+import axiosInstance from "@/lib/axios"
+import { Employee } from "@/types"
+
+const fetchEmployees = async (
+  company: string | undefined,
+  departmentId?: number
+): Promise<Employee[]> => {
+  const url = departmentId
+    ? `/${company}/employees?department=${departmentId}`
+    : `/${company}/employees`
+    
+  const { data } = await axiosInstance.get(url)
+  return data
+}
+```
+
+### Step 2: Create the Hook
+
+```typescript
+import { useQuery } from "@tanstack/react-query"
+
+export const useGetEmployees = (
+  company: string | undefined,
+  departmentId?: number
+) => {
+  return useQuery<Employee[]>({
+    queryKey: ["employees", company, departmentId],
+    queryFn: () => fetchEmployees(company, departmentId),
+    staleTime: 1000 * 60 * 5,
+    enabled: !!company,
+  })
+}
+```
+
+### Step 3: Use the Hook
+
+```tsx
+import { useGetEmployees } from '@/hooks/sistema/empleados/useGetEmployees'
+import { useCompanyStore } from '@/stores/CompanyStore'
+
+export function EmployeeList({ departmentId }: { departmentId?: number }) {
+  const { selectedCompany } = useCompanyStore()
+  const { data: employees, isLoading } = useGetEmployees(
+    selectedCompany?.slug,
+    departmentId
+  )
+  
+  if (isLoading) return <div>Loading...</div>
+  
+  return (
+    <ul>
+      {employees?.map(employee => (
+        <li key={employee.id}>
+          {employee.first_name} {employee.last_name}
+        </li>
+      ))}
+    </ul>
+  )
+}
+```
+
+## Advanced Hook Patterns
+
+### Compound Queries
+
+Multiple dependent queries:
+
+```typescript
+export function useWorkOrderDetails(orderId: string) {
+  const { selectedCompany } = useCompanyStore()
+  
+  // Get work order
+  const { 
+    data: workOrder, 
+    isLoading: workOrderLoading 
+  } = useGetWorkOrderById(selectedCompany?.slug, orderId)
+  
+  // Get aircraft (depends on work order)
+  const { 
+    data: aircraft, 
+    isLoading: aircraftLoading 
+  } = useGetAircraftById(
+    selectedCompany?.slug,
+    workOrder?.aircraft.id.toString(),
+    { enabled: !!workOrder?.aircraft.id }
+  )
+  
+  // Get tasks
+  const { 
+    data: tasks, 
+    isLoading: tasksLoading 
+  } = useGetWorkOrderTasks(
+    selectedCompany?.slug,
+    orderId
+  )
+  
+  return {
+    workOrder,
+    aircraft,
+    tasks,
+    isLoading: workOrderLoading || aircraftLoading || tasksLoading,
+  }
+}
+```
+
+### Infinite Scroll Hook
+
+```typescript
+import { useInfiniteQuery } from "@tanstack/react-query"
+
+interface PaginatedResponse<T> {
+  data: T[]
+  current_page: number
+  last_page: number
+}
+
+export const useGetClientsInfinite = (company: string | undefined) => {
+  return useInfiniteQuery<PaginatedResponse<Client>>({
+    queryKey: ["clients-infinite", company],
+    queryFn: async ({ pageParam = 1 }) => {
+      const { data } = await axiosInstance.get(
+        `/${company}/clients?page=${pageParam}`
+      )
+      return data
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.current_page < lastPage.last_page
+        ? lastPage.current_page + 1
+        : undefined
+    },
+    enabled: !!company,
+  })
+}
+```
+
+**Usage:**
+
+```tsx
+export function InfiniteClientList() {
+  const { selectedCompany } = useCompanyStore()
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetClientsInfinite(selectedCompany?.slug)
+  
+  return (
+    <div>
+      {data?.pages.map((page, i) => (
+        <div key={i}>
+          {page.data.map(client => (
+            <div key={client.id}>{client.name}</div>
+          ))}
+        </div>
+      ))}
+      
+      {hasNextPage && (
+        <button
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {isFetchingNextPage ? 'Loading...' : 'Load More'}
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+### Search Hook with Debounce
+
+```typescript
+import { useState } from 'react'
+import { useDebounce } from '@/hooks/helpers/useDebounce'
+import { useQuery } from '@tanstack/react-query'
+
+export const useSearchClients = (company: string | undefined) => {
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
+  
+  const query = useQuery({
+    queryKey: ['clients', 'search', company, debouncedSearch],
+    queryFn: async () => {
+      if (!debouncedSearch) return []
+      const { data } = await axiosInstance.get(
+        `/${company}/clients/search?q=${debouncedSearch}`
+      )
+      return data
+    },
+    enabled: !!company && debouncedSearch.length > 0,
+  })
+  
+  return {
+    search,
+    setSearch,
+    results: query.data,
+    isSearching: query.isLoading,
+  }
+}
+```
+
+**Usage:**
+
+```tsx
+export function ClientSearch() {
+  const { selectedCompany } = useCompanyStore()
+  const { search, setSearch, results, isSearching } = useSearchClients(
+    selectedCompany?.slug
+  )
+  
+  return (
+    <div>
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search clients..."
+      />
+      
+      {isSearching && <div>Searching...</div>}
+      
+      <ul>
+        {results?.map(client => (
+          <li key={client.id}>{client.name}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+```
+
+## Form Hooks
+
+### useFormWithDefaults
+
+```typescript
+import { useForm, UseFormProps } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+export function useFormWithDefaults<TSchema extends z.ZodType>(
+  schema: TSchema,
+  options?: Omit<UseFormProps<z.infer<TSchema>>, 'resolver'>
+) {
+  return useForm<z.infer<TSchema>>({
+    resolver: zodResolver(schema),
+    mode: 'onBlur',
+    ...options,
+  })
+}
+```
+
+**Usage:**
+
+```tsx
+import { useFormWithDefaults } from '@/hooks/useFormWithDefaults'
+import * as z from 'zod'
+
+const clientSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+})
+
+export function ClientForm() {
+  const form = useFormWithDefaults(clientSchema, {
+    defaultValues: {
+      name: '',
+      email: '',
+    },
+  })
+  
+  // Use form...
+}
+```
+
+## Real-World Examples from SIGEAC
+
+### Flight Filters Hook
+
+```typescript hooks/general/planificacion/useFlightFilters.ts
+import { useState } from 'react'
+import { DateRange } from 'react-day-picker'
+import { addDays, subDays } from 'date-fns'
+
+export const useFlightFilters = () => {
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: subDays(new Date(), 30),
+    to: addDays(new Date(), 30),
+  })
+  
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  
+  const resetFilters = () => {
+    setDateRange({
+      from: subDays(new Date(), 30),
+      to: addDays(new Date(), 30),
+    })
+    setSelectedAircraft(null)
+    setSelectedStatus('all')
+  }
+  
+  return {
+    dateRange,
+    setDateRange,
+    selectedAircraft,
+    setSelectedAircraft,
+    selectedStatus,
+    setSelectedStatus,
+    resetFilters,
+  }
+}
+```
+
+See: `hooks/general/planificacion/useFlightFilters.ts:1`
+
+### Date Range Calculator Hook
+
+```typescript hooks/general/planificacion/useDateRangeCalculator.ts
+import { useMemo } from 'react'
+import { differenceInDays, format } from 'date-fns'
+import { DateRange } from 'react-day-picker'
+
+export const useDateRangeCalculator = (dateRange: DateRange) => {
+  const days = useMemo(() => {
+    if (!dateRange.from || !dateRange.to) return 0
+    return differenceInDays(dateRange.to, dateRange.from)
+  }, [dateRange])
+  
+  const formattedRange = useMemo(() => {
+    if (!dateRange.from) return 'Select dates'
+    if (!dateRange.to) return format(dateRange.from, 'MMM dd, yyyy')
+    return `${format(dateRange.from, 'MMM dd')} - ${format(dateRange.to, 'MMM dd, yyyy')}`
+  }, [dateRange])
+  
+  return { days, formattedRange }
+}
+```
+
+See: `hooks/general/planificacion/useDateRangeCalculator.ts:1`
+
+## Hook Best Practices
+
+<AccordionGroup>
+  <Accordion title="Name hooks with 'use' prefix">
+    Always start hook names with `use`:
+    
+    ```typescript
+    // ✓ Good
+    export const useGetClients = () => {}
+    export const useDebounce = () => {}
+    
+    // ✗ Bad
+    export const getClients = () => {}
+    export const debounce = () => {}
+    ```
+  </Accordion>
+  
+  <Accordion title="Keep hooks focused">
+    Each hook should have a single responsibility:
+    
+    ```typescript
+    // ✓ Good - focused on clients
+    export const useGetClients = () => {}
+    export const useCreateClient = () => {}
+    
+    // ✗ Bad - too broad
+    export const useClients = () => {
+      // fetching, creating, updating, deleting...
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Type your hooks">
+    Always provide TypeScript types:
+    
+    ```typescript
+    // ✓ Good
+    export const useGetClients = (
+      company: string | undefined
+    ): UseQueryResult<Client[], Error> => {
+      return useQuery<Client[]>({...})
+    }
+    
+    // ✗ Bad - no types
+    export const useGetClients = (company) => {
+      return useQuery({...})
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle edge cases">
+    Always handle loading, error, and empty states:
+    
+    ```typescript
+    export const useGetClients = (company: string | undefined) => {
+      return useQuery<Client[]>({
+        queryKey: ['clients', company],
+        queryFn: () => fetchClients(company),
+        enabled: !!company, // Don't run without company
+        staleTime: 1000 * 60 * 5,
+      })
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Testing Custom Hooks
+
+While SIGEAC doesn't have tests currently, here's how you would test hooks:
+
+```typescript
+import { renderHook, waitFor } from '@testing-library/react'
+import { useGetClients } from './useGetClients'
+
+test('useGetClients fetches clients', async () => {
+  const { result } = renderHook(() => useGetClients('hangar74'))
+  
+  await waitFor(() => {
+    expect(result.current.isLoading).toBe(false)
+  })
+  
+  expect(result.current.data).toBeDefined()
+  expect(Array.isArray(result.current.data)).toBe(true)
+})
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Integration" icon="plug" href="/development/api-integration">
+    Learn how to integrate with backend APIs
+  </Card>
+  <Card title="State Management" icon="database" href="/development/state-management">
+    Understand global state management
+  </Card>
+</CardGroup>

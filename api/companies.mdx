@@ -1,0 +1,406 @@
+---
+title: 'Companies'
+description: 'Manage companies and their modules in SIGEAC'
+icon: 'building'
+---
+
+## Overview
+
+The Companies API allows you to manage company information, modules, and associated configurations. Each company can have multiple modules that define available functionality.
+
+## Company Object
+
+The Company type represents an organization within the SIGEAC system.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the company
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Company name
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Description of the company
+</ResponseField>
+
+<ResponseField name="slug" type="string" required>
+  URL-friendly version of the company name
+</ResponseField>
+
+<ResponseField name="rif" type="string" required>
+  RIF (Registro de Información Fiscal) - Tax identification number
+</ResponseField>
+
+<ResponseField name="cod_inac" type="string" required>
+  INAC code (Instituto Nacional de Aviación Civil)
+</ResponseField>
+
+<ResponseField name="fiscal_address" type="string" required>
+  Company's fiscal address
+</ResponseField>
+
+<ResponseField name="phone_number" type="number" required>
+  Primary phone number
+</ResponseField>
+
+<ResponseField name="alt_phone_number" type="number" required>
+  Alternative phone number
+</ResponseField>
+
+<ResponseField name="cod_iata" type="string" required>
+  IATA code (International Air Transport Association)
+</ResponseField>
+
+<ResponseField name="cod_oaci" type="string" required>
+  ICAO code (International Civil Aviation Organization)
+</ResponseField>
+
+<ResponseField name="modules" type="Module[]" required>
+  Array of modules enabled for this company
+  
+  <Expandable title="Module properties">
+    <ResponseField name="id" type="number">
+      Module identifier
+    </ResponseField>
+    
+    <ResponseField name="label" type="string">
+      Human-readable module label
+    </ResponseField>
+    
+    <ResponseField name="value" type="string">
+      Module value/key
+    </ResponseField>
+    
+    <ResponseField name="registered_by" type="string">
+      User who registered this module
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+  ISO 8601 timestamp of creation
+</ResponseField>
+
+<ResponseField name="updated_at" type="string" required>
+  ISO 8601 timestamp of last update
+</ResponseField>
+
+## List Companies
+
+Retrieve a list of all companies in the system.
+
+<CodeGroup>
+```typescript TypeScript
+import axiosInstance from '@/lib/axios';
+import { Company } from '@/types';
+
+const fetchCompanies = async (): Promise<Company[]> => {
+  const { data } = await axiosInstance.get('/company');
+  return data;
+};
+```
+
+```javascript React Hook
+import { useQuery } from '@tanstack/react-query';
+
+export const useGetCompanies = () => {
+  return useQuery<Company[]>({
+    queryKey: ['companies'],
+    queryFn: fetchCompanies,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+// Usage in component
+const { data: companies, isLoading, error } = useGetCompanies();
+```
+
+```bash cURL
+curl -X GET https://api.sigeac.com/company \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "skip_zrok_interstitial: true"
+```
+</CodeGroup>
+
+### Response
+
+```json
+[
+  {
+    "id": 1,
+    "name": "SIGEAC Airlines",
+    "description": "Main aviation company",
+    "slug": "sigeac-airlines",
+    "rif": "J-12345678-9",
+    "cod_inac": "INAC-001",
+    "fiscal_address": "Av. Principal, Caracas, Venezuela",
+    "phone_number": 582121234567,
+    "alt_phone_number": 582129876543,
+    "cod_iata": "SGC",
+    "cod_oaci": "SGAC",
+    "modules": [
+      {
+        "id": 1,
+        "label": "Maintenance",
+        "value": "maintenance",
+        "registered_by": "admin"
+      },
+      {
+        "id": 2,
+        "label": "Warehouse",
+        "value": "warehouse",
+        "registered_by": "admin"
+      }
+    ],
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-03-10T14:20:00Z"
+  }
+]
+```
+
+## Get Company by ID
+
+Retrieve a specific company by its ID.
+
+```typescript
+const fetchCompanyById = async (companyId: number): Promise<Company> => {
+  const { data } = await axiosInstance.get(`/company/${companyId}`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The unique identifier of the company
+</ParamField>
+
+## Company Modules
+
+Modules define the functionality available to a company.
+
+### Module Object
+
+<ResponseField name="id" type="number">
+  Module identifier
+</ResponseField>
+
+<ResponseField name="label" type="string">
+  Human-readable module name (e.g., "Maintenance", "SMS", "Warehouse")
+</ResponseField>
+
+<ResponseField name="value" type="string">
+  Module key used in code (e.g., "maintenance", "sms", "warehouse")
+</ResponseField>
+
+<ResponseField name="registered_by" type="string">
+  Username of the user who registered this module
+</ResponseField>
+
+### Get Modules
+
+Retrieve all available modules.
+
+```typescript
+const fetchModules = async (): Promise<Module[]> => {
+  const { data } = await axiosInstance.get('/modules');
+  return data;
+};
+```
+
+### Get Modules by Company
+
+Retrieve modules enabled for a specific company.
+
+```typescript
+const fetchModulesByCompany = async (companyId: number): Promise<Module[]> => {
+  const { data } = await axiosInstance.get(`/companies/${companyId}/modules`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch modules for
+</ParamField>
+
+## Companies with Warehouses
+
+Get companies that have warehouses configured.
+
+```typescript
+const fetchCompaniesWithWarehouses = async (): Promise<Company[]> => {
+  const { data } = await axiosInstance.get('/companies/with-warehouses');
+  return data;
+};
+```
+
+### Response
+
+Returns an array of Company objects that have at least one warehouse associated.
+
+## Related Resources
+
+### Get Company Locations
+
+Retrieve locations belonging to a specific company.
+
+```typescript
+const fetchLocationsByCompany = async (companyId: number): Promise<Location[]> => {
+  const { data } = await axiosInstance.get(`/companies/${companyId}/locations`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch locations for
+</ParamField>
+
+### Get Multiple Companies' Locations
+
+Retrieve locations for multiple companies.
+
+```typescript
+const fetchLocationsByCompanies = async (
+  companyIds: number[]
+): Promise<Location[]> => {
+  const { data } = await axiosInstance.post('/companies/locations', {
+    company_ids: companyIds
+  });
+  return data;
+};
+```
+
+### Request Body
+
+<ParamField body="company_ids" type="number[]" required>
+  Array of company IDs to fetch locations for
+</ParamField>
+
+## Examples
+
+### Check if Module is Enabled
+
+```typescript
+const hasModule = (company: Company, moduleValue: string): boolean => {
+  return company.modules.some((module) => module.value === moduleValue);
+};
+
+// Usage
+if (hasModule(company, 'maintenance')) {
+  console.log('Maintenance module is enabled');
+}
+```
+
+### Get Company Display Info
+
+```typescript
+const getCompanyInfo = (company: Company) => {
+  return {
+    displayName: company.name,
+    codes: {
+      iata: company.cod_iata,
+      icao: company.cod_oaci,
+      inac: company.cod_inac,
+    },
+    contact: {
+      phone: company.phone_number,
+      altPhone: company.alt_phone_number,
+      address: company.fiscal_address,
+    },
+  };
+};
+```
+
+### Filter Companies by Module
+
+```typescript
+const getCompaniesWithModule = (
+  companies: Company[],
+  moduleValue: string
+): Company[] => {
+  return companies.filter((company) =>
+    company.modules.some((module) => module.value === moduleValue)
+  );
+};
+
+// Get all companies with SMS module
+const smsCompanies = getCompaniesWithModule(companies, 'sms');
+```
+
+### Format Company Code
+
+```typescript
+const formatCompanyCode = (company: Company, type: 'iata' | 'icao'): string => {
+  if (type === 'iata') {
+    return company.cod_iata.toUpperCase();
+  }
+  return company.cod_oaci.toUpperCase();
+};
+```
+
+## Common Use Cases
+
+### Multi-tenancy
+
+Companies are used to separate data between different organizations:
+
+```typescript
+const getUserCompanies = (user: User): Company[] => {
+  return user.companies || [];
+};
+
+// Filter data by user's companies
+const filterByUserCompanies = <T extends { company: Company }>(
+  items: T[],
+  user: User
+): T[] => {
+  const userCompanyIds = getUserCompanies(user).map((c) => c.id);
+  return items.filter((item) => userCompanyIds.includes(item.company.id));
+};
+```
+
+### Module-based UI Rendering
+
+```typescript
+const shouldShowFeature = (company: Company, feature: string): boolean => {
+  const moduleMap: Record<string, string> = {
+    'maintenance-planning': 'maintenance',
+    'warehouse-management': 'warehouse',
+    'safety-reports': 'sms',
+  };
+  
+  const requiredModule = moduleMap[feature];
+  return requiredModule ? hasModule(company, requiredModule) : false;
+};
+```
+
+## Error Handling
+
+### Common Errors
+
+- **401 Unauthorized**: Authentication token is missing or invalid
+- **403 Forbidden**: User doesn't have access to this company
+- **404 Not Found**: Company with the specified ID doesn't exist
+- **422 Unprocessable Entity**: Invalid data provided
+
+### Error Response
+
+<ResponseField name="message" type="string">
+  Error message describing the issue
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type or code
+</ResponseField>
+
+```json
+{
+  "message": "Company not found",
+  "error": "NOT_FOUND"
+}
+```

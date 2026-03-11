@@ -1,0 +1,540 @@
+---
+title: Sidebar
+description: Collapsible navigation sidebar with role-based menu items and nested submenus
+---
+
+## Overview
+
+SIGEAC's sidebar provides role-based navigation with collapsible menu items, nested submenus, and responsive behavior. It adapts between desktop (persistent sidebar) and mobile (sheet overlay).
+
+## Sidebar Components
+
+### Menu
+
+Main navigation menu component with role-based filtering.
+
+**Location**: `components/sidebar/Menu.tsx:26`
+
+#### Props
+
+<ParamField path="isOpen" type="boolean | undefined" required>
+  Controls sidebar expanded/collapsed state
+</ParamField>
+
+#### Type Definition
+
+```tsx
+interface MenuProps {
+  isOpen: boolean | undefined;
+}
+```
+
+#### Usage Example
+
+```tsx
+import { Menu } from '@/components/sidebar/Menu';
+import { useState } from 'react';
+
+export function Sidebar() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <aside className={cn(
+      "fixed left-0 top-0 z-40 h-screen transition-all",
+      isOpen ? "w-64" : "w-16"
+    )}>
+      <Menu isOpen={isOpen} />
+    </aside>
+  );
+}
+```
+
+#### Features
+
+- **Role-based menus**: Filters menu items based on user roles
+- **Nested navigation**: Support for submenus with `CollapseMenuButton`
+- **Tooltips**: Show labels when sidebar is collapsed
+- **Active state**: Highlights current route
+- **Scroll area**: Handles long menu lists
+- **Memoized**: Prevents unnecessary recalculations
+
+### Menu Structure
+
+Menus are organized into groups with labels:
+
+```tsx
+const menuList = [
+  {
+    groupLabel: 'Dashboard',
+    menus: [
+      {
+        href: '/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        active: pathname === '/dashboard',
+        submenus: [],
+      },
+    ],
+  },
+  {
+    groupLabel: 'Gestión',
+    menus: [
+      {
+        href: '/employees',
+        label: 'Empleados',
+        icon: Users,
+        active: pathname.startsWith('/employees'),
+        submenus: [
+          {
+            href: '/employees/list',
+            label: 'Lista',
+            active: pathname === '/employees/list',
+          },
+          {
+            href: '/employees/create',
+            label: 'Crear',
+            active: pathname === '/employees/create',
+          },
+        ],
+      },
+    ],
+  },
+];
+```
+
+### CollapseMenuButton
+
+Collapsible menu item with submenus.
+
+**Location**: `components/sidebar/CollapseMenuButton.tsx:44`
+
+#### Props
+
+<ParamField path="icon" type="LucideIcon" required>
+  Icon component from lucide-react
+</ParamField>
+
+<ParamField path="label" type="string" required>
+  Display text for the menu item
+</ParamField>
+
+<ParamField path="active" type="boolean" required>
+  Whether this menu or any submenu is active
+</ParamField>
+
+<ParamField path="submenus" type="Submenu[]" required>
+  Array of submenu items
+</ParamField>
+
+<ParamField path="isOpen" type="boolean | undefined" required>
+  Sidebar expanded/collapsed state
+</ParamField>
+
+#### Type Definition
+
+```tsx
+type Submenu = {
+  href: string;
+  label: string;
+  active: boolean;
+};
+
+interface CollapseMenuButtonProps {
+  icon: LucideIcon;
+  label: string;
+  active: boolean;
+  submenus: Submenu[];
+  isOpen: boolean | undefined;
+}
+```
+
+#### Usage Example
+
+```tsx
+import { CollapseMenuButton } from '@/components/sidebar/CollapseMenuButton';
+import { Users } from 'lucide-react';
+
+const submenus = [
+  { href: '/employees/list', label: 'Lista', active: false },
+  { href: '/employees/create', label: 'Crear', active: false },
+];
+
+<CollapseMenuButton
+  icon={Users}
+  label="Empleados"
+  active={pathname.startsWith('/employees')}
+  submenus={submenus}
+  isOpen={isOpen}
+/>
+```
+
+#### Behavior
+
+<Tabs>
+  <Tab title="Expanded Sidebar">
+    ```tsx
+    // Shows as collapsible with chevron
+    <Collapsible open={isCollapsed} onOpenChange={setIsCollapsed}>
+      <CollapsibleTrigger asChild>
+        <Button variant={active ? "secondary" : "ghost"}>
+          <Icon size={18} />
+          <p>{label}</p>
+          <ChevronDown className="transition-transform" />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        {submenus.map(submenu => (
+          <Button variant={submenu.active ? "secondary" : "ghost"}>
+            <Dot size={18} />
+            <p>{submenu.label}</p>
+          </Button>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+    ```
+  </Tab>
+  
+  <Tab title="Collapsed Sidebar">
+    ```tsx
+    // Shows as dropdown menu on hover
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant={active ? "secondary" : "ghost"}>
+          <Icon size={18} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right">
+        <DropdownMenuLabel>{label}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {submenus.map(submenu => (
+          <DropdownMenuItem asChild>
+            <Link href={submenu.href}>{submenu.label}</Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+    ```
+  </Tab>
+</Tabs>
+
+### SidebarToggle
+
+Button to toggle sidebar open/closed state.
+
+**Location**: `components/sidebar/SidebarToggle.tsx`
+
+```tsx
+import { SidebarToggle } from '@/components/sidebar/SidebarToggle';
+
+const [isOpen, setIsOpen] = useState(true);
+
+<SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
+```
+
+### SheetMenu
+
+Mobile overlay menu using Sheet component.
+
+**Location**: `components/sidebar/SheetMenu.tsx`
+
+```tsx
+import { SheetMenu } from '@/components/sidebar/SheetMenu';
+
+// Automatically shown on mobile viewports
+<SheetMenu />
+```
+
+## Role-Based Menus
+
+Menus are filtered based on user roles:
+
+```tsx
+const { user } = useAuth();
+const userRoles = user?.roles?.map(role => role.name) || [];
+
+// Menu list generator with role filtering
+const menuList = useMemo(() => {
+  return getMenuList(pathname, selectedCompany, userRoles);
+}, [pathname, selectedCompany, user?.roles]);
+```
+
+### Menu List Function
+
+```tsx
+export function getMenuList(
+  pathname: string,
+  company: Company | null,
+  userRoles: string[]
+) {
+  const allMenus = [
+    {
+      groupLabel: 'Dashboard',
+      menus: [
+        {
+          href: '/dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard,
+          active: pathname === '/dashboard',
+          submenus: [],
+          allowedRoles: ['admin', 'manager', 'user'],
+        },
+      ],
+    },
+    {
+      groupLabel: 'Administración',
+      menus: [
+        {
+          href: '/users',
+          label: 'Usuarios',
+          icon: Users,
+          active: pathname.startsWith('/users'),
+          submenus: [],
+          allowedRoles: ['admin'],
+        },
+      ],
+    },
+  ];
+
+  // Filter menus based on user roles
+  return allMenus
+    .map(group => ({
+      ...group,
+      menus: group.menus.filter(menu =>
+        menu.allowedRoles.some(role => userRoles.includes(role))
+      ),
+    }))
+    .filter(group => group.menus.length > 0);
+}
+```
+
+## Sidebar States
+
+### Expanded State
+
+<CodeGroup>
+
+```tsx Desktop - Expanded
+// Width: 256px (w-64)
+<aside className="w-64 fixed left-0 top-0 h-screen">
+  <Menu isOpen={true} />
+</aside>
+```
+
+```tsx Desktop - Collapsed
+// Width: 64px (w-16)
+<aside className="w-16 fixed left-0 top-0 h-screen">
+  <Menu isOpen={false} />
+</aside>
+```
+
+```tsx Mobile - Sheet
+// Full overlay with backdrop
+<Sheet>
+  <SheetTrigger>
+    <MenuIcon />
+  </SheetTrigger>
+  <SheetContent side="left">
+    <Menu isOpen={true} />
+  </SheetContent>
+</Sheet>
+```
+
+</CodeGroup>
+
+## Active State Detection
+
+Highlight active menu items based on current route:
+
+```tsx
+import { usePathname } from 'next/navigation';
+
+const pathname = usePathname();
+
+const menus = [
+  {
+    href: '/employees',
+    label: 'Empleados',
+    // Exact match
+    active: pathname === '/employees',
+    submenus: [],
+  },
+  {
+    href: '/reports',
+    label: 'Reportes',
+    // Starts with (includes subroutes)
+    active: pathname.startsWith('/reports'),
+    submenus: [
+      {
+        href: '/reports/maintenance',
+        label: 'Mantenimiento',
+        active: pathname === '/reports/maintenance',
+      },
+    ],
+  },
+];
+```
+
+## Tooltips for Collapsed State
+
+Show labels when sidebar is collapsed:
+
+```tsx
+<TooltipProvider disableHoverableContent>
+  <Tooltip delayDuration={100}>
+    <TooltipTrigger asChild>
+      <Button variant="ghost">
+        <Icon size={18} />
+        <p className={cn(
+          isOpen === false 
+            ? "-translate-x-96 opacity-0" 
+            : "translate-x-0 opacity-100"
+        )}>
+          {label}
+        </p>
+      </Button>
+    </TooltipTrigger>
+    {isOpen === false && (
+      <TooltipContent side="right">
+        {label}
+      </TooltipContent>
+    )}
+  </Tooltip>
+</TooltipProvider>
+```
+
+## Scroll Handling
+
+For long menu lists, use ScrollArea:
+
+```tsx
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+<ScrollArea className="[&>div>div[style]]:!block">
+  <nav className="mt-8 h-full w-full">
+    <ul className="flex flex-col items-start space-y-1 px-2">
+      {/* Menu items */}
+    </ul>
+  </nav>
+</ScrollArea>
+```
+
+## Group Labels
+
+Organize menus with section headers:
+
+```tsx
+{menuList.map(({ groupLabel, menus }, index) => (
+  <li key={index} className={cn("w-full", groupLabel ? "pt-4" : "")}>
+    {(isOpen && groupLabel) || isOpen === undefined ? (
+      <p className="text-sm font-medium text-muted-foreground px-4 pb-2">
+        {groupLabel}
+      </p>
+    ) : !isOpen && groupLabel ? (
+      <TooltipProvider>
+        <Tooltip delayDuration={100}>
+          <TooltipTrigger className="w-full">
+            <Ellipsis className="h-5 w-5" />
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>{groupLabel}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ) : (
+      <p className="pb-2"></p>
+    )}
+    {/* Render menus */}
+  </li>
+))}
+```
+
+## Responsive Behavior
+
+### Desktop
+
+- Persistent sidebar with toggle button
+- Smooth width transitions
+- Tooltips in collapsed state
+- Keyboard navigation
+
+### Mobile
+
+- Hidden by default
+- Opens as full-width Sheet overlay
+- Hamburger menu trigger in navbar
+- Swipe to close gesture
+
+## Complete Sidebar Example
+
+```tsx
+import { useState } from 'react';
+import { Menu } from '@/components/sidebar/Menu';
+import { SidebarToggle } from '@/components/sidebar/SidebarToggle';
+import { cn } from '@/lib/utils';
+
+export function Sidebar() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <aside
+      className={cn(
+        "fixed left-0 top-0 z-40 h-screen transition-all duration-300",
+        "bg-background border-r",
+        isOpen ? "w-64" : "w-16"
+      )}
+    >
+      <div className="relative h-full flex flex-col">
+        {/* Logo/Brand */}
+        <div className="h-16 flex items-center justify-between px-4 border-b">
+          {isOpen ? (
+            <h1 className="text-xl font-bold">SIGEAC</h1>
+          ) : (
+            <div className="w-8 h-8 bg-primary rounded" />
+          )}
+        </div>
+
+        {/* Navigation Menu */}
+        <Menu isOpen={isOpen} />
+
+        {/* Toggle Button */}
+        <div className="absolute bottom-4 left-4">
+          <SidebarToggle isOpen={isOpen} setIsOpen={setIsOpen} />
+        </div>
+      </div>
+    </aside>
+  );
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Memoize menu calculations">
+    Use `useMemo` for menu list generation to prevent recalculation on every render.
+  </Accordion>
+  
+  <Accordion title="Provide keyboard navigation">
+    Ensure all menu items are keyboard accessible with proper focus management.
+  </Accordion>
+  
+  <Accordion title="Handle long menu lists">
+    Use ScrollArea for menus with many items to prevent layout issues.
+  </Accordion>
+  
+  <Accordion title="Test collapsed state">
+    Verify tooltips and dropdown menus work correctly when sidebar is collapsed.
+  </Accordion>
+  
+  <Accordion title="Implement role-based access">
+    Filter menu items based on user permissions to show only relevant options.
+  </Accordion>
+  
+  <Accordion title="Maintain active states">
+    Highlight the current route and expand relevant submenus automatically.
+  </Accordion>
+</AccordionGroup>
+
+## Related Components
+
+- [Navigation](/components/navigation) - Navbar and breadcrumb components
+- [Tables](/components/tables) - Pages accessed from sidebar navigation

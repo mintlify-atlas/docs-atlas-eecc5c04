@@ -1,0 +1,322 @@
+---
+title: 'Maintenance Services'
+description: 'Predefined maintenance service definitions and tasks'
+icon: 'wrench'
+---
+
+## Overview
+
+The `MaintenanceService` type defines standardized maintenance services in SIGEAC. These services represent predefined maintenance procedures from manufacturer manuals that can be applied to aircraft or parts. Each service contains a set of tasks that specify the exact maintenance activities to be performed.
+
+## Type Definition
+
+```typescript
+export type MaintenanceService = {
+  id: number;
+  origin_manual: string;
+  name: string;
+  description: string;
+  manufacturer: Manufacturer;
+  type: "AIRCRAFT" | "PART";
+  tasks: ServiceTask[];
+};
+```
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the maintenance service
+</ParamField>
+
+<ParamField path="origin_manual" type="string" required>
+  Source manual reference for this service. Common values include:
+  - **AMM** - Aircraft Maintenance Manual
+  - **CMM** - Component Maintenance Manual
+  - **SRM** - Structural Repair Manual
+  - **WDM** - Wiring Diagram Manual
+  - **SB** - Service Bulletin
+  - **AD** - Airworthiness Directive
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Service name (e.g., "A-Check", "Engine Oil Change", "Landing Gear Overhaul")
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Detailed description of the maintenance service and its scope
+</ParamField>
+
+<ParamField path="manufacturer" type="Manufacturer" required>
+  Manufacturer associated with this service definition
+  
+  <Expandable title="Manufacturer properties">
+    <ResponseField name="id" type="number">
+      Manufacturer unique identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Manufacturer name (e.g., Boeing, Airbus, Pratt & Whitney)
+    </ResponseField>
+    <ResponseField name="type" type="'AIRCRAFT' | 'ENGINE' | 'APU' | 'PROPELLER' | 'GENERAL' | 'PART'">
+      Type of manufacturer for categorization
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Additional manufacturer details
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="type" type="'AIRCRAFT' | 'PART'" required>
+  Service application type:
+  - **AIRCRAFT** - Service applies to entire aircraft (e.g., inspections, checks)
+  - **PART** - Service applies to specific components (e.g., engine overhaul, APU maintenance)
+</ParamField>
+
+<ParamField path="tasks" type="ServiceTask[]" required>
+  Array of tasks that comprise this service. See [Service Tasks](#service-tasks) section.
+</ParamField>
+
+## Service Tasks
+
+Each maintenance service consists of multiple tasks that define specific work to be performed:
+
+```typescript
+export type ServiceTask = {
+  id: number;
+  description: string;
+  service: MaintenanceService;
+  task_items: {
+    id: number;
+    article_part_number: string;
+    article_alt_part_number?: string;
+    article_serial: string;
+  }[];
+};
+```
+
+### Task Fields
+
+<ResponseField name="id" type="number" required>
+  Unique task identifier
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the task to be performed, typically from the maintenance manual
+</ResponseField>
+
+<ResponseField name="service" type="MaintenanceService" required>
+  Reference back to the parent maintenance service
+</ResponseField>
+
+<ResponseField name="task_items" type="array" required>
+  Parts and materials required for this specific task
+  
+  <Expandable title="Task item properties">
+    <ResponseField name="id" type="number">
+      Task item unique identifier
+    </ResponseField>
+    <ResponseField name="article_part_number" type="string">
+      Primary manufacturer part number for required item
+    </ResponseField>
+    <ResponseField name="article_alt_part_number" type="string">
+      Alternative or superseded part number
+    </ResponseField>
+    <ResponseField name="article_serial" type="string">
+      Specific serial number if serialized part is required
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Service Types
+
+### Aircraft Services
+
+Services with `type: "AIRCRAFT"` apply to the entire aircraft:
+
+- **Scheduled Inspections**: A-Check, B-Check, C-Check, D-Check
+- **Pre-flight Inspections**: Daily, transit, and through checks
+- **Scheduled Maintenance**: Lubrication services, system tests
+- **Modifications**: Service bulletins, engineering orders
+
+### Part Services
+
+Services with `type: "PART"` apply to specific components:
+
+- **Engine Maintenance**: Oil changes, borescope inspections, overhauls
+- **Landing Gear**: Servicing, overhaul, component replacement
+- **APU Maintenance**: Scheduled maintenance, repairs
+- **Component Overhaul**: Hydraulic pumps, actuators, valves
+
+## Example Usage
+
+### Aircraft Service Example
+
+```typescript
+const aircraftService: MaintenanceService = {
+  id: 101,
+  origin_manual: "AMM",
+  name: "A-Check Inspection",
+  description: "Routine inspection performed approximately every 500-800 flight hours or 200-400 flight cycles",
+  manufacturer: {
+    id: 1,
+    name: "Boeing",
+    type: "AIRCRAFT",
+    description: "Boeing Commercial Airplanes"
+  },
+  type: "AIRCRAFT",
+  tasks: [
+    {
+      id: 1001,
+      description: "Visual inspection of fuselage skin for cracks, corrosion, and damage per AMM 53-00-00",
+      service: null, // Circular reference omitted
+      task_items: []
+    },
+    {
+      id: 1002,
+      description: "Inspect and service landing gear struts per AMM 32-41-00",
+      service: null,
+      task_items: [
+        {
+          id: 1,
+          article_part_number: "HYD-OIL-5606",
+          article_alt_part_number: "HYD-OIL-83282",
+          article_serial: ""
+        }
+      ]
+    },
+    {
+      id: 1003,
+      description: "Replace engine oil and filters per AMM 72-10-01",
+      service: null,
+      task_items: [
+        {
+          id: 2,
+          article_part_number: "ENG-OIL-2380",
+          article_serial: ""
+        },
+        {
+          id: 3,
+          article_part_number: "OIL-FILTER-123",
+          article_serial: ""
+        }
+      ]
+    }
+  ]
+};
+```
+
+### Part Service Example
+
+```typescript
+const partService: MaintenanceService = {
+  id: 202,
+  origin_manual: "CMM",
+  name: "CFM56 Engine Hot Section Inspection",
+  description: "Borescope inspection and hot section component examination per engine CMM",
+  manufacturer: {
+    id: 5,
+    name: "CFM International",
+    type: "ENGINE",
+    description: "CFM - Joint venture between GE and Safran"
+  },
+  type: "PART",
+  tasks: [
+    {
+      id: 2001,
+      description: "Perform borescope inspection of combustion chamber per CMM 72-00-00-100-801",
+      service: null,
+      task_items: []
+    },
+    {
+      id: 2002,
+      description: "Inspect high-pressure turbine blades for erosion and damage",
+      service: null,
+      task_items: []
+    },
+    {
+      id: 2003,
+      description: "Replace combustion chamber fuel nozzles if required",
+      service: null,
+      task_items: [
+        {
+          id: 10,
+          article_part_number: "NOZZLE-CFM-567",
+          article_alt_part_number: "NOZZLE-CFM-567A",
+          article_serial: ""
+        }
+      ]
+    }
+  ]
+};
+```
+
+## Integration with Work Orders
+
+Maintenance services serve as templates for creating work order tasks:
+
+1. **Service Selection**: When creating a work order, select applicable maintenance services
+2. **Task Generation**: Service tasks are copied to the work order as `WorkOrderTask` objects
+3. **Customization**: Work order tasks can be modified to reflect specific aircraft conditions
+4. **Execution**: Technicians perform work based on the tasks derived from the service
+5. **Tracking**: Task completion is tracked independently in the work order
+
+```typescript
+// Example: Creating work order tasks from a service
+const createWorkOrderFromService = (
+  service: MaintenanceService,
+  workOrderId: number
+): WorkOrderTask[] => {
+  return service.tasks.map(serviceTask => ({
+    id: 0, // Generated on save
+    description_task: serviceTask.description,
+    status: "PENDING",
+    ata: extractATACode(serviceTask.description),
+    task_number: generateTaskNumber(),
+    origin_manual: service.origin_manual,
+    task_items: serviceTask.task_items.map(item => ({
+      article_serial: item.article_serial,
+      article_part_number: item.article_part_number,
+      article_alt_part_number: item.article_alt_part_number || ""
+    })),
+    assigned_technicians: [],
+  }));
+};
+```
+
+## Service Management
+
+### Creating Services
+
+Maintenance services should be created based on:
+- Manufacturer maintenance manuals (AMM, CMM, etc.)
+- Airworthiness directives
+- Service bulletins
+- Company-specific procedures
+- Regulatory requirements
+
+### Updating Services
+
+Services should be updated when:
+- Manual revisions are published
+- Service bulletins supersede existing procedures
+- Airworthiness directives require changes
+- Part numbers change or are superseded
+
+### Versioning
+
+<Warning>
+  When updating maintenance services that are referenced by existing work orders, consider implementing a versioning strategy to maintain historical accuracy of completed work.
+</Warning>
+
+## Best Practices
+
+1. **Standardization**: Use consistent naming conventions for services based on manual references
+2. **Completeness**: Include all required tasks and materials in service definitions
+3. **Documentation**: Maintain clear descriptions referencing specific manual chapters
+4. **Part Numbers**: Keep part numbers current with manufacturer supersessions
+5. **Review Cycle**: Regularly review services against current manual revisions
+
+## Related Types
+
+- [Work Orders](/api/work-orders) - Execution of maintenance services
+- [Aircraft](/api/aircraft) - Target of aircraft-type services
+- [Flight Control](/api/flight-control) - Post-maintenance verification flights

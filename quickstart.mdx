@@ -1,80 +1,188 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: 'Quickstart'
+description: 'Get started with SIGEAC in minutes'
 ---
 
-## Get started in three steps
+# Quickstart Guide
 
-Get your documentation site running locally and make your first customization.
+Get your SIGEAC (Sistema de Gestión Aeronáutica Civil) instance up and running in minutes. This guide will walk you through installation, configuration, and your first login.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Before you begin, ensure you have the following installed:
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+- **Node.js 20.x or higher** - [Download](https://nodejs.org/)
+- **npm, yarn, pnpm, or bun** - Package manager of your choice
+- **Git** - For cloning the repository
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+SIGEAC is built with Next.js 14.2.14 and requires Node.js 20 or higher for optimal performance.
+</Note>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the SIGEAC repository to your local machine:
+
+    ```bash
+    git clone <repository-url>
+    cd sigec_frontend
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required dependencies using your preferred package manager:
+
+    <CodeGroup>
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+
+      ```bash pnpm
+      pnpm install
+      ```
+
+      ```bash bun
+      bun install
+      ```
+    </CodeGroup>
+
+    <Note>
+    The installation includes 50+ dependencies including React 18, TanStack Query, Radix UI components, and more.
+    </Note>
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create a `.env.local` file in the root directory and add your configuration:
+
+    ```bash
+    # API Configuration
+    NEXT_PUBLIC_API_BASE_URL=https://your-api-domain.com/api
+
+    # Storage Configuration
+    NEXT_PUBLIC_STORAGE_BASE_URL=https://your-storage-domain.com/
+
+    # Reverb WebSocket Configuration (Optional)
+    NEXT_PUBLIC_REVERB_APP_KEY=your-reverb-app-key
+    NEXT_PUBLIC_REVERB_HOST=your-reverb-host
+    NEXT_PUBLIC_REVERB_SCHEME=https
+    ```
+
+    <Warning>
+    The `NEXT_PUBLIC_API_BASE_URL` is required for SIGEAC to communicate with the backend API. Without it, the application will not function properly.
+    </Warning>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the development server:
+
+    <CodeGroup>
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+
+      ```bash pnpm
+      pnpm dev
+      ```
+
+      ```bash bun
+      bun dev
+      ```
+    </CodeGroup>
+
+    The application will start on [http://localhost:3000](http://localhost:3000)
+  </Step>
+
+  <Step title="Access the Application">
+    Open your browser and navigate to [http://localhost:3000](http://localhost:3000)
+
+    You'll see the SIGEAC landing page with an animated airplane and a "Iniciar Sesión" (Login) button.
+  </Step>
+</Steps>
+
+## First Login
+
+Once the application is running, you can access the login page:
+
+1. Click the **"Iniciar Sesión"** button on the landing page
+2. You'll be redirected to `/login`
+3. Enter your credentials provided by your system administrator
+4. After successful authentication, you'll be redirected to the main dashboard at `/inicio`
+
+<Note>
+SIGEAC uses cookie-based authentication with JWT tokens. The `auth_token` cookie is automatically managed by the application.
+</Note>
+
+## What's Next?
+
+Now that you have SIGEAC running, explore these resources:
+
+<CardGroup cols={2}>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Detailed installation instructions and troubleshooting
+  </Card>
+  
+  <Card title="Architecture" icon="sitemap" href="/development/tech-stack">
+    Learn about SIGEAC's architecture and technology stack
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/development/configuration">
+    Configure SIGEAC for your organization
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/authentication">
+    Explore the backend API endpoints
+  </Card>
+</CardGroup>
+
+## Key Features Accessible After Login
+
+Once logged in, you'll have access to:
+
+- **Dashboard** (`/inicio`) - Main overview of your aviation operations
+- **SMS Module** - Safety Management System for aviation compliance
+- **Maintenance** - Aircraft maintenance tracking and management
+- **General Operations** - Inventory, scheduling, and resource management
+- **Airline Management** - Flight operations and crew scheduling
+- **Settings** (`/ajustes`) - User preferences and system configuration
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 3000 is already in use, you can specify a different port:
+
+```bash
+PORT=3001 npm run dev
+```
+
+### API Connection Issues
+
+If you're unable to connect to the API:
+
+1. Verify your `NEXT_PUBLIC_API_BASE_URL` is correct
+2. Ensure the backend API is running and accessible
+3. Check that CORS is properly configured on the backend
+4. Verify the `skip_zrok_interstitial` header is supported by your API
+
+### Authentication Errors
+
+If you're experiencing authentication issues:
+
+1. Clear your browser cookies
+2. Ensure the backend is issuing valid JWT tokens
+3. Check that the `auth_token` cookie is being set correctly
+4. Verify the backend responds to Bearer token authentication
+
+<Note>
+For more detailed troubleshooting, see the [Installation Guide](/installation#troubleshooting) section.
 </Note>

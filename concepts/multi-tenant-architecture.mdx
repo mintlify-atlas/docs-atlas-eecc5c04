@@ -1,0 +1,315 @@
+---
+title: 'Multi-Tenant Architecture'
+description: 'Learn how SIGEAC handles multiple companies and locations with data isolation'
+icon: 'building'
+---
+
+## Overview
+
+SIGEAC is built as a **multi-tenant SaaS platform** where multiple aviation companies can operate independently within the same system. Each company has its own data, users, and locations (stations), ensuring complete data isolation and customized experiences.
+
+## Key Concepts
+
+### Companies
+
+Each company in SIGEAC represents an independent aviation organization with its own:
+
+- **Unique identifier**: Company slug used in URLs (e.g., `/transmandu/dashboard`)
+- **Company metadata**: Name, description, RIF, INAC code, fiscal address
+- **IATA/OACI codes**: Standard aviation identifiers
+- **Active modules**: Customized feature set per company
+- **Locations**: Multiple stations/bases where the company operates
+
+<CodeGroup>
+```typescript Company Type Definition
+// types/index.ts
+export type Company = {
+  id: number;
+  name: string;
+  description: string;
+  slug: string;
+  rif: string;
+  cod_inac: string;
+  fiscal_address: string;
+  phone_number: number;
+  alt_phone_number: number;
+  cod_iata: string;
+  cod_oaci: string;
+  modules: Module[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type Module = {
+  id: number;
+  label: string;
+  value: string;
+  registered_by: string;
+};
+```
+
+```typescript User-Company Relationship
+export type User = {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  isActive: boolean;
+  roles?: Role[];
+  permissions: Permission[];
+  companies: Company[]; // Users can belong to multiple companies
+  employee: Employee[];
+};
+```
+</CodeGroup>
+
+### Locations (Stations)
+
+Locations represent physical bases or stations where a company operates:
+
+```typescript Location Type
+export type Location = {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  isMainBase: boolean;
+  cod_iata: string;
+  companies: Company[]; // A location can serve multiple companies
+};
+```
+
+**Key characteristics:**
+- Each location has an IATA code (e.g., "CCS" for Caracas)
+- Locations can be shared across companies
+- Users select both company AND location to access the system
+- Location determines which data and operations are available
+
+## Company Selection Flow
+
+<Steps>
+  <Step title="User Login">
+    After successful authentication, users are redirected to `/inicio` (home page) where they must select a company and station.
+  </Step>
+  
+  <Step title="Company Selection">
+    Users see a dropdown with all companies they have access to. The selection is stored in localStorage and Zustand state.
+    
+    ```tsx CompanySelect Component
+    const handleCompanySelect = (companyId: string) => {
+      const company = user?.companies?.find((c) => c.id.toString() === companyId);
+      if (company) {
+        setSelectedCompany(company);
+      }
+    };
+    ```
+  </Step>
+  
+  <Step title="Station Selection">
+    Once a company is selected, the system fetches available locations for that company via the API.
+    
+    ```tsx Location Fetching
+    const { mutate, data: locations } = useGetUserLocationsByCompanyId();
+    
+    useEffect(() => {
+      if (isInitialized && selectedCompany) {
+        mutate(selectedCompany.id);
+      }
+    }, [selectedCompany]);
+    ```
+  </Step>
+  
+  <Step title="Automatic Redirect">
+    After both selections are made, users are automatically redirected to the company-specific dashboard.
+    
+    ```tsx RedirectHandler
+    useEffect(() => {
+      if (selectedCompany && selectedStation) {
+        const isOnCompanyRoute = pathname.startsWith(`/${selectedCompany.slug}/`);
+        
+        if (!isAllowedRoute && !isOnCompanyRoute) {
+          router.push(`/${selectedCompany.slug}/dashboard`);
+        }
+      }
+    }, [selectedStation, selectedCompany, pathname]);
+    ```
+  </Step>
+</Steps>
+
+## State Management
+
+SIGEAC uses **Zustand** to manage company and location state across the application:
+
+```typescript CompanyStore.ts
+import { Company } from "@/types";
+import { create } from "zustand";
+
+interface CompanyState {
+  selectedCompany: Company | null;
+  selectedStation: string | null;
+}
+
+interface CompanyActions {
+  setSelectedCompany: (company: Company) => void;
+  setSelectedStation: (station: string) => void;
+  initFromLocalStorage: () => void;
+  reset: () => void;
+}
+
+export const useCompanyStore = create<CompanyState & CompanyActions>((set) => ({
+  selectedCompany: null,
+  selectedStation: null,
+
+  setSelectedCompany: (company) => {
+    set({ selectedCompany: company });
+    localStorage.setItem('selectedCompany', JSON.stringify(company));
+  },
+
+  setSelectedStation: (station) => {
+    set({ selectedStation: station });
+    localStorage.setItem('selectedStation', station);
+  },
+
+  initFromLocalStorage: () => {
+    const savedSelectedCompany = localStorage.getItem('selectedCompany');
+    if (savedSelectedCompany) {
+      try {
+        const companyObj: Company = JSON.parse(savedSelectedCompany);
+        set({ selectedCompany: companyObj });
+      } catch (error) {
+        console.error("Error parsing saved company", error);
+        localStorage.removeItem('selectedCompany');
+      }
+    }
+
+    const savedSelectedStation = localStorage.getItem('selectedStation');
+    if (savedSelectedStation) {
+      set({ selectedStation: savedSelectedStation });
+    }
+  },
+
+  reset: () => {
+    set({ selectedCompany: null, selectedStation: null });
+    localStorage.removeItem('selectedCompany');
+    localStorage.removeItem('selectedStation');
+  }
+}));
+```
+
+<Note>
+**Persistence Strategy**: Company and station selections are persisted to `localStorage` to maintain user preferences across browser sessions. The state is automatically restored on app initialization.
+</Note>
+
+## Data Isolation
+
+SIGEAC ensures strict data isolation between companies:
+
+### URL-Based Isolation
+
+All company-specific routes include the company slug:
+
+```
+/transmandu/dashboard
+/hangar74/almacen/inventario
+/transmandu/sms/reportes/reportes_voluntarios
+```
+
+### API-Level Isolation
+
+API requests include both company and location context:
+
+```typescript Example API Request
+const { selectedCompany, selectedStation } = useCompanyStore();
+
+// Company slug passed to API
+await axiosInstance.get(`/api/${selectedCompany.slug}/articles`);
+
+// Location ID used for filtering
+const params = { location_id: selectedStation };
+```
+
+### State Isolation
+
+When users switch companies:
+
+1. **State is cleared**: Query cache is invalidated
+2. **New context loaded**: Fresh data fetched for the new company
+3. **Navigation reset**: User redirected to new company dashboard
+
+```typescript Logout Flow
+const logout = useCallback(async () => {
+  try {
+    setUser(null);
+    setError(null);
+    await deleteSession();
+    await reset(); // Clears company store
+    queryClient.clear(); // Clears all cached data
+    router.push('/login');
+    toast.info('Sesión finalizada');
+  } catch (err) {
+    console.error('Error durante logout:', err);
+  }
+}, [router, queryClient, reset]);
+```
+
+## Module System
+
+Companies can enable/disable specific modules:
+
+```typescript Module Examples
+[
+  { id: 1, label: "Almacén", value: "almacen", registered_by: "admin" },
+  { id: 2, label: "SMS", value: "sms", registered_by: "admin" },
+  { id: 3, label: "Planificación", value: "planificacion", registered_by: "admin" },
+  { id: 4, label: "Administración", value: "administracion", registered_by: "admin" }
+]
+```
+
+<Warning>
+Menu items and features are filtered based on active modules. Users only see navigation items for modules their company has enabled.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always check company context">
+    Before making API calls, verify that `selectedCompany` and `selectedStation` are set:
+    
+    ```typescript
+    const { selectedCompany, selectedStation } = useCompanyStore();
+    
+    if (!selectedCompany) {
+      // Redirect to company selection or show error
+      return;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Use company slug in routes">
+    All dynamic routes should include the company slug parameter:
+    
+    ```typescript
+    // app/[company]/dashboard/page.tsx
+    export default function DashboardPage({ params }: { params: { company: string } }) {
+      // ...
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Clear state on company switch">
+    When users switch companies, invalidate relevant queries:
+    
+    ```typescript
+    const handleCompanyChange = (newCompany: Company) => {
+      setSelectedCompany(newCompany);
+      queryClient.invalidateQueries(); // Refresh all data
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related Concepts
+
+- [Authentication](/concepts/authentication) - How users log in and access companies
+- [Role-Based Access Control](/concepts/role-based-access) - How permissions work within companies

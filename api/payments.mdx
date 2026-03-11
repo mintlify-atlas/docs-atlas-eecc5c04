@@ -1,0 +1,92 @@
+---
+title: "Credit Payments"
+description: "Record and track payments made towards credits"
+---
+
+## CreditPayment Object
+
+Represents a payment transaction applied to a credit account.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the payment
+</ResponseField>
+
+<ResponseField name="bank_account" type="BankAccount" required>
+  Bank account used for the payment transaction
+</ResponseField>
+
+<ResponseField name="pay_method" type="string" required>
+  Payment method used
+  <Expandable title="values">
+    - `EFECTIVO` - Cash payment
+    - `TRANSFERENCIA` - Bank transfer
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="pay_amount" type="string" required>
+  Amount paid in this transaction (stored as string for precision)
+</ResponseField>
+
+<ResponseField name="payment_date" type="Date" required>
+  Date when the payment was made
+</ResponseField>
+
+<ResponseField name="pay_description" type="string" required>
+  Description or notes about the payment
+</ResponseField>
+
+## Related Types
+
+### FlightPayment Object
+
+Payments specifically for flight services.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the flight payment
+</ResponseField>
+
+<ResponseField name="bank_account" type="BankAccount" required>
+  Bank account used for the payment
+</ResponseField>
+
+<ResponseField name="flight" type="Flight" required>
+  Associated flight transaction
+</ResponseField>
+
+<ResponseField name="client" type="Client" required>
+  Client making the payment
+</ResponseField>
+
+<ResponseField name="pay_method" type="string" required>
+  Payment method: `EFECTIVO` or `TRANSFERENCIA`
+</ResponseField>
+
+<ResponseField name="pay_amount" type="string" required>
+  Payment amount
+</ResponseField>
+
+<ResponseField name="payment_date" type="Date" required>
+  Payment date
+</ResponseField>
+
+<ResponseField name="pay_description" type="string" required>
+  Payment description
+</ResponseField>
+
+## Example
+
+```json
+{
+  "id": 1,
+  "bank_account": {
+    "id": 3,
+    "name": "Cuenta Corriente USD",
+    "account_number": "0102-0123-45-6789012345",
+    "account_type": "CORRIENTE"
+  },
+  "pay_method": "TRANSFERENCIA",
+  "pay_amount": "5000.00",
+  "payment_date": "2026-03-11T10:30:00Z",
+  "pay_description": "Partial payment - invoice #12345"
+}
+```

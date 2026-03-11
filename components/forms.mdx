@@ -1,0 +1,464 @@
+---
+title: Forms
+description: Multi-step forms with validation for employee management, aircraft operations, and course registration
+---
+
+## Overview
+
+SIGEAC's form components provide a complete solution for data entry with built-in validation, multi-step workflows, and role-based access control. All forms use React Hook Form with Zod validation for type-safe form handling.
+
+## Form Components
+
+### CreateEmployeeForm
+
+A two-step form for creating employees with optional user account creation.
+
+**Location**: `components/forms/general/CreateEmployeeForm.tsx:120`
+
+#### Features
+
+- Multi-step workflow (employee data → user account)
+- Conditional validation based on user creation
+- Auto-generated usernames
+- Multi-company location assignment
+- Role selection with badges
+- Password visibility toggle
+
+#### Props
+
+<ParamField path="onSuccess" type="() => void" optional>
+  Callback function called after successful form submission
+</ParamField>
+
+#### Type Definition
+
+```tsx
+const formSchema = z.object({
+  // Employee fields
+  first_name: z.string().min(1, "Requerido"),
+  middle_name: z.string().optional(),
+  last_name: z.string().min(1, "Requerido"),
+  second_last_name: z.string().optional(),
+  dni_type: z.string(),
+  blood_type: z.string(),
+  dni: z.string().min(6, "Requerido"),
+  department_id: z.string(),
+  job_title_id: z.string(),
+  location_id: z.string(),
+  
+  // User account fields (conditional)
+  createUser: z.boolean(),
+  username: z.string().min(3, "Mínimo 3 caracteres").optional(),
+  password: z.string().min(5, "Mínimo 5 caracteres").optional(),
+  email: z.string().email("Correo inválido").optional(),
+  roles: z.array(z.string()).optional(),
+  companies_locations: z.array(z.object({
+    companyID: z.number(),
+    locationID: z.array(z.number().or(z.string())),
+  })).optional(),
+}).superRefine((data, ctx) => {
+  // Conditional validation when createUser is true
+  if (data.createUser) {
+    if (!data.username) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Requerido",
+        path: ["username"],
+      });
+    }
+    // Additional validations...
+  }
+});
+
+type EmployeeForm = z.infer<typeof formSchema>;
+```
+
+#### Usage Example
+
+<CodeGroup>
+
+```tsx Standalone Form
+import { CreateEmployeeForm } from '@/components/forms/general/CreateEmployeeForm';
+
+export function EmployeePage() {
+  const handleSuccess = () => {
+    console.log('Employee created successfully');
+    // Refresh data, show notification, etc.
+  };
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Nuevo Empleado</h1>
+      <CreateEmployeeForm onSuccess={handleSuccess} />
+    </div>
+  );
+}
+```
+
+```tsx In Dialog
+import { CreateEmployeeForm } from '@/components/forms/general/CreateEmployeeForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+export function CreateEmployeeDialog() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Crear Empleado</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Crear Empleado</DialogTitle>
+        </DialogHeader>
+        <CreateEmployeeForm onSuccess={() => setOpen(false)} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+</CodeGroup>
+
+## Form Patterns
+
+### Multi-Step Forms
+
+SIGEAC uses a step-based pattern for complex forms:
+
+```tsx
+const [step, setStep] = useState<1 | 2>(1);
+
+const handleNextStep = () => {
+  if (form.watch("createUser")) {
+    setStep(2); // Advance to user creation
+  } else {
+    form.handleSubmit(onSubmit)(); // Submit immediately
+  }
+};
+
+return (
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      {step === 1 && (
+        <>
+          {/* Employee fields */}
+          <Button onClick={handleNextStep}>
+            {form.watch("createUser") ? "Siguiente" : "Crear Empleado"}
+          </Button>
+        </>
+      )}
+      
+      {step === 2 && (
+        <>
+          {/* User account fields */}
+          <Button onClick={() => setStep(1)}>Anterior</Button>
+          <Button type="submit">Crear Empleado y Usuario</Button>
+        </>
+      )}
+    </form>
+  </Form>
+);
+```
+
+### Form Field Components
+
+All forms use consistent field patterns:
+
+<Tabs>
+  <Tab title="Text Input">
+    ```tsx
+    <FormField
+      control={form.control}
+      name="first_name"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Nombre</FormLabel>
+          <FormControl>
+            <Input placeholder="Ej. Juan" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Select">
+    ```tsx
+    <FormField
+      control={form.control}
+      name="department_id"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Departamento</FormLabel>
+          <Select onValueChange={field.onChange}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un departamento" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {departments?.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id.toString()}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Checkbox">
+    ```tsx
+    <FormField
+      control={form.control}
+      name="createUser"
+      render={({ field }) => (
+        <FormItem className="flex items-center gap-2 p-4 border rounded-lg">
+          <FormControl>
+            <Checkbox
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+          </FormControl>
+          <FormLabel className="!mt-0">
+            ¿Crear usuario para este empleado?
+          </FormLabel>
+        </FormItem>
+      )}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Select">
+    ```tsx
+    <FormField
+      control={form.control}
+      name="roles"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Roles</FormLabel>
+          <Popover open={openRoles} onOpenChange={setOpenRoles}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {selectedRoles.length > 0 ? (
+                  <div className="flex gap-1 flex-wrap">
+                    {roles?.filter(role => 
+                      selectedRoles.includes(role.id.toString())
+                    ).map(role => (
+                      <Badge key={role.id}>{role.name}</Badge>
+                    ))}
+                  </div>
+                ) : "Seleccione roles..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Command>
+                <CommandInput placeholder="Buscar roles..." />
+                <CommandList>
+                  <CommandGroup>
+                    {roles?.map(role => (
+                      <CommandItem
+                        key={role.id}
+                        onSelect={() => handleRoleSelect(role.id.toString())}
+                      >
+                        <Check className={cn(
+                          "mr-2 h-4 w-4",
+                          isRoleSelected(role.id.toString()) 
+                            ? "opacity-100" 
+                            : "opacity-0"
+                        )} />
+                        {role.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    ```
+  </Tab>
+</Tabs>
+
+### Auto-Generated Fields
+
+Forms can auto-populate fields based on other inputs:
+
+```tsx
+// Watch form values
+const firstName = form.watch("first_name");
+const lastName = form.watch("last_name");
+const shouldCreateUser = form.watch("createUser");
+
+// Auto-generate username
+useEffect(() => {
+  if (shouldCreateUser && firstName && lastName) {
+    const username = `${firstName.charAt(0)}${lastName}`.toLowerCase();
+    form.setValue("username", username);
+  }
+}, [shouldCreateUser, firstName, lastName, form]);
+```
+
+### Password Visibility Toggle
+
+```tsx
+const [showPassword, setShowPassword] = useState(false);
+
+<FormField
+  control={form.control}
+  name="password"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel className="flex items-center gap-2">
+        Contraseña
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="text-muted-foreground hover:text-primary"
+        >
+          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </FormLabel>
+      <FormControl>
+        <Input
+          type={showPassword ? "text" : "password"}
+          placeholder="Mínimo 5 caracteres"
+          {...field}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+### Nested Location Selection
+
+Complex nested selection with Accordion:
+
+```tsx
+<ScrollArea className="h-[250px] w-full">
+  <Accordion type="single" collapsible>
+    {companies?.map(company => (
+      <AccordionItem key={company.id} value={company.name}>
+        <AccordionTrigger>{company.name}</AccordionTrigger>
+        <AccordionContent>
+          {locations
+            .filter(loc => loc.company_id === company.id)
+            .map(location => (
+              location.locations.map(loc => (
+                <div key={loc.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={Boolean(
+                      field.value?.find(
+                        item => item.companyID === company.id &&
+                                item.locationID.includes(loc.id)
+                      )
+                    )}
+                    onCheckedChange={(isSelected) =>
+                      handleLocationChange(company.id, loc.id, isSelected)
+                    }
+                  />
+                  <Label>{loc.address}</Label>
+                </div>
+              ))
+            ))}
+        </AccordionContent>
+      </AccordionItem>
+    ))}
+  </Accordion>
+</ScrollArea>
+```
+
+## Form Submission
+
+### Sequential API Calls
+
+Handle dependent API calls in order:
+
+```tsx
+const onSubmit = async (data: EmployeeForm) => {
+  try {
+    if (data.createUser) {
+      // 1. Create user first
+      const userResponse = await createUser.mutateAsync({
+        username: data.username!,
+        password: data.password,
+        email: data.email!,
+        roles: data.roles?.map(Number) || [],
+        companies_locations: data.companies_locations,
+      });
+      
+      // 2. Create employee with user_id
+      await createEmployee.mutateAsync({
+        ...employeeData,
+        user_id: userResponse.user.id,
+      });
+    } else {
+      // Create employee without user
+      await createEmployee.mutateAsync(employeeData);
+    }
+    
+    onSuccess?.();
+  } catch (error) {
+    console.error("Error creating employee:", error);
+  }
+};
+```
+
+### Loading States
+
+```tsx
+<Button 
+  type="submit" 
+  disabled={createEmployee.isPending || createUser.isPending}
+>
+  {createEmployee.isPending || createUser.isPending ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Creando...
+    </>
+  ) : (
+    "Crear Empleado y Usuario"
+  )}
+</Button>
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Zod for validation">
+    Always define schemas with Zod for type-safe validation. Use `.superRefine()` for conditional validation logic.
+  </Accordion>
+  
+  <Accordion title="Handle loading states">
+    Disable submit buttons during mutations and show loading indicators with `Loader2` icon.
+  </Accordion>
+  
+  <Accordion title="Provide clear error messages">
+    Use Spanish language error messages that guide users on how to fix issues.
+  </Accordion>
+  
+  <Accordion title="Auto-populate when possible">
+    Use `useEffect` to auto-generate fields like usernames based on other inputs.
+  </Accordion>
+  
+  <Accordion title="Reset forms after success">
+    Call `onSuccess` callback to close dialogs or navigate away after successful submission.
+  </Accordion>
+</AccordionGroup>
+
+## Related Components
+
+- [Dialogs](/components/dialogs) - Wrap forms in modal dialogs
+- [Tables](/components/tables) - Display form submissions in data tables

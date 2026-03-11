@@ -1,0 +1,237 @@
+---
+title: "SMS Activities"
+description: "Safety Management System training activities and attendance tracking"
+---
+
+## SMSActivity Object
+
+Represents a safety training or awareness activity in the SMS program.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the activity
+</ResponseField>
+
+<ResponseField name="title" type="string" required>
+  Title of the SMS activity
+</ResponseField>
+
+<ResponseField name="activity_name" type="string" required>
+  Descriptive name of the activity
+</ResponseField>
+
+<ResponseField name="activity_number" type="string" required>
+  Official activity reference number
+</ResponseField>
+
+<ResponseField name="start_date" type="Date" required>
+  Start date of the activity
+</ResponseField>
+
+<ResponseField name="end_date" type="Date" required>
+  End date of the activity
+</ResponseField>
+
+<ResponseField name="start_time" type="string" required>
+  Start time (HH:MM format)
+</ResponseField>
+
+<ResponseField name="end_time" type="string" required>
+  End time (HH:MM format)
+</ResponseField>
+
+<ResponseField name="place" type="string" required>
+  Location where the activity takes place
+</ResponseField>
+
+<ResponseField name="topics" type="string" required>
+  Topics covered in the activity
+</ResponseField>
+
+<ResponseField name="objetive" type="string" required>
+  Learning objectives of the activity
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the activity
+</ResponseField>
+
+<ResponseField name="authorized_by" type="Employee" required>
+  Employee who authorized the activity
+</ResponseField>
+
+<ResponseField name="planned_by" type="Employee" required>
+  Employee who planned the activity
+</ResponseField>
+
+<ResponseField name="executed_by" type="string" required>
+  Person or entity who conducted the activity
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Current status of the activity (e.g., "PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED")
+</ResponseField>
+
+## SMSActivityAttendance Object
+
+Tracks employee attendance for SMS activities.
+
+<ResponseField name="sms_activity_id" type="number" required>
+  ID of the associated SMS activity
+</ResponseField>
+
+<ResponseField name="employee_id" type="number" required>
+  ID of the employee
+</ResponseField>
+
+<ResponseField name="attended" type="boolean" required>
+  Whether the employee attended the activity
+</ResponseField>
+
+## Related Types
+
+### Course Object
+
+Represents a training course (more comprehensive than an SMS activity).
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the course
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Course name
+</ResponseField>
+
+<ResponseField name="department" type="Department" required>
+  Department offering the course
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Course description
+</ResponseField>
+
+<ResponseField name="duration" type="string" required>
+  Total course duration
+</ResponseField>
+
+<ResponseField name="time" type="string" required>
+  Time commitment required
+</ResponseField>
+
+<ResponseField name="start_date" type="Date" required>
+  Course start date
+</ResponseField>
+
+<ResponseField name="end_date" type="Date" required>
+  Course end date
+</ResponseField>
+
+<ResponseField name="start_time" type="string" required>
+  Daily start time
+</ResponseField>
+
+<ResponseField name="end_time" type="string" required>
+  Daily end time
+</ResponseField>
+
+<ResponseField name="course_type" type="string" required>
+  Type of course (e.g., "INITIAL", "RECURRENT", "SPECIALIZED")
+</ResponseField>
+
+<ResponseField name="instructor" type="string">
+  Instructor name
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Course status
+</ResponseField>
+
+### SMSTraining Object
+
+Tracks employee training status and certification.
+
+<ResponseField name="employee" type="Employee" required>
+  Employee information
+</ResponseField>
+
+<ResponseField name="course" type="Course" required>
+  Course information
+</ResponseField>
+
+<ResponseField name="last_enrollment" type="CourseAttendance" required>
+  Most recent enrollment record
+</ResponseField>
+
+<ResponseField name="expiration" type="Date" required>
+  Training certification expiration date
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Training status (e.g., "CURRENT", "EXPIRED", "EXPIRING_SOON")
+</ResponseField>
+
+<ResponseField name="is_initial" type="boolean" required>
+  Whether this is initial training (vs recurrent)
+</ResponseField>
+
+## Example - SMSActivity
+
+```json
+{
+  "id": 15,
+  "title": "Safety Awareness Workshop",
+  "activity_name": "Human Factors in Aviation Maintenance",
+  "activity_number": "SMS-ACT-2026-015",
+  "start_date": "2026-03-20T00:00:00Z",
+  "end_date": "2026-03-20T00:00:00Z",
+  "start_time": "09:00",
+  "end_time": "12:00",
+  "place": "Training Room A - Main Hangar",
+  "topics": "Situational awareness, communication, stress management, fatigue",
+  "objetive": "Increase awareness of human factors that can lead to maintenance errors and develop mitigation strategies",
+  "description": "Interactive workshop covering the 'Dirty Dozen' human factors in aviation maintenance with case studies and group discussions",
+  "authorized_by": {
+    "id": 5,
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "dni": "V-12345678",
+    "job_title": {
+      "id": 1,
+      "name": "Safety Manager"
+    }
+  },
+  "planned_by": {
+    "id": 8,
+    "first_name": "María",
+    "last_name": "González",
+    "dni": "V-87654321",
+    "job_title": {
+      "id": 2,
+      "name": "Safety Coordinator"
+    }
+  },
+  "executed_by": "Dr. Carlos Mendoza - Human Factors Specialist",
+  "status": "COMPLETED"
+}
+```
+
+## Example - SMSActivityAttendance
+
+```json
+[
+  {
+    "sms_activity_id": 15,
+    "employee_id": 42,
+    "attended": true
+  },
+  {
+    "sms_activity_id": 15,
+    "employee_id": 43,
+    "attended": true
+  },
+  {
+    "sms_activity_id": 15,
+    "employee_id": 44,
+    "attended": false
+  }
+]
+```

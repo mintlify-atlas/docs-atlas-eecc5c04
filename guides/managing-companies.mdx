@@ -1,0 +1,358 @@
+---
+title: Managing Companies
+description: Complete guide to creating and managing companies in SIGEAC
+---
+
+## Introduction
+
+SIGEAC is a multi-tenant platform that supports multiple aviation companies within a single installation. Each company has its own isolated data, configurations, and module access.
+
+<Note>
+  Company management is restricted to **SUPERUSER** roles. Regular users can only view and work within companies they have been granted access to.
+</Note>
+
+## Company Structure
+
+Each company in SIGEAC contains:
+
+- **Basic Information** - Name, identifiers, contact details
+- **Regulatory Data** - RIF, INAC code, IATA/OACI codes
+- **Enabled Modules** - Which system features are active
+- **Locations** - Physical bases and stations
+- **Users** - Staff members with assigned roles
+
+## Accessing Company Management
+
+<Steps>
+  <Step title="Navigate to System Module">
+    From any page, access the main navigation menu and select **Sistema** from the module list.
+  </Step>
+
+  <Step title="Open Companies Section">
+    Within the Sistema module, click on **Empresas** to view the company management interface.
+  </Step>
+
+  <Step title="View Company List">
+    The main page displays a table of all registered companies with their key information:
+    - Company name and description
+    - Registration codes (RIF, INAC, IATA, OACI)
+    - Fiscal address and contact information
+    - Creation and update timestamps
+  </Step>
+</Steps>
+
+## Creating a New Company
+
+<Steps>
+  <Step title="Open Creation Dialog">
+    Click the **"Crear Empresa"** button in the top-right corner of the companies page.
+  </Step>
+
+  <Step title="Fill Basic Information">
+    Enter the required company details:
+
+    **Required Fields:**
+    - **Name** - Full legal company name
+    - **Description** - Brief description of the company's operations
+    - **Slug** - URL-friendly identifier (auto-generated from name, can be customized)
+    
+    **Optional Fields:**
+    - **RIF** - Venezuelan tax identification number
+    - **INAC Code** - Civil aviation authority registration
+    - **IATA Code** - International Air Transport Association code
+    - **OACI Code** - ICAO (International Civil Aviation Organization) code
+  </Step>
+
+  <Step title="Add Contact Information">
+    Provide contact details for the company:
+    - **Fiscal Address** - Legal/registered business address
+    - **Phone Number** - Primary contact phone
+    - **Alternative Phone** - Secondary contact number
+  </Step>
+
+  <Step title="Select Active Modules">
+    Choose which system modules should be enabled for this company:
+
+    <Tabs>
+      <Tab title="Core Modules">
+        - **Almacén** (Warehouse) - Inventory and stock management
+        - **Planificación** (Planning) - Aircraft and maintenance scheduling
+        - **Compras** (Purchasing) - Requisitions and purchase orders
+      </Tab>
+
+      <Tab title="Specialized Modules">
+        - **SMS** (Safety Management System) - Safety reporting and risk management
+        - **Administración** - Financial and administrative operations
+        - **Control de Calidad** - Quality control and compliance
+        - **Ingeniería** - Engineering documentation and technical records
+      </Tab>
+
+      <Tab title="Support Modules">
+        - **General** - Company-wide resources and courses
+        - **Mantenimiento** - Maintenance service tracking
+        - **Desarrollo** - Development and testing features
+      </Tab>
+    </Tabs>
+
+    <Warning>
+      Only enable modules that are actively used by the company. Unused modules may clutter the interface and confuse users.
+    </Warning>
+  </Step>
+
+  <Step title="Save and Create">
+    Review all information and click **"Crear"** to save the new company. The system will:
+    - Validate all required fields
+    - Check for duplicate slugs or identification codes
+    - Create the company record
+    - Initialize module configurations
+  </Step>
+</Steps>
+
+<Tip>
+  The **slug** is used in URLs throughout the system (e.g., `/company-slug/almacen/inventario`). Choose a short, memorable slug that clearly identifies the company.
+</Tip>
+
+## Editing Company Information
+
+<Steps>
+  <Step title="Locate the Company">
+    In the companies table, find the company you want to edit. You can use:
+    - Search functionality to filter by name or code
+    - Column sorting to organize the list
+    - Pagination controls for large company lists
+  </Step>
+
+  <Step title="Open Edit Dialog">
+    Click the **Edit** button (pencil icon) in the company's row to open the edit dialog.
+  </Step>
+
+  <Step title="Modify Information">
+    Update any of the company's information:
+    - Basic details (name, description)
+    - Identification codes
+    - Contact information
+    - Active modules
+
+    <Note>
+      Changing the company slug will affect all URLs. Inform users before making this change.
+    </Note>
+  </Step>
+
+  <Step title="Save Changes">
+    Click **"Guardar"** to apply your changes. The system will validate the new information and update the company record.
+  </Step>
+</Steps>
+
+## Managing Company Modules
+
+Modules control which features are available to company users.
+
+### Enabling a Module
+
+<Steps>
+  <Step title="Edit Company">
+    Open the company edit dialog as described above.
+  </Step>
+
+  <Step title="Add Module">
+    In the modules section, check the box next to the module you want to enable.
+  </Step>
+
+  <Step title="Configure Module">
+    Some modules may require additional configuration:
+    - **Almacén** - Requires at least one warehouse location
+    - **SMS** - Needs initial areas and information sources
+    - **Compras** - Requires vendor setup
+  </Step>
+
+  <Step title="Notify Users">
+    After enabling a module, inform relevant users that new functionality is available. They may need to refresh their session to see the new module in the navigation.
+  </Step>
+</Steps>
+
+### Disabling a Module
+
+<Warning>
+  Disabling a module does not delete existing data, but it will make the module inaccessible to all users. Carefully consider the impact before disabling modules.
+</Warning>
+
+<Steps>
+  <Step title="Review Module Usage">
+    Before disabling, verify:
+    - No critical operations depend on this module
+    - Data is backed up if needed
+    - Users are informed of the change
+  </Step>
+
+  <Step title="Disable Module">
+    In the company edit dialog, uncheck the module you want to disable.
+  </Step>
+
+  <Step title="Save Changes">
+    The module will immediately become unavailable. Users with open sessions may need to refresh to see the change.
+  </Step>
+</Steps>
+
+## Company Locations and Stations
+
+Companies can have multiple physical locations for operations:
+
+### Location Types
+
+- **Main Base** - Primary operational headquarters
+- **Remote Station** - Satellite locations or field offices
+- **Hangar** - Maintenance facility
+- **Warehouse** - Storage facility
+
+### Managing Locations
+
+Locations are managed in the **General** module under locations management:
+
+1. Navigate to `/{company-slug}/general/ubicaciones`
+2. Create or edit locations with:
+   - Location name and address
+   - Location type
+   - IATA code (if applicable)
+   - Main base designation
+
+<Note>
+  Many modules (especially Warehouse and Planning) require selecting an active location/station. Users can switch between locations using the station selector in the navigation bar.
+</Note>
+
+## User Access to Companies
+
+Users can be granted access to one or multiple companies.
+
+### Assigning Users to Companies
+
+<Steps>
+  <Step title="Navigate to User Management">
+    Go to **Sistema > Usuarios y Permisos > Usuarios**
+  </Step>
+
+  <Step title="Edit User">
+    Select the user you want to grant company access to.
+  </Step>
+
+  <Step title="Assign Companies">
+    In the user edit form, add the companies this user should have access to. You can assign:
+    - One company (single-tenant user)
+    - Multiple companies (multi-tenant user)
+  </Step>
+
+  <Step title="Assign Roles per Company">
+    For each company, assign appropriate roles:
+    - `JEFE_ALMACEN` - Warehouse manager
+    - `ANALISTA_COMPRAS` - Purchasing analyst
+    - `JEFE_SMS` - Safety manager
+    - etc.
+
+    <Tip>
+      Users can have different roles in different companies. For example, a user might be `JEFE_ALMACEN` in Company A and `ANALISTA_ALMACEN` in Company B.
+    </Tip>
+  </Step>
+</Steps>
+
+## Company Data Isolation
+
+SIGEAC ensures complete data isolation between companies:
+
+- Users can only see data for companies they have access to
+- Inventory, aircraft, work orders, and all records are company-specific
+- Reports and exports are filtered by company context
+- Financial data is completely segregated
+
+<Warning>
+  Even SUPERUSER accounts work within a company context. When performing operations, always verify you have the correct company selected.
+</Warning>
+
+## Company-Wide Settings
+
+Each company can have custom configurations:
+
+### Available Settings
+
+- **Default Currency** - For financial transactions
+- **Date/Time Format** - Regional preferences
+- **Document Numbering** - Custom sequences for orders, requisitions, etc.
+- **Approval Workflows** - Company-specific approval chains
+
+<Note>
+  Company settings are configured in the **Ajustes** (Settings) module available from the user menu.
+</Note>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Naming Conventions">
+    - Use consistent naming for companies (e.g., "Aerolíneas Ejemplo C.A.")
+    - Keep slugs short and lowercase (e.g., "aeroejemplo")
+    - Use descriptive descriptions that explain the company's primary focus
+  </Accordion>
+
+  <Accordion title="Module Management">
+    - Only enable modules that are actively used
+    - Plan module rollouts carefully
+    - Train users before enabling new modules
+    - Disable unused modules to reduce complexity
+  </Accordion>
+
+  <Accordion title="User Assignment">
+    - Grant minimum necessary access
+    - Review user permissions quarterly
+    - Document role assignments
+    - Remove access when users leave the company
+  </Accordion>
+
+  <Accordion title="Data Management">
+    - Regularly backup company data
+    - Archive inactive companies instead of deleting
+    - Monitor storage usage per company
+    - Implement data retention policies
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Can't create company - slug already exists">
+    **Solution:** Choose a different slug or append a number/identifier to make it unique.
+  </Accordion>
+
+  <Accordion title="Module not appearing for users">
+    **Possible causes:**
+    - Module not enabled for company
+    - User doesn't have appropriate role
+    - User needs to refresh session
+    
+    **Solution:** Verify module is enabled and user has correct role assignments.
+  </Accordion>
+
+  <Accordion title="Users can't switch companies">
+    **Possible causes:**
+    - User only has access to one company
+    - Company selector not visible due to permissions
+    
+    **Solution:** Verify user has access to multiple companies in user management.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Management" icon="users" href="/guides/user-management">
+    Learn how to create and manage user accounts
+  </Card>
+
+  <Card title="Role Configuration" icon="shield" href="/guides/roles-permissions">
+    Configure roles and permissions
+  </Card>
+
+  <Card title="Dashboard Overview" icon="dashboard" href="/guides/dashboard-overview">
+    Understand company-specific dashboards
+  </Card>
+
+  <Card title="Aircraft Tracking" icon="plane" href="/guides/aircraft-tracking">
+    Start managing your aircraft fleet
+  </Card>
+</CardGroup>

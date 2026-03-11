@@ -1,0 +1,319 @@
+---
+title: 'Quality Control'
+description: 'Incoming inspection, article certification, and quality assurance'
+icon: 'check-circle'
+---
+
+The Quality Control module ensures all incoming articles meet aviation quality and certification requirements before entering the warehouse inventory.
+
+## Overview
+
+Quality Control provides inspection workflows for incoming articles, certificate verification, and quarantine management to maintain airworthiness compliance.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Incoming Inspection" icon="magnifying-glass">
+    Systematic review of all incoming articles for quality and compliance
+  </Card>
+  
+  <Card title="Certificate Verification" icon="certificate">
+    Validate FAA 8130, manufacturer certificates, and vendor documentation
+  </Card>
+  
+  <Card title="Quarantine Management" icon="ban">
+    Segregate non-conforming or suspect articles pending resolution
+  </Card>
+  
+  <Card title="Inspection Records" icon="file-check">
+    Document inspector findings and approval decisions
+  </Card>
+</CardGroup>
+
+## Incoming Inspection Workflow
+
+<Steps>
+  <Step title="Incoming Status">
+    Articles arrive from purchasing with status INCOMING
+  </Step>
+  
+  <Step title="QC Review">
+    Quality inspector reviews:
+    - Physical condition
+    - Certificates (8130, vendor, manufacturer)
+    - Part number verification
+    - Serial number verification
+    - Packaging and labeling
+  </Step>
+  
+  <Step title="Decision">
+    Inspector decides:
+    - **APPROVE**: Article passes, moves to WAITING_TO_LOCATE
+    - **QUARANTINE**: Issues found, article held
+    - **REJECT**: Non-conforming, return to vendor
+  </Step>
+  
+  <Step title="Format Generation">
+    Approved articles require reception format before warehouse location
+  </Step>
+  
+  <Step title="Warehouse Handoff">
+    Approved articles flow to warehouse for location assignment
+  </Step>
+</Steps>
+
+## Article Statuses in QC
+
+Quality Control manages articles through these statuses:
+
+| Status | Description | QC Action |
+|--------|-------------|----------|
+| **INCOMING** | Just arrived, awaiting QC | Inspect and review certificates |
+| **WAITING_FOR_FORMAT** | Approved, needs reception format | Generate format document |
+| **WAITING_TO_LOCATE** | QC complete, ready for warehouse | Transfer to warehouse |
+| **QUARANTINE** | Quality issue, under investigation | Review and disposition |
+
+## Incoming Inspection Interface
+
+The inspection screen provides:
+
+### Article Information Display
+
+- Part number and description
+- Serial number (if serialized)
+- Batch and category
+- Condition code
+- Quantity received
+- Zone assignment (if known)
+- Purchase order reference
+- Vendor information
+
+### Certificate Review
+
+Inspectors verify required documentation:
+
+```typescript
+Certificates to Review:
+- FAA Form 8130 (airworthiness approval)
+- Vendor certificate
+- Manufacturer certificate/datasheet
+- Article image/photo
+```
+
+**Certificate Requirements**:
+- Aeronautical articles: Typically require FAA 8130
+- New parts: Manufacturer certificate
+- Overhauled parts: Overhaul facility 8130 or certificate
+- General articles: Vendor packing slip or certificate
+
+### Inspector Fields
+
+QC populates:
+
+- Inspector name
+- Inspection date
+- Inspection findings
+- Disposition decision
+- Rejection reason (if rejected)
+
+## Reception Format Generation
+
+Approved articles need a **reception format** (receiving document):
+
+<Accordion title="Reception Format Process">
+  1. **Select Articles**: Inspector selects articles that passed QC
+  2. **Generate Format**: System creates standardized receiving document with:
+     - Article details
+     - Inspection date and inspector
+     - Certificate verification status
+     - QC approval signature
+  3. **Print/Save**: Format printed or saved as PDF
+  4. **Status Update**: Articles move to WAITING_TO_LOCATE
+  5. **Warehouse Handoff**: Format accompanies articles to warehouse
+</Accordion>
+
+## Quarantine Management
+
+### Quarantine Process
+
+When quality issues are identified:
+
+1. **Quarantine Creation**:
+   - Article placed in quarantine status
+   - Physical segregation in quarantine area
+   - Quarantine tag applied
+
+2. **Documentation**:
+   - Issue description
+   - Photos of discrepancy
+   - Certificate deficiencies noted
+
+3. **Investigation**:
+   - Contact vendor for resolution
+   - Request corrected certificates
+   - Determine if part is serviceable
+
+4. **Disposition**:
+   - **Release**: Issue resolved, approve to warehouse
+   - **Return to Vendor**: Non-conforming, initiate RMA
+   - **Scrap**: Beyond repair, dispose properly
+
+### Quarantine Reasons
+
+Common quarantine triggers:
+
+- Missing or invalid certificates
+- Part number mismatch
+- Serial number discrepancy
+- Physical damage
+- Suspect unapproved parts
+- Expired shelf-life items
+- Incorrect packaging
+
+## Quality Control Data Table
+
+Inspectors work from a data table showing:
+
+- All articles in INCOMING status
+- All articles in WAITING_TO_LOCATE status
+- All articles in WAITING_FOR_FORMAT status
+- Quarantined articles
+
+**Table Features**:
+- Filter by status
+- Search by part number or serial
+- Sort by arrival date
+- Batch selection for format generation
+- Quick access to article details
+
+## Inspection Checklist
+
+<Accordion title="Standard Inspection Points">
+  **Visual Inspection**:
+  - ✓ Part number matches PO
+  - ✓ Serial number recorded (if applicable)
+  - ✓ No visible damage
+  - ✓ Proper packaging
+  - ✓ Labels legible and correct
+  
+  **Documentation Review**:
+  - ✓ FAA 8130 present and valid
+  - ✓ Certificate part number matches article
+  - ✓ Certificate serial number matches (if serialized)
+  - ✓ Certificate not expired
+  - ✓ Vendor certificate matches PO
+  
+  **Quantity Verification**:
+  - ✓ Quantity received matches PO
+  - ✓ Unit of measure correct
+  - ✓ No shortages or overages
+  
+  **Condition Verification**:
+  - ✓ Condition code appropriate (SV, OH, etc.)
+  - ✓ Shelf-life items within date (if applicable)
+  - ✓ No signs of counterfeit
+</Accordion>
+
+## Certificate Management
+
+QC maintains digital copies of certificates:
+
+- **Upload**: Scan certificates and attach to article record
+- **Storage**: Certificates stored with article in system
+- **Retrieval**: Accessible for audits and traceability
+- **Retention**: Maintained per regulatory requirements
+
+## Integration with Warehouse
+
+Seamless handoff to warehouse:
+
+<Note>
+**Status Flow**:
+
+INCOMING (QC) → WAITING_FOR_FORMAT (QC) → WAITING_TO_LOCATE (Warehouse) → LOCATED (Warehouse) → AVAILABLE (Inventory)
+
+Only QC-approved articles reach warehouse for location.
+</Note>
+
+## Inspection Metrics
+
+QC tracks performance:
+
+- Articles inspected per day
+- Inspection cycle time
+- Quarantine rate
+- Rejection rate
+- Inspector productivity
+- Certificate compliance rate
+
+## Regulatory Compliance
+
+<Accordion title="Aviation Quality Standards">
+  Quality Control ensures compliance with:
+  
+  - **FAA Regulations**: Part 145, Part 43 requirements
+  - **EASA Standards**: Part 145 maintenance organization approvals
+  - **Manufacturer Requirements**: OEM quality standards
+  - **AS9120 Quality**: Aviation supplier quality management
+  
+  All incoming articles must meet airworthiness standards before use.
+</Accordion>
+
+## User Workflows
+
+### For Quality Inspectors
+
+1. **Daily Inspection**:
+   - Review INCOMING queue
+   - Inspect physical articles
+   - Verify certificates
+   - Make disposition decisions
+
+2. **Format Generation**:
+   - Select approved articles
+   - Generate reception formats
+   - Print and attach to articles
+   - Transfer to warehouse
+
+3. **Quarantine Management**:
+   - Investigate quarantined items
+   - Contact vendors for resolutions
+   - Disposition quarantine items
+
+### For QC Manager
+
+1. **Oversight**:
+   - Review inspection decisions
+   - Monitor quarantine status
+   - Audit certificate compliance
+   - Track inspector performance
+
+2. **Vendor Quality**:
+   - Analyze vendor quality trends
+   - Address recurring issues
+   - Update approved vendor lists
+
+## Best Practices
+
+<Note>
+**QC Best Practices**:
+- Inspect articles promptly upon receipt
+- Never approve articles without proper certificates
+- Photograph any discrepancies
+- Maintain quarantine area security
+- Document all inspection decisions
+- Escalate suspect unapproved parts immediately
+- Retain certificates with article records
+- Conduct periodic self-audits
+</Note>
+
+## Reporting
+
+Quality Control provides:
+
+- Incoming inspection backlog
+- Quarantine status report
+- Certificate compliance rate
+- Vendor quality scorecard
+- Inspection cycle time
+- Rejection analysis

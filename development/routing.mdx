@@ -1,0 +1,639 @@
+---
+title: Routing
+description: Next.js App Router patterns in SIGEAC
+---
+
+## Overview
+
+SIGEAC uses Next.js 14 App Router for file-based routing with support for layouts, loading states, and error boundaries.
+
+## Route Structure
+
+The `app` directory defines all routes:
+
+```
+app/
+├── layout.tsx              # Root layout
+├── page.tsx                # Home page (/)
+├── login/
+│   └── page.tsx            # /login
+├── inicio/
+│   └── page.tsx            # /inicio
+├── not-found.tsx           # 404 page
+└── [company]/              # Dynamic routes
+    ├── layout.tsx          # Company layout
+    ├── dashboard/
+    │   └── page.tsx        # /[company]/dashboard
+    ├── almacen/
+    │   ├── page.tsx        # /[company]/almacen
+    │   └── inventario/
+    │       └── page.tsx    # /[company]/almacen/inventario
+    └── mantenimiento/
+        └── planificacion/
+            └── ordenes/
+                └── [id]/
+                    └── page.tsx # /[company]/mantenimiento/planificacion/ordenes/[id]
+```
+
+## Dynamic Routes
+
+### Company Parameter
+
+The `[company]` dynamic segment enables multi-tenant functionality:
+
+```tsx app/[company]/dashboard/page.tsx
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useCompanyStore } from '@/stores/CompanyStore'
+
+export default function DashboardPage() {
+  const params = useParams()
+  const { selectedCompany } = useCompanyStore()
+  
+  // params.company contains the URL parameter
+  // e.g., /hangar74/dashboard -> params.company = "hangar74"
+  
+  return (
+    <div>
+      <h1>Dashboard for {selectedCompany?.name}</h1>
+    </div>
+  )
+}
+```
+
+See: `app/[company]/dashboard/page.tsx:1`
+
+### Multiple Dynamic Segments
+
+Nested dynamic routes for detail pages:
+
+```tsx app/[company]/mantenimiento/ordenes/[id]/page.tsx
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useGetWorkOrder } from '@/hooks/mantenimiento/planificacion/useGetWorkOrderByOrderNumber'
+
+export default function WorkOrderDetailPage() {
+  const params = useParams<{ company: string; id: string }>()
+  const { data: workOrder, isLoading } = useGetWorkOrder(params.id)
+  
+  if (isLoading) return <div>Loading...</div>
+  
+  return (
+    <div>
+      <h1>Work Order #{workOrder?.order_number}</h1>
+      <p>Company: {params.company}</p>
+    </div>
+  )
+}
+```
+
+## Layouts
+
+Layouts wrap pages and persist across navigation.
+
+### Root Layout
+
+The root layout wraps the entire application:
+
+```tsx app/layout.tsx
+import { Toaster } from "@/components/ui/sonner"
+import { AuthProvider } from "@/contexts/AuthContext"
+import QueryClientProvider from "@/providers/query-provider"
+import { ThemeProvider } from "@/providers/theme-provider"
+import type { Metadata } from "next"
+import { Poppins } from "next/font/google"
+import "./globals.css"
+
+const inter = Poppins({ 
+  subsets: ["latin"], 
+  weight: ["100", "300", "400", "500", "700", "900"] 
+})
+
+export const metadata: Metadata = {
+  title: "SIGEAC",
+  description: "Sistema de Gestión Aeronáutica Civil",
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className} suppressHydrationWarning>
+        <QueryClientProvider>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+            >
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+See: `app/layout.tsx:1`
+
+### Nested Layouts
+
+Company-specific layout adds the dashboard UI:
+
+```tsx app/[company]/layout.tsx
+'use client'
+
+import DashboardLayout from '@/components/layout/DashboardLayout'
+import React from 'react'
+
+export default function CompanyLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return <DashboardLayout>{children}</DashboardLayout>
+}
+```
+
+See: `app/[company]/layout.tsx:1`
+
+### Layout Hierarchy
+
+<Steps>
+  <Step title="Root Layout">
+    Provides global providers (Auth, Query, Theme)
+  </Step>
+  
+  <Step title="Company Layout">
+    Adds sidebar, navbar, and authenticated UI
+  </Step>
+  
+  <Step title="Module Layout (optional)">
+    Module-specific navigation or context
+  </Step>
+  
+  <Step title="Page">
+    The actual page content
+  </Step>
+</Steps>
+
+## Navigation
+
+### Link Component
+
+Use Next.js `Link` for client-side navigation:
+
+```tsx
+import Link from 'next/link'
+import { useCompanyStore } from '@/stores/CompanyStore'
+
+export function NavigationMenu() {
+  const { selectedCompany } = useCompanyStore()
+  const company = selectedCompany?.slug
+  
+  return (
+    <nav>
+      <Link href={`/${company}/dashboard`}>
+        Dashboard
+      </Link>
+      <Link href={`/${company}/almacen`}>
+        Warehouse
+      </Link>
+      <Link href={`/${company}/mantenimiento`}>
+        Maintenance
+      </Link>
+    </nav>
+  )
+}
+```
+
+### Programmatic Navigation
+
+Use the `useRouter` hook:
+
+```tsx
+import { useRouter } from 'next/navigation'
+import { useCompanyStore } from '@/stores/CompanyStore'
+
+export function CreateClientButton() {
+  const router = useRouter()
+  const { selectedCompany } = useCompanyStore()
+  
+  const handleCreate = async (clientData) => {
+    await createClient(clientData)
+    // Navigate to client detail page
+    router.push(`/${selectedCompany?.slug}/clientes/${newClient.id}`)
+  }
+  
+  return <button onClick={handleCreate}>Create Client</button>
+}
+```
+
+### Navigation Methods
+
+<Tabs>
+  <Tab title="push">
+    Navigate to a new route (adds to history):
+    
+    ```typescript
+    router.push('/login')
+    router.push(`/${company}/dashboard`)
+    ```
+  </Tab>
+  
+  <Tab title="replace">
+    Navigate without adding to history:
+    
+    ```typescript
+    router.replace('/login')
+    ```
+  </Tab>
+  
+  <Tab title="back">
+    Go back in history:
+    
+    ```typescript
+    router.back()
+    ```
+  </Tab>
+  
+  <Tab title="refresh">
+    Refresh the current route:
+    
+    ```typescript
+    router.refresh()
+    ```
+  </Tab>
+</Tabs>
+
+## Route Parameters
+
+### Reading Parameters
+
+Use `useParams` and `useSearchParams`:
+
+```tsx
+import { useParams, useSearchParams } from 'next/navigation'
+
+export function ArticleDetailPage() {
+  // Dynamic route parameters
+  const params = useParams<{ company: string; id: string }>()
+  
+  // Query string parameters
+  const searchParams = useSearchParams()
+  const view = searchParams.get('view') // ?view=details
+  const filter = searchParams.get('filter') // ?filter=active
+  
+  return (
+    <div>
+      <p>Company: {params.company}</p>
+      <p>Article ID: {params.id}</p>
+      <p>View: {view}</p>
+      <p>Filter: {filter}</p>
+    </div>
+  )
+}
+```
+
+### Setting Parameters
+
+Update query parameters without full navigation:
+
+```tsx
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+
+export function FilterBar() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  const updateFilter = (filter: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('filter', filter)
+    router.push(`${pathname}?${params.toString()}`)
+  }
+  
+  return (
+    <select onChange={(e) => updateFilter(e.target.value)}>
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  )
+}
+```
+
+## Route Protection
+
+Middleware protects routes requiring authentication:
+
+```typescript middleware.ts
+import { NextRequest, NextResponse } from "next/server"
+
+const PROTECTED_ROUTES = [
+  '/inicio',
+  '/transmandu',
+  '/hangar74',
+  '/ajustes',
+  '/planificacion',
+  '/administracion'
+]
+
+export default async function middleware(req: NextRequest) {
+  const currentPath = req.nextUrl.pathname
+
+  const isProtectedRoute = PROTECTED_ROUTES.some(route =>
+    currentPath.startsWith(route)
+  )
+
+  if (isProtectedRoute) {
+    const authToken = req.cookies.get('auth_token')?.value
+
+    if (!authToken) {
+      const loginUrl = new URL('/login', req.nextUrl.origin)
+      loginUrl.searchParams.set('from', currentPath)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|images|icons|fonts).*)',
+  ],
+}
+```
+
+See: `middleware.ts:1`
+
+### Adding Protected Routes
+
+To protect a new route:
+
+<Steps>
+  <Step title="Add to PROTECTED_ROUTES">
+    ```typescript
+    const PROTECTED_ROUTES = [
+      '/inicio',
+      '/new-module', // Add your route
+    ]
+    ```
+  </Step>
+  
+  <Step title="Test authentication">
+    Navigate to the route without being logged in - you should be redirected to `/login`
+  </Step>
+</Steps>
+
+## Loading States
+
+Create `loading.tsx` files for automatic loading UI:
+
+```tsx app/[company]/dashboard/loading.tsx
+export default function DashboardLoading() {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  )
+}
+```
+
+See: `app/[company]/loading.tsx:1`
+
+## Error Boundaries
+
+Create `error.tsx` files for error handling:
+
+```tsx app/[company]/error.tsx
+'use client'
+
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
+      <p className="text-muted-foreground mb-4">{error.message}</p>
+      <Button onClick={reset}>Try again</Button>
+    </div>
+  )
+}
+```
+
+## Not Found Pages
+
+Create custom 404 pages:
+
+```tsx app/not-found.tsx
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-notFound bg-cover">
+      <h1 className="text-6xl font-bold mb-4">404</h1>
+      <p className="text-xl mb-8">Page not found</p>
+      <Link href="/">
+        <Button>Go Home</Button>
+      </Link>
+    </div>
+  )
+}
+```
+
+See: `app/not-found.tsx:1`
+
+## Route Groups
+
+Use parentheses to organize routes without affecting the URL:
+
+```
+app/
+└── (auth)/
+    ├── login/
+    │   └── page.tsx        # /login (not /auth/login)
+    └── register/
+        └── page.tsx        # /register
+```
+
+## Parallel Routes
+
+Render multiple pages in the same layout:
+
+```
+app/
+└── dashboard/
+    ├── @analytics/
+    │   └── page.tsx
+    ├── @reports/
+    │   └── page.tsx
+    └── layout.tsx
+```
+
+```tsx app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,
+  analytics,
+  reports,
+}: {
+  children: React.ReactNode
+  analytics: React.ReactNode
+  reports: React.ReactNode
+}) {
+  return (
+    <div>
+      {children}
+      <div className="grid grid-cols-2 gap-4">
+        {analytics}
+        {reports}
+      </div>
+    </div>
+  )
+}
+```
+
+## Intercepting Routes
+
+Intercept routes to show modals:
+
+```
+app/
+├── clients/
+│   └── [id]/
+│       └── page.tsx        # /clients/123
+└── (.)clients/
+    └── [id]/
+        └── page.tsx        # Modal version
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Link for navigation">
+    Always use `Link` component instead of `<a>` tags for client-side navigation:
+    
+    ```tsx
+    // ✗ Bad
+    <a href="/dashboard">Dashboard</a>
+    
+    // ✓ Good
+    <Link href="/dashboard">Dashboard</Link>
+    ```
+  </Accordion>
+  
+  <Accordion title="Prefetch links">
+    Next.js automatically prefetches `Link` components in the viewport. Disable if needed:
+    
+    ```tsx
+    <Link href="/dashboard" prefetch={false}>
+      Dashboard
+    </Link>
+    ```
+  </Accordion>
+  
+  <Accordion title="Type route parameters">
+    Always type your route parameters:
+    
+    ```tsx
+    const params = useParams<{ company: string; id: string }>()
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle loading and error states">
+    Add `loading.tsx` and `error.tsx` files for better UX:
+    
+    ```
+    app/dashboard/
+    ├── page.tsx
+    ├── loading.tsx
+    └── error.tsx
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Common Routing Patterns
+
+<CodeGroup>
+```tsx List Page
+// app/[company]/clients/page.tsx
+export default function ClientsPage() {
+  const { selectedCompany } = useCompanyStore()
+  const { data: clients } = useGetClients(selectedCompany?.slug)
+  
+  return (
+    <div>
+      {clients?.map(client => (
+        <Link key={client.id} href={`/${selectedCompany?.slug}/clients/${client.id}`}>
+          {client.name}
+        </Link>
+      ))}
+    </div>
+  )
+}
+```
+
+```tsx Detail Page
+// app/[company]/clients/[id]/page.tsx
+export default function ClientDetailPage() {
+  const params = useParams<{ company: string; id: string }>()
+  const { data: client } = useGetClientById(params.id)
+  
+  return (
+    <div>
+      <h1>{client?.name}</h1>
+      {/* Client details */}
+    </div>
+  )
+}
+```
+
+```tsx Edit Page
+// app/[company]/clients/[id]/edit/page.tsx
+export default function EditClientPage() {
+  const params = useParams<{ company: string; id: string }>()
+  const router = useRouter()
+  const { data: client } = useGetClientById(params.id)
+  const { updateClient } = useUpdateClient()
+  
+  const handleSubmit = async (data) => {
+    await updateClient.mutateAsync({ id: params.id, data })
+    router.push(`/${params.company}/clients/${params.id}`)
+  }
+  
+  return <ClientForm client={client} onSubmit={handleSubmit} />
+}
+```
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Fetching" icon="cloud-arrow-down" href="/development/data-fetching">
+    Learn how to fetch data in routes
+  </Card>
+  <Card title="Adding Modules" icon="plus" href="/development/adding-modules">
+    Create new modules and routes
+  </Card>
+</CardGroup>

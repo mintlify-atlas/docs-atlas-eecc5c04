@@ -1,122 +1,186 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "SIGEAC",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2c5b8d",
+    "light": "#b6e8f7",
+    "dark": "#2c5b8d"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "https://icons.duckduckgo.com/ip3/sigeac-one.vercel.app.ico",
+  "logo": {
+    "light": "https://media.brand.dev/2cf156cf-6e39-454e-b75e-891a03405357.png",
+    "dark": "https://media.brand.dev/2cf156cf-6e39-454e-b75e-891a03405357.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/transmandu/SIGEAC_Frontend"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/transmandu/SIGEAC_Frontend"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
+              "installation"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/multi-tenant-architecture",
+              "concepts/authentication",
+              "concepts/role-based-access"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Modules",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "modules/overview",
+              "modules/warehouse-management",
+              "modules/maintenance",
+              "modules/purchasing",
+              "modules/administration",
+              "modules/sms",
+              "modules/planning",
+              "modules/quality-control"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "User Guides",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/dashboard-overview",
+              "guides/managing-companies",
+              "guides/aircraft-tracking",
+              "guides/work-orders",
+              "guides/inventory-management",
+              "guides/requisitions-and-orders"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Components",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "UI Components",
             "pages": [
-              "api-reference/introduction"
+              "components/overview",
+              "components/forms",
+              "components/tables",
+              "components/dialogs",
+              "components/charts"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Layout",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "components/sidebar",
+              "components/navigation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "api/authentication",
+              "api/users",
+              "api/companies",
+              "api/locations"
+            ]
+          },
+          {
+            "group": "Warehouse",
+            "pages": [
+              "api/articles",
+              "api/batches",
+              "api/warehouses",
+              "api/dispatch-requests"
+            ]
+          },
+          {
+            "group": "Maintenance",
+            "pages": [
+              "api/aircraft",
+              "api/work-orders",
+              "api/maintenance-services",
+              "api/flight-control"
+            ]
+          },
+          {
+            "group": "Purchasing",
+            "pages": [
+              "api/requisitions",
+              "api/purchase-orders",
+              "api/quotes",
+              "api/vendors"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "api/credits",
+              "api/payments",
+              "api/cash-management",
+              "api/bank-accounts"
+            ]
+          },
+          {
+            "group": "SMS",
+            "pages": [
+              "api/incident-reports",
+              "api/danger-identification",
+              "api/mitigation-plans",
+              "api/sms-activities"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Setup",
+            "pages": [
+              "development/environment-setup",
+              "development/project-structure",
+              "development/configuration"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "development/tech-stack",
+              "development/state-management",
+              "development/routing",
+              "development/data-fetching"
+            ]
+          },
+          {
+            "group": "Extending",
+            "pages": [
+              "development/adding-modules",
+              "development/custom-hooks",
+              "development/api-integration"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

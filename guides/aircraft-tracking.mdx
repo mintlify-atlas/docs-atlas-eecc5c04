@@ -1,0 +1,460 @@
+---
+title: Aircraft Tracking
+description: Comprehensive guide to managing aircraft records and tracking in SIGEAC
+---
+
+## Introduction
+
+The Aircraft Tracking module in SIGEAC allows you to maintain detailed records for your entire fleet, including aircraft specifications, flight hours, cycles, and component tracking.
+
+<Note>
+  Aircraft management is found in the **Planificación** module under `/{company-slug}/planificacion/aeronaves`
+</Note>
+
+## Aircraft Information Structure
+
+Each aircraft record in SIGEAC contains:
+
+- **Basic Identification** - Registration, serial number, model
+- **Manufacturer Details** - Aircraft and engine manufacturer
+- **Time Tracking** - Flight hours and cycles
+- **Ownership** - Owner and operator information
+- **Location** - Current physical location
+- **Components** - Installed parts and their tracking data
+- **Status** - Current operational status
+
+## Accessing Aircraft Management
+
+<Steps>
+  <Step title="Navigate to Planning Module">
+    From the main navigation, select **Planificación** from your company's module list.
+  </Step>
+
+  <Step title="Open Aircraft Section">
+    Click on **Aeronaves** to access the aircraft management interface.
+  </Step>
+
+  <Step title="View Aircraft Fleet">
+    The main page displays all registered aircraft organized by operator/client. You'll see:
+    - Aircraft grouped by owner/operator
+    - Tabs for each aircraft showing their registration (acronym)
+    - Search and filter tools
+    - Registration button for adding new aircraft
+  </Step>
+</Steps>
+
+## Registering a New Aircraft
+
+<Steps>
+  <Step title="Click Register Aircraft">
+    On the aircraft management page, click the **"Registrar Aeronave"** button in the top-right corner.
+  </Step>
+
+  <Step title="Enter Basic Information">
+    Fill in the aircraft identification details:
+
+    **Required Fields:**
+    - **Acronym/Registration** - Aircraft registration number (e.g., YV-123)
+    - **Model** - Aircraft model designation
+    - **Serial Number** - Manufacturer serial number
+    - **Manufacturer** - Aircraft manufacturer (select from existing or create new)
+    - **Client/Operator** - Who owns or operates the aircraft
+
+    <Tip>
+      The acronym/registration is typically the aircraft's tail number and will be used as the primary identifier throughout the system.
+    </Tip>
+  </Step>
+
+  <Step title="Add Technical Details">
+    Enter the aircraft's technical specifications:
+    
+    - **Fabrication Date** - When the aircraft was manufactured
+    - **Flight Hours** - Total flight hours (can be formatted as "4,324.00")
+    - **Flight Cycles** - Total cycles (takeoff/landing pairs)
+    - **Engine Type** - Type of engine installed
+    - **Number of Engines** - Engine count
+
+    <Note>
+      Flight hours and cycles can include decimal values and are displayed with proper formatting (e.g., 4,324.00 hours).
+    </Note>
+  </Step>
+
+  <Step title="Specify Ownership and Operations">
+    Define ownership and operational details:
+
+    - **Owner** - Legal owner of the aircraft
+    - **Aircraft Operator** - Company operating the aircraft (may differ from owner)
+    - **Authorizing** - Select either:
+      - `PROPIETARIO` (Owner)
+      - `EXPLOTADOR` (Operator)
+  </Step>
+
+  <Step title="Set Location">
+    Select the current physical location of the aircraft from your company's registered locations.
+
+    <Warning>
+      Location must be set correctly as it affects maintenance scheduling and parts allocation.
+    </Warning>
+  </Step>
+
+  <Step title="Add Comments and Status">
+    Include any additional information:
+    
+    - **Comments** - Free-text field for notes about the aircraft
+    - **Status** - Operational status:
+      - `EN POSESION` - In possession
+      - `VENDIDO` - Sold
+      - `RENTADO` - Rented
+  </Step>
+
+  <Step title="Save Aircraft Record">
+    Click **"Guardar"** to create the aircraft record. The system will:
+    - Validate all required fields
+    - Check for duplicate registrations
+    - Create the aircraft record
+    - Initialize component tracking
+  </Step>
+</Steps>
+
+## Managing Aircraft Components
+
+Each aircraft has installed parts/components that need individual tracking.
+
+### Component Structure
+
+Components can be hierarchical:
+
+- **Father Components** - Main assemblies (e.g., engine, landing gear)
+- **Sub-components** - Parts within main assemblies (e.g., engine accessories)
+
+### Adding Components to Aircraft
+
+<Steps>
+  <Step title="Open Aircraft Details">
+    Click on the aircraft's tab in the aircraft management page to view its full details.
+  </Step>
+
+  <Step title="Navigate to Components Section">
+    Scroll to or select the **"Componentes"** or **"Aircraft Parts"** section.
+  </Step>
+
+  <Step title="Add New Component">
+    Click **"Agregar Componente"** and enter:
+
+    **Identification:**
+    - **Part Number** - Manufacturer part number
+    - **Part Name** - Description of the component
+    - **Serial Number** - Individual serial number (optional for some parts)
+
+    **Condition:**
+    - **Condition Type** - Current condition:
+      - SERVICIABLE (Serviceable)
+      - NUEVO (New)
+      - USADO (Used)
+      - REPARADO (Repaired)
+      - REMOVIDO - NO SERVICIABLE (Removed - Unserviceable)
+      - REMOVIDO - CUSTODIA (Removed - In custody)
+
+    **Time Tracking:**
+    - **Time Since New (TSN)** - Total hours on component
+    - **Time Since Overhaul (TSO)** - Hours since last overhaul
+    - **Cycles Since New (CSN)** - Total cycles on component
+    - **Cycles Since Overhaul (CSO)** - Cycles since last overhaul
+  </Step>
+
+  <Step title="Set Component Hierarchy">
+    If this component is part of a larger assembly:
+    - Select **"Is Father"** if this is a main assembly
+    - Select **"Parent Component"** if this is a sub-component
+
+    <Tip>
+      Hierarchical tracking helps organize complex aircraft systems and improves maintenance planning.
+    </Tip>
+  </Step>
+</Steps>
+
+### Component Time Tracking
+
+Component times are updated through flight control entries:
+
+<Note>
+  When you log a flight in the **Control de Vuelos** module, the system automatically updates:
+  - Aircraft total hours and cycles
+  - All installed component hours and cycles
+  - Historical flight records for traceability
+</Note>
+
+## Searching and Filtering Aircraft
+
+The aircraft management page provides powerful search and filter capabilities:
+
+### Search Functionality
+
+<Steps>
+  <Step title="Use the Search Bar">
+    Enter search terms in the search box to filter aircraft by:
+    - Registration/Acronym (e.g., "YV-123")
+    - Serial number
+    - Model (e.g., "CESSNA 172")
+    - Manufacturer
+    - Client/Operator name
+  </Step>
+
+  <Step title="Apply Operator Filter">
+    Use the operator dropdown to filter aircraft by specific client/operator:
+    - Select **"Todos los operadores"** to show all aircraft
+    - Choose a specific operator to show only their aircraft
+  </Step>
+
+  <Step title="View Filtered Results">
+    The aircraft list updates in real-time as you type. Active filters are displayed as badges below the search bar.
+  </Step>
+
+  <Step title="Clear Filters">
+    Click **"Limpiar filtros"** to reset all search and filter criteria.
+  </Step>
+</Steps>
+
+<Tip>
+  Search is case-insensitive and matches partial strings, making it easy to find aircraft even with incomplete information.
+</Tip>
+
+## Aircraft Organization by Operator
+
+Aircraft are automatically grouped by their operator/client:
+
+### Viewing Grouped Aircraft
+
+- **Accordion View** - When viewing all operators, aircraft are grouped in expandable sections
+- **Operator Header** - Shows operator name and aircraft count
+- **Aircraft Tabs** - Each aircraft appears as a tab within its operator's section
+
+### Benefits of Operator Grouping
+
+- Quickly see fleet size per operator
+- Organize maintenance by client
+- Simplify multi-client operations
+- Improve invoice and service tracking
+
+## Viewing Aircraft Details
+
+Click on any aircraft tab to view comprehensive information:
+
+<Tabs>
+  <Tab title="General Information">
+    - Registration and serial number
+    - Manufacturer and model
+    - Current flight hours and cycles
+    - Owner and operator details
+    - Location and status
+  </Tab>
+
+  <Tab title="Components">
+    - List of all installed components
+    - Component condition and times
+    - Component hierarchy (father/sub-parts)
+    - Installation dates and history
+  </Tab>
+
+  <Tab title="Maintenance History">
+    - Work orders performed
+    - Scheduled maintenance
+    - Inspection records
+    - Service bulletins applied
+  </Tab>
+
+  <Tab title="Flight Control">
+    - Flight log entries
+    - Hours and cycles by period
+    - Flight routes and operations
+    - Utilization statistics
+  </Tab>
+</Tabs>
+
+## Editing Aircraft Information
+
+<Steps>
+  <Step title="Open Aircraft Tab">
+    Navigate to the aircraft you want to edit and click on its tab.
+  </Step>
+
+  <Step title="Click Edit Button">
+    Look for the **Edit** button (typically a pencil icon) in the aircraft details section.
+  </Step>
+
+  <Step title="Modify Information">
+    Update any editable fields:
+    - Location changes
+    - Status updates
+    - Comment additions
+    - Contact information
+
+    <Warning>
+      Some fields like serial numbers and registration should not be changed unless correcting an error, as they are used for historical tracking.
+    </Warning>
+  </Step>
+
+  <Step title="Save Changes">
+    Click **"Guardar"** to save your modifications. Changes are logged with user and timestamp information.
+  </Step>
+</Steps>
+
+## Flight Control Integration
+
+Aircraft tracking integrates with the Flight Control module for automated time updates:
+
+### Recording a Flight
+
+<Steps>
+  <Step title="Navigate to Flight Control">
+    Go to **Planificación > Control de Vuelos**
+  </Step>
+
+  <Step title="Create Flight Entry">
+    Enter flight details:
+    - Flight number
+    - Aircraft (select from your fleet)
+    - Origin and destination
+    - Flight date
+    - Flight hours for this leg
+    - Cycles (usually 1 per flight)
+  </Step>
+
+  <Step title="Automatic Updates">
+    Upon saving, the system automatically:
+    - Updates aircraft total hours and cycles
+    - Updates all installed component times
+    - Creates flight history records
+    - Updates component history for traceability
+  </Step>
+</Steps>
+
+<Note>
+  Flight history entries are immutable for audit purposes. Contact an administrator if corrections are needed.
+</Note>
+
+## Work Order Integration
+
+Aircraft records integrate with the maintenance work order system:
+
+- **Automatic Aircraft Selection** - Work orders can be created directly from aircraft details
+- **Component Replacement** - Removing/installing components updates aircraft parts list
+- **Time Synchronization** - Component times are updated when work orders close
+- **Service History** - All work orders are linked to aircraft records
+
+## Aircraft Status Management
+
+Proper status management ensures accurate fleet tracking:
+
+### Status Options
+
+<Tabs>
+  <Tab title="EN POSESION (In Possession)">
+    Aircraft is owned or operated by the company and available for operations.
+    
+    **Use when:**
+    - Aircraft is actively flying
+    - Aircraft is in maintenance but still owned
+    - Aircraft is temporarily grounded
+  </Tab>
+
+  <Tab title="VENDIDO (Sold)">
+    Aircraft has been sold and is no longer part of the fleet.
+    
+    **Use when:**
+    - Ownership has been transferred
+    - Aircraft has been disposed of
+    
+    <Warning>
+      Sold aircraft should not be deleted. Set status to VENDIDO to maintain historical records.
+    </Warning>
+  </Tab>
+
+  <Tab title="RENTADO (Rented)">
+    Aircraft is being rented to or from another operator.
+    
+    **Use when:**
+    - Aircraft is on lease to another company
+    - Aircraft is temporarily operated under rental agreement
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Registration Standards">
+    - Use consistent registration format (e.g., YV-123, not yv123 or YV 123)
+    - Verify registration number before creating record
+    - Include country prefix for international operations
+    - Document registration changes in comments field
+  </Accordion>
+
+  <Accordion title="Time Tracking Accuracy">
+    - Update flight hours immediately after operations
+    - Verify component times during maintenance
+    - Reconcile actual times with logs quarterly
+    - Document time adjustments in comments
+  </Accordion>
+
+  <Accordion title="Component Management">
+    - Maintain complete component hierarchies
+    - Update condition after inspections
+    - Track both time and calendar limits
+    - Document all component changes in work orders
+  </Accordion>
+
+  <Accordion title="Data Quality">
+    - Regular audits of aircraft data
+    - Verify operator information is current
+    - Keep location data updated
+    - Archive instead of delete for historical records
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Can't find specific aircraft">
+    **Solution:** 
+    - Clear all filters and try searching again
+    - Try searching by serial number instead of registration
+    - Verify aircraft is registered in the selected company
+    - Check if operator filter is excluding the aircraft
+  </Accordion>
+
+  <Accordion title="Component times not updating after flight">
+    **Possible causes:**
+    - Flight entry not saved correctly
+    - Component not properly linked to aircraft
+    - Component marked as removed
+    
+    **Solution:** Verify flight entry was successful and component is listed as installed.
+  </Accordion>
+
+  <Accordion title="Duplicate registration error">
+    **Solution:** 
+    - Check if aircraft already exists (search thoroughly)
+    - Verify registration number is correct
+    - Contact administrator if legitimate duplicate needed (rare)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Work Orders" icon="clipboard-list" href="/guides/work-orders">
+    Create maintenance work orders for aircraft
+  </Card>
+
+  <Card title="Inventory Management" icon="warehouse" href="/guides/inventory-management">
+    Manage parts for aircraft maintenance
+  </Card>
+
+  <Card title="Requisitions" icon="file-text" href="/guides/requisitions-and-orders">
+    Request parts for aircraft repairs
+  </Card>
+
+  <Card title="Flight Control" icon="plane-departure" href="/guides/flight-control">
+    Log flights and update aircraft times
+  </Card>
+</CardGroup>

@@ -1,0 +1,433 @@
+---
+title: 'Users'
+description: 'Manage user accounts, roles, and permissions in SIGEAC'
+icon: 'users'
+---
+
+## Overview
+
+The Users API allows you to manage user accounts, roles, permissions, and associated employee profiles. All endpoints require authentication.
+
+## User Object
+
+The User type represents a system user with authentication and authorization information.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the user
+</ResponseField>
+
+<ResponseField name="username" type="string" required>
+  Username used for login
+</ResponseField>
+
+<ResponseField name="first_name" type="string" required>
+  User's first name
+</ResponseField>
+
+<ResponseField name="last_name" type="string" required>
+  User's last name
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  User's email address
+</ResponseField>
+
+<ResponseField name="isActive" type="boolean" required>
+  Whether the user account is active and can log in
+</ResponseField>
+
+<ResponseField name="roles" type="Role[]">
+  Array of roles assigned to the user
+  
+  <Expandable title="Role properties">
+    <ResponseField name="id" type="number">
+      Role identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Role name (e.g., "SUPERUSER", "ADMIN", "USER")
+    </ResponseField>
+    
+    <ResponseField name="label" type="string">
+      Human-readable role label
+    </ResponseField>
+    
+    <ResponseField name="permissions" type="Permission[]">
+      Permissions granted by this role
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="permissions" type="Permission[]">
+  Direct permissions granted to the user
+  
+  <Expandable title="Permission properties">
+    <ResponseField name="id" type="number">
+      Permission identifier
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Permission name
+    </ResponseField>
+    
+    <ResponseField name="label" type="string">
+      Human-readable permission label
+    </ResponseField>
+    
+    <ResponseField name="modules" type="Module[]">
+      Modules where this permission applies
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="companies" type="Company[]">
+  Companies the user has access to
+</ResponseField>
+
+<ResponseField name="employee" type="Employee[]">
+  Associated employee profile(s)
+  
+  <Expandable title="Employee properties">
+    <ResponseField name="id" type="number">
+      Employee identifier
+    </ResponseField>
+    
+    <ResponseField name="first_name" type="string">
+      Employee's first name
+    </ResponseField>
+    
+    <ResponseField name="middle_name" type="string">
+      Employee's middle name (optional)
+    </ResponseField>
+    
+    <ResponseField name="last_name" type="string">
+      Employee's last name
+    </ResponseField>
+    
+    <ResponseField name="second_last_name" type="string">
+      Employee's second last name (optional)
+    </ResponseField>
+    
+    <ResponseField name="dni_type" type="string">
+      Type of identification document
+    </ResponseField>
+    
+    <ResponseField name="dni" type="string">
+      Identification number
+    </ResponseField>
+    
+    <ResponseField name="blood_type" type="string">
+      Blood type
+    </ResponseField>
+    
+    <ResponseField name="company" type="string">
+      Company name
+    </ResponseField>
+    
+    <ResponseField name="job_title" type="JobTitle">
+      Employee's job title
+    </ResponseField>
+    
+    <ResponseField name="department" type="Department">
+      Employee's department
+    </ResponseField>
+    
+    <ResponseField name="location" type="Location">
+      Employee's location
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## List Users
+
+Retrieve a list of all users in the system.
+
+<CodeGroup>
+```typescript TypeScript
+import axios from '@/lib/axios';
+import { User } from '@/types';
+
+const fetchUsers = async (): Promise<User[]> => {
+  const response = await axios.get('/users');
+  return response.data.users;
+};
+```
+
+```javascript React Hook
+import { useQuery } from '@tanstack/react-query';
+
+export const useGetUsers = () => {
+  return useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+// Usage in component
+const { data: users, isLoading, error } = useGetUsers();
+```
+
+```bash cURL
+curl -X GET https://api.sigeac.com/users \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "skip_zrok_interstitial: true"
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "jdoe",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "jdoe@example.com",
+      "isActive": true,
+      "roles": [
+        {
+          "id": 1,
+          "name": "ADMIN",
+          "label": "Administrator",
+          "permissions": []
+        }
+      ],
+      "permissions": [],
+      "companies": [
+        {
+          "id": 1,
+          "name": "SIGEAC Airlines",
+          "slug": "sigeac-airlines"
+        }
+      ],
+      "employee": []
+    }
+  ]
+}
+```
+
+## Get Current User
+
+Retrieve the authenticated user's profile.
+
+<CodeGroup>
+```typescript TypeScript
+const fetchCurrentUser = async (): Promise<User> => {
+  const { data } = await axios.get<User>('/user');
+  return data;
+};
+```
+
+```bash cURL
+curl -X GET https://api.sigeac.com/user \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "skip_zrok_interstitial: true"
+```
+</CodeGroup>
+
+### Response
+
+Returns a single User object with complete profile information.
+
+## Get User by ID
+
+Retrieve a specific user by their ID.
+
+```typescript
+const fetchUserById = async (userId: string): Promise<User> => {
+  const { data } = await axios.get(`/users/${userId}`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="userId" type="string" required>
+  The unique identifier of the user
+</ParamField>
+
+## Roles and Permissions
+
+### Get Roles
+
+Retrieve available roles in the system.
+
+```typescript
+const fetchRoles = async (): Promise<Role[]> => {
+  const { data } = await axios.get('/roles');
+  return data;
+};
+```
+
+### Role Object
+
+<ResponseField name="id" type="number">
+  Role identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Role name (typically uppercase, e.g., "SUPERUSER", "MANAGER")
+</ResponseField>
+
+<ResponseField name="label" type="string">
+  Human-readable role label
+</ResponseField>
+
+<ResponseField name="company" type="Company[]">
+  Companies where this role is available
+</ResponseField>
+
+### Get Permissions
+
+Retrieve all available permissions.
+
+```typescript
+const fetchPermissions = async (): Promise<Permission[]> => {
+  const { data } = await axios.get('/permissions');
+  return data;
+};
+```
+
+### Get Permissions by Company
+
+Retrieve permissions for a specific company.
+
+```typescript
+const fetchPermissionsByCompany = async (companyId: number): Promise<Permission[]> => {
+  const { data } = await axios.get(`/companies/${companyId}/permissions`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch permissions for
+</ParamField>
+
+## User Locations
+
+Get locations accessible to a user within a specific company.
+
+```typescript
+const fetchUserLocations = async (companyId: number): Promise<Location[]> => {
+  const { data } = await axios.get(`/companies/${companyId}/user-locations`);
+  return data;
+};
+```
+
+### Parameters
+
+<ParamField path="companyId" type="number" required>
+  The company ID to fetch locations for
+</ParamField>
+
+## Related Types
+
+### JobTitle
+
+<ResponseField name="id" type="number">
+  Job title identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Job title name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Job title description
+</ResponseField>
+
+### Department
+
+<ResponseField name="id" type="number">
+  Department identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Department name
+</ResponseField>
+
+<ResponseField name="address" type="string">
+  Department address
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Department type
+</ResponseField>
+
+<ResponseField name="cod_iata" type="string">
+  IATA code
+</ResponseField>
+
+<ResponseField name="acronym" type="string">
+  Department acronym
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Department email
+</ResponseField>
+
+## Examples
+
+### Check User Permissions
+
+```typescript
+const hasPermission = (user: User, permissionName: string): boolean => {
+  // Check direct permissions
+  const directPermission = user.permissions?.some(
+    (p) => p.name === permissionName
+  );
+  
+  // Check role permissions
+  const rolePermission = user.roles?.some((role) =>
+    role.permissions?.some((p) => p.name === permissionName)
+  );
+  
+  return directPermission || rolePermission;
+};
+```
+
+### Check if User is SuperUser
+
+```typescript
+const isSuperUser = (user: User): boolean => {
+  return user.roles?.some((role) => role.name === 'SUPERUSER') ?? false;
+};
+```
+
+### Get User Display Name
+
+```typescript
+const getUserDisplayName = (user: User): string => {
+  return `${user.first_name} ${user.last_name}`;
+};
+```
+
+### Filter Active Users
+
+```typescript
+const getActiveUsers = (users: User[]): User[] => {
+  return users.filter((user) => user.isActive);
+};
+```
+
+## Error Handling
+
+<ResponseField name="message" type="string">
+  Error message describing the issue
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  Error type or code
+</ResponseField>
+
+### Common Errors
+
+- **401 Unauthorized**: Authentication token is missing or invalid
+- **403 Forbidden**: User doesn't have permission to access this resource
+- **404 Not Found**: User with the specified ID doesn't exist
+- **422 Unprocessable Entity**: Invalid data provided

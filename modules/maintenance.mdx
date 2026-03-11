@@ -1,0 +1,234 @@
+---
+title: 'Maintenance'
+description: 'Aircraft maintenance services and work order management'
+icon: 'wrench'
+---
+
+The Maintenance module manages aircraft maintenance services, including preventive maintenance programs, scheduled inspections, and maintenance service definitions.
+
+## Overview
+
+This module focuses on **maintenance service catalog management** - the library of maintenance tasks and procedures that can be applied to aircraft and components.
+
+<Note>
+Actual work order execution and planning is handled by the **Planning module**. The Maintenance module defines the service templates and task libraries.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Service Management" icon="list-check">
+    Define maintenance services with detailed task breakdowns
+  </Card>
+  
+  <Card title="Task Library" icon="book">
+    Create reusable maintenance task definitions with required parts
+  </Card>
+  
+  <Card title="Manufacturer Programs" icon="building">
+    Link services to manufacturer maintenance manuals and programs
+  </Card>
+  
+  <Card title="Part Requirements" icon="puzzle-piece">
+    Specify required articles and part numbers for each task
+  </Card>
+</CardGroup>
+
+## Maintenance Services
+
+### Service Structure
+
+Each maintenance service includes:
+
+```typescript
+Maintenance Service:
+- Service name and description
+- Origin manual (e.g., "AMM", "CMM", "MPD")
+- Manufacturer reference
+- Service type: AIRCRAFT or PART
+- Associated tasks
+```
+
+### Service Types
+
+<Accordion title="Aircraft Services">
+  **AIRCRAFT** services apply to complete aircraft, such as:
+  - A-Check, B-Check, C-Check inspections
+  - Annual inspections
+  - Progressive inspections
+  - AD (Airworthiness Directive) compliance
+  - SB (Service Bulletin) incorporation
+  
+  These services contain multiple tasks across different aircraft systems.
+</Accordion>
+
+<Accordion title="Component Services">
+  **PART** services apply to specific components:
+  - Engine overhaul procedures
+  - Landing gear servicing
+  - Avionics maintenance
+  - Component inspections
+  
+  Component services are specific to part numbers and configurations.
+</Accordion>
+
+## Maintenance Tasks
+
+Tasks are the building blocks of services:
+
+### Task Definition
+
+- **Description**: Detailed task instructions
+- **ATA Chapter**: System classification (e.g., "32" for landing gear)
+- **Task Number**: Unique identifier from maintenance manual
+- **Origin Manual**: Source document (AMM, CMM, IPC, etc.)
+- **Required Items**: Parts and materials needed
+
+### Task Items
+
+Each task can specify required articles:
+
+```typescript
+Task Item:
+- Article part number
+- Alternative part numbers (if applicable)
+- Article serial number (for serialized parts)
+- Quantity required
+- Consumption type (consumed, replaced, or inspected)
+```
+
+## Manual References
+
+Services link to manufacturer documentation:
+
+| Manual Code | Description |
+|-------------|-------------|
+| **AMM** | Aircraft Maintenance Manual |
+| **CMM** | Component Maintenance Manual |
+| **IPC** | Illustrated Parts Catalog |
+| **MPD** | Maintenance Planning Document |
+| **SRM** | Structural Repair Manual |
+| **WDM** | Wiring Diagram Manual |
+| **TSM** | Troubleshooting Manual |
+
+## Manufacturer Management
+
+Maintenance services are organized by manufacturer:
+
+- Aircraft manufacturers (Boeing, Airbus, Cessna, etc.)
+- Engine manufacturers (Pratt & Whitney, GE, Rolls-Royce)
+- Component manufacturers
+- Manufacturer-specific maintenance programs
+
+## Service Workflow
+
+<Steps>
+  <Step title="Define Service">
+    Create a new maintenance service with name, type, and manufacturer
+  </Step>
+  
+  <Step title="Add Tasks">
+    Build the service by adding maintenance tasks from manuals
+  </Step>
+  
+  <Step title="Specify Parts">
+    For each task, define required articles and part numbers
+  </Step>
+  
+  <Step title="Use in Planning">
+    The service becomes available for work order creation in the Planning module
+  </Step>
+</Steps>
+
+## Integration with Planning
+
+When creating work orders in the Planning module:
+
+1. Select a maintenance service from the catalog
+2. Service tasks are automatically added to the work order
+3. Required parts generate material requisitions
+4. Task assignments and scheduling occur in Planning
+
+## Use Cases
+
+### Creating a Standard Inspection Service
+
+<Accordion title="Example: 100-Hour Inspection">
+  1. **Create Service**:
+     - Name: "100-Hour Inspection"
+     - Type: AIRCRAFT
+     - Manufacturer: Cessna
+     - Origin Manual: AMM
+  
+  2. **Add Tasks**:
+     - Engine inspection (ATA 71)
+     - Flight control check (ATA 27)
+     - Landing gear inspection (ATA 32)
+     - Fuel system inspection (ATA 28)
+     - Avionics functional check (ATA 34)
+  
+  3. **Specify Requirements**:
+     - Oil filters (P/N: 48108-1)
+     - Fuel filter elements (P/N: 63201-5)
+     - O-rings and gaskets
+     - Inspection forms
+</Accordion>
+
+### Component Overhaul Service
+
+<Accordion title="Example: Engine Overhaul">
+  Create a comprehensive overhaul service for a specific engine model:
+  
+  - **Service**: PT6A-21 Engine Overhaul
+  - **Manual**: Pratt & Whitney CMM
+  - **Tasks**:
+    - Disassembly and cleaning
+    - Dimensional inspection
+    - NDT (Non-Destructive Testing)
+    - Parts replacement per overhaul manual
+    - Reassembly and test run
+  
+  - **Required Parts**:
+    - Complete gasket set
+    - Bearing assemblies
+    - Seal kits
+    - Life-limited parts per time limits
+</Accordion>
+
+## Service Management Features
+
+### Search and Filter
+
+- Find services by name or description
+- Filter by manufacturer
+- Filter by service type (aircraft vs. component)
+- Search by manual reference
+
+### Service Templates
+
+Common services can be templated and reused:
+
+- Standard inspection packages
+- Manufacturer-recommended maintenance
+- Regulatory compliance checks
+- Custom organizational requirements
+
+## Best Practices
+
+<Note>
+**Service Organization Tips**:
+- Use consistent naming conventions
+- Reference exact manual chapter and task numbers
+- Keep alternative part numbers updated
+- Review and update services when manuals are revised
+- Link related services for phased inspections
+</Note>
+
+## Reporting
+
+The module provides visibility into:
+
+- Total services defined in the system
+- Services by manufacturer and type
+- Task complexity (number of tasks per service)
+- Parts requirements across services

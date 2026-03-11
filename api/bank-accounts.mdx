@@ -1,0 +1,140 @@
+---
+title: "Bank Accounts"
+description: "Manage bank accounts and payment cards in SIGEAC"
+---
+
+## BankAccount Object
+
+Represents a bank account used for financial transactions.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the bank account
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Descriptive name for the account
+</ResponseField>
+
+<ResponseField name="account_number" type="string" required>
+  Bank account number
+</ResponseField>
+
+<ResponseField name="account_type" type="string" required>
+  Type of bank account (e.g., "CORRIENTE", "AHORRO")
+</ResponseField>
+
+<ResponseField name="account_owner" type="string" required>
+  Name of the account holder
+</ResponseField>
+
+<ResponseField name="bank" type="Bank" required>
+  Associated bank information
+</ResponseField>
+
+<ResponseField name="cards" type="Card[]" required>
+  Payment cards linked to this account
+</ResponseField>
+
+<ResponseField name="company" type="Company" required>
+  Company that owns the account
+</ResponseField>
+
+<ResponseField name="created_by" type="string" required>
+  User who created the account record
+</ResponseField>
+
+<ResponseField name="updated_by" type="string" required>
+  User who last updated the account record
+</ResponseField>
+
+## Bank Object
+
+Information about a banking institution.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the bank
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Bank name
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Type of banking institution
+</ResponseField>
+
+<ResponseField name="created_by" type="string" required>
+  User who created the bank record
+</ResponseField>
+
+<ResponseField name="updated_by" type="string" required>
+  User who last updated the bank record
+</ResponseField>
+
+## Card Object
+
+Represents a payment card linked to a bank account.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the card
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Card name or description
+</ResponseField>
+
+<ResponseField name="card_number" type="string" required>
+  Card number (may be masked)
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Card type (e.g., "CREDITO", "DEBITO")
+</ResponseField>
+
+<ResponseField name="bank_account" type="BankAccount" required>
+  Associated bank account
+</ResponseField>
+
+<ResponseField name="created_by" type="string" required>
+  User who created the card record
+</ResponseField>
+
+<ResponseField name="updated_by" type="string" required>
+  User who last updated the card record
+</ResponseField>
+
+## Example
+
+```json
+{
+  "id": 3,
+  "name": "Cuenta Corriente USD - Operations",
+  "account_number": "0102-0123-45-6789012345",
+  "account_type": "CORRIENTE",
+  "account_owner": "SIGEAC Aviation Services C.A.",
+  "bank": {
+    "id": 1,
+    "name": "Banco Nacional de Comercio",
+    "type": "COMERCIAL",
+    "created_by": "admin",
+    "updated_by": "admin"
+  },
+  "cards": [
+    {
+      "id": 1,
+      "name": "Corporate Card",
+      "card_number": "****-****-****-1234",
+      "type": "CREDITO",
+      "created_by": "admin",
+      "updated_by": "admin"
+    }
+  ],
+  "company": {
+    "id": 1,
+    "name": "SIGEAC Aviation",
+    "rif": "J-12345678-9"
+  },
+  "created_by": "admin",
+  "updated_by": "finance_manager"
+}
+```

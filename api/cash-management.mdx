@@ -1,0 +1,168 @@
+---
+title: "Cash Management"
+description: "Manage cash accounts and movements in SIGEAC"
+---
+
+## Cash Object
+
+Represents a cash account or fund in the system.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the cash account
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the cash account
+</ResponseField>
+
+<ResponseField name="total_amount" type="string" required>
+  Current total balance (stored as string for precision)
+</ResponseField>
+
+<ResponseField name="coin" type="string" required>
+  Currency type
+  <Expandable title="values">
+    - `BOLIVARES` - Venezuelan Bolívares
+    - `DOLARES` - US Dollars
+    - `EUROS` - Euros
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Cash account type
+  <Expandable title="values">
+    - `EFECTIVO` - Physical cash
+    - `TRANSFERENCIA` - Bank transfers/electronic funds
+  </Expandable>
+</ResponseField>
+
+## CashMovement Object
+
+Tracks individual cash transactions (income and expenses).
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the movement
+</ResponseField>
+
+<ResponseField name="employee_responsible" type="Employee" required>
+  Employee responsible for the transaction
+</ResponseField>
+
+<ResponseField name="cash" type="Cash" required>
+  Associated cash account
+</ResponseField>
+
+<ResponseField name="company" type="Company" required>
+  Company associated with the movement
+</ResponseField>
+
+<ResponseField name="date" type="Date" required>
+  Date of the transaction
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Movement type
+  <Expandable title="values">
+    - `INCOME` - Money coming in
+    - `OUTPUT` - Money going out
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="details" type="string" required>
+  Description of the transaction
+</ResponseField>
+
+<ResponseField name="reference_cod" type="string" required>
+  Reference code or transaction number
+</ResponseField>
+
+<ResponseField name="total_amount" type="string" required>
+  Total transaction amount
+</ResponseField>
+
+<ResponseField name="bank_account" type="BankAccount">
+  Associated bank account if applicable
+</ResponseField>
+
+<ResponseField name="vendor" type="AdministrationVendor">
+  Vendor involved in the transaction
+</ResponseField>
+
+<ResponseField name="client" type="Client">
+  Client involved in the transaction
+</ResponseField>
+
+<ResponseField name="accountant" type="Accountant" required>
+  Accounting classification
+</ResponseField>
+
+<ResponseField name="category" type="Category" required>
+  Transaction category
+</ResponseField>
+
+<ResponseField name="cash_movement_details" type="CashMovementDetails[]" required>
+  Detailed breakdown of the movement
+</ResponseField>
+
+## CashMovementDetails Object
+
+Detailed line items for a cash movement.
+
+<ResponseField name="id" type="number" required>
+  Unique identifier for the detail line
+</ResponseField>
+
+<ResponseField name="accountant" type="Accountant" required>
+  Accounting entry
+</ResponseField>
+
+<ResponseField name="category" type="Category" required>
+  Category for this line item
+</ResponseField>
+
+<ResponseField name="details" type="string" required>
+  Description of this line item
+</ResponseField>
+
+<ResponseField name="amount" type="string" required>
+  Amount for this line item
+</ResponseField>
+
+## Example
+
+```json
+{
+  "id": 1,
+  "name": "Caja Chica USD",
+  "total_amount": "25000.00",
+  "coin": "DOLARES",
+  "type": "EFECTIVO"
+}
+```
+
+```json
+{
+  "id": 42,
+  "date": "2026-03-11T14:30:00Z",
+  "type": "OUTPUT",
+  "details": "Payment for office supplies",
+  "reference_cod": "EG-2026-0042",
+  "total_amount": "1500.00",
+  "cash": {
+    "id": 1,
+    "name": "Caja Chica USD",
+    "coin": "DOLARES"
+  },
+  "cash_movement_details": [
+    {
+      "id": 1,
+      "details": "Paper and printer supplies",
+      "amount": "1500.00",
+      "category": {
+        "id": 5,
+        "name": "Office Supplies"
+      }
+    }
+  ]
+}
+```

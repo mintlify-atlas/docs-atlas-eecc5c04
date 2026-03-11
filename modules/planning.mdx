@@ -1,0 +1,482 @@
+---
+title: 'Planning'
+description: 'Aircraft registry, work order planning, and maintenance scheduling'
+icon: 'calendar'
+---
+
+The Planning module is the operational heart of the maintenance organization, managing aircraft registry, work order execution, flight control, and maintenance calendar planning.
+
+## Overview
+
+Planning coordinates all maintenance activities from aircraft tracking through work order execution, including flight hour/cycle monitoring and maintenance scheduling.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Aircraft Registry" icon="plane">
+    Maintain complete aircraft records with configuration and time tracking
+  </Card>
+  
+  <Card title="Work Order Management" icon="clipboard-list">
+    Create, schedule, and execute maintenance work orders with task tracking
+  </Card>
+  
+  <Card title="Flight Control" icon="plane-departure">
+    Log flights and automatically update aircraft/component times
+  </Card>
+  
+  <Card title="Maintenance Calendar" icon="calendar-days">
+    Visual planning of work orders, tasks, and scheduled maintenance
+  </Card>
+</CardGroup>
+
+## Aircraft Registry
+
+### Aircraft Management
+
+Maintain comprehensive aircraft records:
+
+```typescript
+Aircraft:
+- Identification:
+  - Acronym (registration, e.g., "YV-123A")
+  - Serial number
+  - Model
+- Manufacturer
+- Configuration:
+  - Fabrication date
+  - Aircraft parts/components hierarchy
+- Time tracking:
+  - Total flight hours
+  - Total cycles (takeoff/landing)
+- Client:
+  - Owner or operator
+  - Authorizing type: PROPIETARIO or EXPLOTADOR
+- Location (current base)
+- Comments and notes
+```
+
+### Aircraft Components Hierarchy
+
+Aircraft parts are organized in a **parent-child hierarchy**:
+
+<Accordion title="Component Structure Example">
+  **Aircraft**: YV-3456
+  - **Engine #1** (parent component)
+    - Part: PT6A-21 Engine
+    - Serial: PCE-12345
+    - TSN: 4,324 hours
+    - CSN: 3,890 cycles
+    - **Sub-components**:
+      - Fuel Control Unit (child)
+      - Compressor Assembly (child)
+      - Turbine Section (child)
+  
+  - **Engine #2** (parent component)
+    - Similar structure
+  
+  - **Propeller #1** (parent component)
+    - Propeller Assembly
+    - **Sub-components**:
+      - Propeller Blades
+      - Hub Assembly
+  
+  This hierarchy tracks times (hours/cycles) for each component independently.
+</Accordion>
+
+### Aircraft Part Tracking
+
+```typescript
+Aircraft Part:
+- Part number and name
+- Serial number
+- Condition type (SV, OH, RP, etc.)
+- Time tracking:
+  - Time Since New (TSN)
+  - Time Since Overhaul (TSO)
+  - Cycles Since New (CSN)
+  - Cycles Since Overhaul (CSO)
+- Hierarchy:
+  - Is father (parent component)
+  - Aircraft part ID (parent reference)
+  - Sub-parts array (children)
+- Linked aircraft
+```
+
+### Component Time Tracking
+
+<Note>
+**Automatic Time Updates**:
+
+When a flight is logged:
+1. Aircraft total hours/cycles increase
+2. All installed components' times update automatically
+3. Time-based maintenance triggers are evaluated
+4. Maintenance due alerts are generated
+</Note>
+
+## Work Order Management
+
+### Work Order Structure
+
+```typescript
+Work Order:
+- Order number (auto-generated)
+- Aircraft
+- Client (aircraft operator/owner)
+- Status:
+  - OPEN (created)
+  - IN_PROGRESS (work started)
+  - INSPECTION (awaiting inspection)
+  - COMPLETED (work done)
+  - CLOSED (finalized and invoiced)
+- Dates:
+  - Creation date
+  - Scheduled start/completion
+  - Actual completion
+- Description
+- Personnel:
+  - Elaborated by
+  - Reviewed by
+  - Approved by
+- Work order tasks
+- Preliminary inspection
+- Work order report pages
+```
+
+### Work Order Tasks
+
+Each work order contains maintenance tasks:
+
+```typescript
+Work Order Task:
+- Description
+- Task number and origin manual
+- ATA code (system classification)
+- Status:
+  - PENDING
+  - IN_PROGRESS
+  - COMPLETED
+  - INSPECTION
+- Personnel:
+  - Technician responsible
+  - Assigned technicians with hours
+  - Inspector responsible
+- Total man-hours
+- Task items (required parts):
+  - Article part number
+  - Alternative part numbers
+  - Serial number
+- Task events (scheduling)
+- Non-routine items (discrepancies found)
+```
+
+### Task Assignment
+
+<Accordion title="Technician Assignment">
+  Tasks support **multiple technician assignment**:
+  
+  ```typescript
+  Assigned Technicians:
+  - Technician name
+  - Hours worked on this task
+  ```
+  
+  This enables:
+  - Accurate labor tracking
+  - Multiple techs collaborating on one task
+  - Precise man-hour calculations
+  - Labor cost allocation
+</Accordion>
+
+### Non-Routine Items
+
+Discrepancies found during maintenance:
+
+```typescript
+Non-Routine Item:
+- ATA code
+- Description of issue found
+- Status
+- Action taken or required
+- Needs additional task flag
+- Linked work order task (if created)
+- Child non-routine tasks
+```
+
+**Workflow**: Technician finds issue → Create non-routine → Generate task → Assign and complete
+
+### Preliminary Inspection
+
+Pre-maintenance inspection documentation:
+
+```typescript
+Preliminary Inspection:
+- Status
+- Authorizing person
+- Observation/notes
+- Inspection items:
+  - ATA code
+  - Description
+  - Location on aircraft
+```
+
+### Work Order Reports
+
+Document work performed:
+
+```typescript
+Work Order Report:
+- Report pages (multiple entries)
+- Each entry:
+  - ATA code
+  - Report (findings)
+  - Action taken
+```
+
+Forms the basis for maintenance release documentation.
+
+## Flight Control
+
+### Flight Logging
+
+Record all flight operations:
+
+```typescript
+Flight Control:
+- Flight number
+- Aircraft
+- Aircraft operator
+- Route:
+  - Origin
+  - Destination
+- Flight date
+- Flight hours (this flight)
+- Flight cycles (this flight)
+- Automatic time updates:
+  - Aircraft total hours/cycles
+  - All component hours/cycles
+```
+
+### Flight History
+
+Maintain complete flight records:
+
+```typescript
+Flight History:
+- Flight number
+- Linked aircraft part
+- Snapshot of part times:
+  - TSN before flight
+  - TSO before flight
+  - CSN before flight
+  - CSO before flight
+- Flight hours/cycles added
+- Created/updated timestamps
+```
+
+**Purpose**: Historical tracking for maintenance compliance and component life limits
+
+### Historical Flight Reporting
+
+View flight history with filters:
+
+- **Aircraft Filter**: Select specific aircraft
+- **Period Filter**: 
+  - By month
+  - By custom date range
+- **Display**: Tabular flight log with cumulative times
+
+<Accordion title="Flight History Use Cases">
+  1. **Audit Trail**: Complete flight log for regulatory compliance
+  2. **Time Verification**: Verify component times for maintenance planning
+  3. **Utilization Analysis**: Track aircraft usage patterns
+  4. **Billing**: Flight hours for operator invoicing
+  5. **Trend Analysis**: Identify heavy vs. light usage periods
+</Accordion>
+
+## Maintenance Calendar
+
+Visual planning tool for scheduling:
+
+### Calendar Features
+
+- **Work Order Events**: Scheduled work order dates
+- **Task Events**: Individual task scheduling within work orders
+- **Service Events**: Planned maintenance from service library
+- **Calendar Views**: Day, week, month views
+- **Drag-and-Drop**: Reschedule events visually
+- **Priority Indicators**: Color-coding by priority (LOW, MEDIUM, HIGH)
+
+### Planification Events
+
+```typescript
+Planification Event:
+- Title and description
+- Start and end dates/times
+- Priority: LOW, MEDIUM, HIGH
+- Calendar ID (categorization)
+- Linked work order (if applicable)
+```
+
+<Note>
+**Calendar Integration**: Events sync with work order schedules - changes to work order dates update calendar events automatically.
+</Note>
+
+## Client Management (Operators)
+
+Maintenance clients (aircraft operators):
+
+```typescript
+Maintenance Client:
+- Name
+- Contact:
+  - Email
+  - Phone
+  - Address
+- Authorizing type:
+  - PROPIETARIO (owner)
+  - EXPLOTADOR (operator)
+- Linked aircraft
+```
+
+Distinguishes between aircraft owners and operators for regulatory compliance.
+
+## Technician Management
+
+Employee assignment to work orders:
+
+- Department assignment
+- Job title tracking
+- Task assignment
+- Man-hour tracking
+- Inspector certification
+
+## Work Order Workflow
+
+<Steps>
+  <Step title="Create Work Order">
+    - Select aircraft and client
+    - Choose maintenance service (from Maintenance module)
+    - System populates tasks from service definition
+  </Step>
+  
+  <Step title="Preliminary Inspection">
+    - Conduct pre-maintenance inspection
+    - Document aircraft condition
+    - Identify additional work needed
+  </Step>
+  
+  <Step title="Task Assignment">
+    - Assign tasks to technicians
+    - Schedule task start dates
+    - Generate material requisitions for required parts
+  </Step>
+  
+  <Step title="Task Execution">
+    - Technicians perform work
+    - Record man-hours
+    - Update task status
+    - Create non-routines if discrepancies found
+  </Step>
+  
+  <Step title="Inspection">
+    - Inspector reviews completed work
+    - Verifies task completion
+    - Approves or rejects tasks
+  </Step>
+  
+  <Step title="Documentation">
+    - Complete work order reports
+    - Document all actions taken
+    - Prepare release to service documentation
+  </Step>
+  
+  <Step title="Close Work Order">
+    - Final review and approval
+    - Update aircraft/component times
+    - Generate invoice (if applicable)
+    - Archive work order
+  </Step>
+</Steps>
+
+## Maintenance Due Tracking
+
+While not explicitly shown in the code, the system supports tracking:
+
+- **Hour-based maintenance**: Due at specific flight hours
+- **Cycle-based maintenance**: Due at specific cycles
+- **Calendar-based maintenance**: Due on specific dates
+- **Component life limits**: Track time to component overhaul/replacement
+
+## User Workflows
+
+### For Planners
+
+1. **Aircraft Management**:
+   - Register new aircraft
+   - Update component configurations
+   - Monitor flight hours and cycles
+
+2. **Work Order Planning**:
+   - Create work orders from services
+   - Schedule maintenance activities
+   - Assign technicians and resources
+   - Monitor work order progress
+
+3. **Flight Logging**:
+   - Record daily flights
+   - Verify time updates
+   - Review flight history
+
+### For Technicians
+
+1. **View Assigned Tasks**:
+   - See scheduled work
+   - Review task requirements
+   - Check parts availability
+
+2. **Execute Work**:
+   - Update task status
+   - Record man-hours
+   - Create non-routine items
+   - Request additional parts
+
+### For Inspectors
+
+1. **Review Completed Work**:
+   - Inspect task completion
+   - Verify compliance with procedures
+   - Sign off on completed tasks
+
+## Reporting
+
+Planning module provides:
+
+- Work order status reports
+- Aircraft utilization reports
+- Flight history by aircraft
+- Maintenance backlog
+- Technician productivity
+- Man-hour summaries
+- Component time reports
+
+## Integration with Other Modules
+
+<CardGroup cols={2}>
+  <Card title="Maintenance Integration">
+    Service definitions populate work order tasks automatically
+  </Card>
+  
+  <Card title="Warehouse Integration">
+    Task items generate dispatch requests for required parts
+  </Card>
+  
+  <Card title="Purchasing Integration">
+    Work orders trigger requisitions for parts not in stock
+  </Card>
+  
+  <Card title="Administration">
+    Completed work orders generate client invoices
+  </Card>
+</CardGroup>

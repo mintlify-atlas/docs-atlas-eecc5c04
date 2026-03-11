@@ -1,0 +1,244 @@
+---
+title: 'Batch'
+description: 'Batch entity type definition and field reference'
+icon: 'layer-group'
+---
+
+## Overview
+
+The `Batch` type represents a grouping or category of related articles in the SIGEAC warehouse system. Batches organize inventory items by characteristics such as category, brand, ATA code, and storage requirements.
+
+## Type Definition
+
+```typescript
+export type Batch = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  category: string;
+  ata_code: string;
+  brand: string;
+  is_hazarous: boolean;
+  unit: Unit;
+  min_quantity: number;
+  zone: string;
+  warehouse_id: number;
+  warehouse_name: string;
+};
+```
+
+## Fields
+
+<ParamField path="id" type="number" required>
+  Unique identifier for the batch
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Display name of the batch
+</ParamField>
+
+<ParamField path="slug" type="string" required>
+  URL-friendly identifier for the batch (lowercase, hyphenated)
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Detailed description of the batch and its contents
+</ParamField>
+
+<ParamField path="category" type="string" required>
+  Category classification for the batch (e.g., "Fasteners", "Electronics", "Hydraulics")
+</ParamField>
+
+<ParamField path="ata_code" type="string" required>
+  Air Transport Association (ATA) chapter code for aviation categorization
+  
+  Common ATA codes include:
+  - `21-00-00`: Air Conditioning
+  - `32-00-00`: Landing Gear
+  - `53-00-00`: Fuselage
+  - `71-00-00`: Power Plant
+</ParamField>
+
+<ParamField path="brand" type="string" required>
+  Primary brand or manufacturer associated with items in this batch
+</ParamField>
+
+<ParamField path="is_hazarous" type="boolean" required>
+  Indicates if items in this batch are hazardous materials requiring special handling
+  
+  When `true`, additional safety protocols and storage requirements apply.
+</ParamField>
+
+<ParamField path="unit" type="Unit" required>
+  Default unit of measurement for items in this batch
+  <Expandable title="Unit fields">
+    <ResponseField name="id" type="number">
+      Unit unique identifier
+    </ResponseField>
+    <ResponseField name="value" type="string">
+      Unit abbreviation (e.g., "EA", "KG", "L", "M")
+    </ResponseField>
+    <ResponseField name="label" type="string">
+      Full unit name (e.g., "Each", "Kilogram", "Liter")
+    </ResponseField>
+    <ResponseField name="registered_by" type="string">
+      User who registered the unit
+    </ResponseField>
+    <ResponseField name="updated_by" type="string">
+      User who last updated the unit
+    </ResponseField>
+    <ResponseField name="created_at" type="Date">
+      Creation timestamp
+    </ResponseField>
+    <ResponseField name="updated_at" type="Date">
+      Last update timestamp
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="min_quantity" type="number" required>
+  Minimum quantity threshold for restock alerts
+  
+  When total quantity of articles in this batch falls below this value, the system triggers a restock notification.
+</ParamField>
+
+<ParamField path="zone" type="string" required>
+  Physical storage zone or location code within the warehouse (e.g., "A-12-B", "RACK-05-SHELF-3")
+</ParamField>
+
+<ParamField path="warehouse_id" type="number" required>
+  Foreign key reference to the warehouse where this batch is stored
+</ParamField>
+
+<ParamField path="warehouse_name" type="string" required>
+  Name of the warehouse for quick reference (denormalized for performance)
+</ParamField>
+
+## Batch in Related Types
+
+### Article Relationship
+
+Articles belong to batches through the `batch_id` foreign key:
+
+```typescript
+export type Article = {
+  // ... other fields
+  batches?: Batch;
+  batch_id?: number;
+};
+```
+
+### DispatchRequest Batch Details
+
+When dispatching articles, the batch information includes extended details:
+
+```typescript
+{
+  id: string;
+  name: string;
+  category: string;
+  article_count: number;
+  min_quantity: number;
+  articles: {
+    article_id: string;
+    serial: string;
+    part_number: string;
+    quantity: string;
+    unit: Convertion[];
+  }[];
+}
+```
+
+## Example Data
+
+### Standard Batch
+
+```json
+{
+  "id": 78,
+  "name": "Hydraulic System Seals",
+  "slug": "hydraulic-system-seals",
+  "description": "O-rings, gaskets, and seals for hydraulic systems",
+  "category": "Seals & Gaskets",
+  "ata_code": "29-10-00",
+  "brand": "Parker Aerospace",
+  "is_hazarous": false,
+  "unit": {
+    "id": 1,
+    "value": "EA",
+    "label": "Each",
+    "registered_by": "system",
+    "updated_by": "admin",
+    "created_at": "2023-01-15T08:00:00Z",
+    "updated_at": "2023-01-15T08:00:00Z"
+  },
+  "min_quantity": 50,
+  "zone": "B-08-C",
+  "warehouse_id": 3,
+  "warehouse_name": "Main Warehouse - Miami"
+}
+```
+
+### Hazardous Materials Batch
+
+```json
+{
+  "id": 142,
+  "name": "Aircraft Cleaning Solvents",
+  "slug": "aircraft-cleaning-solvents",
+  "description": "Industrial-grade cleaning solvents and degreasers",
+  "category": "Chemicals",
+  "ata_code": "12-00-00",
+  "brand": "Henkel",
+  "is_hazarous": true,
+  "unit": {
+    "id": 5,
+    "value": "L",
+    "label": "Liter",
+    "registered_by": "admin",
+    "updated_by": "admin",
+    "created_at": "2023-01-15T08:00:00Z",
+    "updated_at": "2023-01-15T08:00:00Z"
+  },
+  "min_quantity": 20,
+  "zone": "HAZ-STORAGE-01",
+  "warehouse_id": 3,
+  "warehouse_name": "Main Warehouse - Miami"
+}
+```
+
+## Use Cases
+
+### Inventory Organization
+
+Batches help organize large inventories by grouping similar items:
+
+- **By Function**: All fasteners in one batch, all electrical components in another
+- **By ATA Code**: Organize by aircraft system (e.g., all landing gear parts)
+- **By Brand**: Group items from the same manufacturer for easier vendor management
+
+### Restock Management
+
+The `min_quantity` field enables automated restock alerts:
+
+```typescript
+if (batchArticles.totalQuantity < batch.min_quantity) {
+  triggerRestockNotification(batch);
+}
+```
+
+### Safety Compliance
+
+The `is_hazarous` flag ensures proper handling:
+
+- Special storage requirements
+- Additional documentation for hazmat shipments
+- Safety equipment requirements for handling
+- Regulatory compliance tracking
+
+## Related Types
+
+- [Article](/api/articles) - Individual items within a batch
+- [Warehouse](/api/warehouses) - Storage facility containing batches
+- [DispatchRequest](/api/dispatch-requests) - Requests to move articles from batches
