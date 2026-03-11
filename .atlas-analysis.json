@@ -1,0 +1,201 @@
+{
+  "projectType": "saas",
+  "projectName": "SIGEAC",
+  "projectDescription": "Aviation management SaaS platform for aircraft tracking, maintenance, warehouse operations, and safety management.",
+  "theme": "aspen",
+  "primaryColor": "#2c5b8d",
+  "lightColor": "#b6e8f7",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/multi-tenant-architecture",
+              "concepts/authentication",
+              "concepts/role-based-access"
+            ]
+          },
+          {
+            "group": "Modules",
+            "pages": [
+              "modules/overview",
+              "modules/warehouse-management",
+              "modules/maintenance",
+              "modules/purchasing",
+              "modules/administration",
+              "modules/sms",
+              "modules/planning",
+              "modules/quality-control"
+            ]
+          },
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/dashboard-overview",
+              "guides/managing-companies",
+              "guides/aircraft-tracking",
+              "guides/work-orders",
+              "guides/inventory-management",
+              "guides/requisitions-and-orders"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Components",
+        "groups": [
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/overview",
+              "components/forms",
+              "components/tables",
+              "components/dialogs",
+              "components/charts"
+            ]
+          },
+          {
+            "group": "Layout",
+            "pages": [
+              "components/sidebar",
+              "components/navigation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "api/authentication",
+              "api/users",
+              "api/companies",
+              "api/locations"
+            ]
+          },
+          {
+            "group": "Warehouse",
+            "pages": [
+              "api/articles",
+              "api/batches",
+              "api/warehouses",
+              "api/dispatch-requests"
+            ]
+          },
+          {
+            "group": "Maintenance",
+            "pages": [
+              "api/aircraft",
+              "api/work-orders",
+              "api/maintenance-services",
+              "api/flight-control"
+            ]
+          },
+          {
+            "group": "Purchasing",
+            "pages": [
+              "api/requisitions",
+              "api/purchase-orders",
+              "api/quotes",
+              "api/vendors"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "api/credits",
+              "api/payments",
+              "api/cash-management",
+              "api/bank-accounts"
+            ]
+          },
+          {
+            "group": "SMS",
+            "pages": [
+              "api/incident-reports",
+              "api/danger-identification",
+              "api/mitigation-plans",
+              "api/sms-activities"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Setup",
+            "pages": [
+              "development/environment-setup",
+              "development/project-structure",
+              "development/configuration"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "development/tech-stack",
+              "development/state-management",
+              "development/routing",
+              "development/data-fetching"
+            ]
+          },
+          {
+            "group": "Extending",
+            "pages": [
+              "development/adding-modules",
+              "development/custom-hooks",
+              "development/api-integration"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-tenant company management with role-based access control",
+    "Comprehensive aircraft and component tracking system",
+    "Warehouse and inventory management with batch tracking",
+    "Purchase order and requisition workflow",
+    "Aviation maintenance work order system",
+    "SMS (Safety Management System) with incident reporting",
+    "Financial management including credits and payments",
+    "Flight control and scheduling",
+    "Real-time notifications using Laravel Echo and Pusher",
+    "PDF generation for reports and documents",
+    "Interactive dashboards with role-specific views"
+  ],
+  "publicApiSurface": [
+    "useAuth() - Authentication context hook",
+    "useCompanyStore() - Company state management",
+    "AuthContext - User authentication and session management",
+    "axiosInstance - Configured HTTP client",
+    "DataTableMixedSorting - Sortable data table component",
+    "WarehouseDashboard - Warehouse overview component",
+    "SMSDashboard - Safety management dashboard",
+    "AdministrationDashboard - Financial management dashboard",
+    "User type - User account with roles and permissions",
+    "Article type - Warehouse article/component",
+    "Aircraft type - Aircraft entity with tracking",
+    "WorkOrder type - Maintenance work order",
+    "Requisition type - Purchase requisition",
+    "PurchaseOrder type - Purchase order",
+    "Credit type - Credit/payment tracking",
+    "ObligatoryReport type - Mandatory safety incident report",
+    "VoluntaryReport type - Voluntary safety report"
+  ]
+}
