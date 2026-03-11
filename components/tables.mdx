@@ -9,6 +9,62 @@ SIGEAC uses TanStack Table (React Table) v8 for powerful, accessible data tables
 
 ## Table Components
 
+### DataTable (DataTableMixedSorting)
+
+A reusable data table component with built-in sorting, filtering, pagination, and row selection.
+
+**Location**: `components/DataTableMixedSorting.tsx:25`
+
+<ParamField path="columns" type="ColumnDef<TData, TValue>[]" required>
+  Column definitions using TanStack Table's ColumnDef interface
+</ParamField>
+
+<ParamField path="data" type="TData[]" required>
+  Array of data to display in the table
+</ParamField>
+
+#### Features
+
+- Sorting (multi-column support)
+- Column filtering
+- Column visibility toggling
+- Row selection
+- Pagination
+- Fully typed with TypeScript generics
+
+#### Usage Example
+
+```tsx
+import { DataTable } from '@/components/DataTableMixedSorting';
+import { ColumnDef } from '@tanstack/react-table';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+];
+
+const users: User[] = [
+  { id: 1, name: 'John Doe', email: 'john@example.com' },
+  { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+];
+
+export function UserList() {
+  return <DataTable columns={columns} data={users} />;
+}
+```
+
 ### DataTablePagination
 
 Provides pagination controls with page size selection and navigation buttons.
